@@ -1,0 +1,422 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SwiftCare Dental System Design System 
+All colors MUST be HSL. Professional medical theme with 3D effects.
+*/
+
+@layer base {
+  :root {
+    /* Core backgrounds */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+    
+    /* Medical theme colors */
+    --medical-blue: 210 85% 55%;
+    --medical-blue-light: 210 85% 65%;
+    --medical-blue-dark: 210 85% 45%;
+    --dental-mint: 165 75% 55%;
+    --dental-mint-light: 165 75% 65%;
+    --professional-navy: 215 85% 25%;
+    --clean-white: 0 0% 100%;
+    --soft-gray: 210 15% 96%;
+    
+    /* Card and surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+    --card-glass: 210 20% 98%;
+    
+    /* Interactive elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+    
+    /* Primary brand colors */
+    --primary: 210 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 210 85% 50%;
+    --primary-glow: 210 85% 65%;
+    
+    /* Secondary colors */
+    --secondary: 165 75% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 165 75% 50%;
+    
+    /* Professional navy accent */
+    --accent: 215 85% 25%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 215 85% 30%;
+    
+    /* Text variations */
+    --muted: 210 15% 96%;
+    --muted-foreground: 215 15% 45%;
+    --text-light: 215 10% 65%;
+    
+    /* Status colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Interactive states */
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 210 85% 55%;
+    
+    /* Gradients for 3D effects */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--medical-blue-light)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-mint)), hsl(var(--dental-mint-light)));
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--dental-mint)));
+    
+    /* Shadows for depth */
+    --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.15);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+    
+    /* Animation and transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+  /* Custom animations and 3D effects */
+@layer utilities {
+  .animate-fade-in-up {
+    opacity: 0;
+    animation: fade-in-up 0.6s ease-out forwards;
+  }
+  
+  .animate-scale-in {
+    opacity: 0;
+    animation: scale-in 0.5s ease-out forwards;
+  }
+  
+  .animate-slide-in-right {
+    opacity: 0;
+    animation: slide-in-right 0.7s ease-out forwards;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* Custom animations and 3D effects */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Glassmorphism and 3D effects */
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-lg bg-white/25 border border-white/20 rounded-2xl;
+    box-shadow: var(--shadow-glass);
+    transition: var(--transition-smooth);
+  }
+  
+  .glass-card:hover {
+    @apply bg-white/30;
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+  
+  .medical-gradient {
+    background: var(--gradient-primary);
+  }
+  
+  .dental-gradient {
+    background: var(--gradient-secondary);
+  }
+  
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+  
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .smooth-transition {
+    transition: var(--transition-smooth);
+  }
+  
+  .bounce-transition {
+    transition: var(--transition-bounce);
+  }
+  
+  /* 3D Button Effects */
+  .btn-3d {
+    @apply relative overflow-hidden;
+    transform: perspective(1px) translateZ(0);
+    transition: var(--transition-smooth);
+  }
+  
+  .btn-3d:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .btn-3d:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  /* Enhanced 3D Card Effects */
+  .card-3d {
+    @apply relative;
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+    transition: var(--transition-smooth);
+    transform-style: preserve-3d;
+  }
+  
+  .card-3d:hover {
+    transform: perspective(1000px) rotateX(-2deg) rotateY(2deg) translateY(-10px);
+    box-shadow: var(--shadow-hover), 0 25px 50px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Page Container 3D Effects */
+  .page-container {
+    @apply relative;
+    animation: pageEntry 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    opacity: 0;
+    transform: translateY(30px) rotateX(10deg);
+  }
+
+  /* Staggered Animation for Cards */
+  .card-stagger-1 {
+    animation: cardStagger 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+    transform: translateY(30px) rotateX(5deg);
+  }
+  
+  .card-stagger-2 {
+    animation: cardStagger 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+    transform: translateY(30px) rotateX(5deg);
+  }
+  
+  .card-stagger-3 {
+    animation: cardStagger 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+    transform: translateY(30px) rotateX(5deg);
+  }
+  
+  .card-stagger-4 {
+    animation: cardStagger 0.6s ease-out 0.4s forwards;
+    opacity: 0;
+    transform: translateY(30px) rotateX(5deg);
+  }
+
+  /* Interactive Hover States */
+  .interactive-3d {
+    @apply relative cursor-pointer;
+    transition: var(--transition-smooth);
+    transform-style: preserve-3d;
+  }
+  
+  .interactive-3d:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* Floating Elements */
+  .float-gentle {
+    animation: floatGentle 4s ease-in-out infinite;
+  }
+  
+  .float-strong {
+    animation: floatStrong 3s ease-in-out infinite;
+  }
+  
+  /* Mobile-first animations */
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  .scale-in {
+    animation: scaleIn 0.5s ease-out forwards;
+  }
+  
+  .slide-in-right {
+    animation: slideInRight 0.7s ease-out forwards;
+  }
+}
+
+/* Keyframe animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px);
+  }
+  50% { 
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pageEntry {
+  from {
+    opacity: 0;
+    transform: translateY(50px) rotateX(15deg) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px) rotateX(0deg) scale(1);
+  }
+}
+
+@keyframes cardStagger {
+  from {
+    opacity: 0;
+    transform: translateY(30px) rotateX(10deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px) rotateX(0deg) scale(1);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% { 
+    transform: translateY(0px) rotateZ(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotateZ(1deg);
+  }
+  50% { 
+    transform: translateY(-8px) rotateZ(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotateZ(-1deg);
+  }
+}
+
+@keyframes floatStrong {
+  0%, 100% { 
+    transform: translateY(0px) rotateZ(0deg) scale(1);
+  }
+  33% {
+    transform: translateY(-8px) rotateZ(2deg) scale(1.02);
+  }
+  66% { 
+    transform: translateY(-12px) rotateZ(-1deg) scale(0.98);
+  }
+}
