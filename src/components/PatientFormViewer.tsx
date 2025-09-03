@@ -138,7 +138,7 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
         const { data: existingPatient } = await supabase
           .from('patients')
           .select('id')
-          .eq('user_id', profile.user_id)
+          .eq('user_id', user?.id)
           .maybeSingle();
 
         if (existingPatient) {
@@ -148,10 +148,10 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
           const { data: newPatient, error: patientError } = await supabase
             .from('patients')
             .insert({
-              user_id: profile.user_id,
+              user_id: user?.id,
               clinic_id: profile.clinic_id,
-              full_name: profile.full_name || profile.display_name || 'Unknown',
-              email: profile.email,
+              full_name: profile.full_name || profile.display_name || user?.email?.split('@')[0] || 'Unknown Patient',
+              email: user?.email,
               contact_number: profile.phone || profile.contact_number
             })
             .select('id')

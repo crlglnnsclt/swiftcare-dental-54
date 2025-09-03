@@ -37,6 +37,7 @@ import PatientFormViewer from '@/components/PatientFormViewer';
 import { FileUpload } from '@/components/FileUpload';
 import { DocumentViewer } from '@/components/DocumentViewer';
 import DocumentVerificationWorkflow from '@/components/DocumentVerificationWorkflow';
+import PaperlessSystemTester from '@/components/PaperlessSystemTester';
 
 interface DigitalForm {
   id: string;
@@ -296,7 +297,7 @@ export default function PaperlessSystem() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 h-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm">
+          <TabsList className="grid w-full grid-cols-6 h-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm">
             <TabsTrigger value="forms" className="flex items-center gap-2 rounded-lg">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Forms</span>
@@ -318,6 +319,10 @@ export default function PaperlessSystem() {
             <TabsTrigger value="analytics" className="flex items-center gap-2 rounded-lg">
               <Receipt className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="tester" className="flex items-center gap-2 rounded-lg">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Tester</span>
             </TabsTrigger>
           </TabsList>
 
@@ -584,6 +589,11 @@ export default function PaperlessSystem() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* System Tester Tab */}
+          <TabsContent value="tester" className="space-y-6">
+            <PaperlessSystemTester />
           </TabsContent>
         </Tabs>
 
