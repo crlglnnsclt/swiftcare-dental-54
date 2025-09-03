@@ -682,6 +682,54 @@ export type Database = {
           },
         ]
       }
+      document_audit_trail: {
+        Row: {
+          action_description: string | null
+          action_type: string
+          clinic_id: string
+          created_at: string
+          document_id: string | null
+          document_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          patient_id: string | null
+          performed_at: string
+          performed_by: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_description?: string | null
+          action_type: string
+          clinic_id: string
+          created_at?: string
+          document_id?: string | null
+          document_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          patient_id?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_description?: string | null
+          action_type?: string
+          clinic_id?: string
+          created_at?: string
+          document_id?: string | null
+          document_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          patient_id?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           appointment_id: string | null
@@ -874,47 +922,74 @@ export type Database = {
         Row: {
           clinic_id: string
           created_at: string
+          dentist_signature_data: string | null
+          dentist_signed_at: string | null
+          dentist_signed_by: string | null
           device_info: string | null
           form_id: string | null
           id: string
           ip_address: unknown | null
+          is_visible_to_patient: boolean | null
           patient_id: string | null
+          rejection_reason: string | null
+          requires_dentist_signature: boolean | null
           responses: Json
           signature_data: string | null
           signed_at: string | null
           signed_by: string | null
           status: string | null
           updated_at: string
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           clinic_id: string
           created_at?: string
+          dentist_signature_data?: string | null
+          dentist_signed_at?: string | null
+          dentist_signed_by?: string | null
           device_info?: string | null
           form_id?: string | null
           id?: string
           ip_address?: unknown | null
+          is_visible_to_patient?: boolean | null
           patient_id?: string | null
+          rejection_reason?: string | null
+          requires_dentist_signature?: boolean | null
           responses?: Json
           signature_data?: string | null
           signed_at?: string | null
           signed_by?: string | null
           status?: string | null
           updated_at?: string
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           clinic_id?: string
           created_at?: string
+          dentist_signature_data?: string | null
+          dentist_signed_at?: string | null
+          dentist_signed_by?: string | null
           device_info?: string | null
           form_id?: string | null
           id?: string
           ip_address?: unknown | null
+          is_visible_to_patient?: boolean | null
           patient_id?: string | null
+          rejection_reason?: string | null
+          requires_dentist_signature?: boolean | null
           responses?: Json
           signature_data?: string | null
           signed_at?: string | null
           signed_by?: string | null
           status?: string | null
           updated_at?: string
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -1405,11 +1480,16 @@ export type Database = {
           form_response_id: string | null
           id: string
           is_signed: boolean | null
+          is_visible_to_patient: boolean | null
           metadata: Json | null
           mime_type: string | null
           patient_id: string | null
+          rejection_reason: string | null
           updated_at: string
           uploaded_by: string | null
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           appointment_id?: string | null
@@ -1424,11 +1504,16 @@ export type Database = {
           form_response_id?: string | null
           id?: string
           is_signed?: boolean | null
+          is_visible_to_patient?: boolean | null
           metadata?: Json | null
           mime_type?: string | null
           patient_id?: string | null
+          rejection_reason?: string | null
           updated_at?: string
           uploaded_by?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           appointment_id?: string | null
@@ -1443,11 +1528,16 @@ export type Database = {
           form_response_id?: string | null
           id?: string
           is_signed?: boolean | null
+          is_visible_to_patient?: boolean | null
           metadata?: Json | null
           mime_type?: string | null
           patient_id?: string | null
+          rejection_reason?: string | null
           updated_at?: string
           uploaded_by?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -2175,6 +2265,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workflow_notifications: {
+        Row: {
+          action_url: string | null
+          clinic_id: string
+          created_at: string
+          document_id: string | null
+          document_type: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          recipient_user_id: string | null
+          title: string
+        }
+        Insert: {
+          action_url?: string | null
+          clinic_id: string
+          created_at?: string
+          document_id?: string | null
+          document_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          recipient_user_id?: string | null
+          title: string
+        }
+        Update: {
+          action_url?: string | null
+          clinic_id?: string
+          created_at?: string
+          document_id?: string | null
+          document_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          recipient_user_id?: string | null
+          title?: string
+        }
+        Relationships: []
       }
     }
     Views: {

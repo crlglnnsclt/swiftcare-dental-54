@@ -181,7 +181,9 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
           signed_at: signature ? new Date().toISOString() : null,
           ip_address: '192.168.1.1', // In production, get real IP
           device_info: navigator.userAgent,
-          status: form?.requires_signature ? 'signed' : 'submitted'
+          status: form?.requires_signature ? 'signed' : 'submitted',
+          verification_status: 'pending_verification',
+          requires_dentist_signature: form?.category === 'regulatory' || form?.form_type === 'consent'
         });
 
       if (error) throw error;

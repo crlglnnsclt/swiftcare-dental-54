@@ -36,6 +36,7 @@ import { format } from 'date-fns';
 import PatientFormViewer from '@/components/PatientFormViewer';
 import { FileUpload } from '@/components/FileUpload';
 import { DocumentViewer } from '@/components/DocumentViewer';
+import DocumentVerificationWorkflow from '@/components/DocumentVerificationWorkflow';
 
 interface DigitalForm {
   id: string;
@@ -58,6 +59,7 @@ interface FormResponse {
   signature_data?: string;
   signed_at?: string;
   status: string;
+  verification_status?: string;
   created_at: string;
   digital_forms?: { name: string; form_type: string };
   patients?: { full_name: string };
@@ -154,7 +156,20 @@ export default function PaperlessSystem() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, verificationStatus?: string) => {
+    if (verificationStatus) {
+      switch (verificationStatus) {
+        case 'pending_verification':
+          return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Pending Verification</Badge>;
+        case 'approved':
+          return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+        case 'rejected':
+          return <Badge className="bg-red-100 text-red-700"><AlertTriangle className="w-3 h-3 mr-1" />Rejected</Badge>;
+        case 'needs_correction':
+          return <Badge className="bg-orange-100 text-orange-700"><AlertTriangle className="w-3 h-3 mr-1" />Needs Correction</Badge>;
+      }
+    }
+    
     switch (status) {
       case 'signed':
         return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Signed</Badge>;
@@ -281,7 +296,7 @@ export default function PaperlessSystem() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm">
+          <TabsList className="grid w-full grid-cols-5 h-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm">
             <TabsTrigger value="forms" className="flex items-center gap-2 rounded-lg">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Forms</span>
@@ -294,6 +309,12 @@ export default function PaperlessSystem() {
               <Upload className="w-4 h-4" />
               <span className="hidden sm:inline">Documents</span>
             </TabsTrigger>
+            {(profile?.role === 'dentist' || profile?.role === 'clinic_admin') && (
+              <TabsTrigger value="verification" className="flex items-center gap-2 rounded-lg">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Verification</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="analytics" className="flex items-center gap-2 rounded-lg">
               <Receipt className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
@@ -373,7 +394,7 @@ export default function PaperlessSystem() {
                         <div className="flex items-center gap-3 mb-2">
                           <User className="w-5 h-5 text-blue-500" />
                           <h3 className="font-semibold text-gray-900">{response.patients?.full_name}</h3>
-                          {getStatusBadge(response.status)}
+                          {getStatusBadge(response.status, response.verification_status)}
                         </div>
                         <p className="text-gray-600 mb-2">{response.digital_forms?.name}</p>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -388,7 +409,12 @@ export default function PaperlessSystem() {
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </Button>
-                        <Button variant="outline" size="sm" className="rounded-lg">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="rounded-lg"
+                          disabled={response.verification_status !== 'approved'}
+                        >
                           <Download className="w-4 h-4 mr-2" />
                           Download
                         </Button>
@@ -506,6 +532,13 @@ export default function PaperlessSystem() {
               </Card>
             </div>
           </TabsContent>
+
+          {/* Document Verification Tab */}
+          {(profile?.role === 'dentist' || profile?.role === 'clinic_admin') && (
+            <TabsContent value="verification" className="space-y-6">
+              <DocumentVerificationWorkflow />
+            </TabsContent>
+          )}
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
