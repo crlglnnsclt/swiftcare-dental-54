@@ -26,13 +26,16 @@ import {
   Globe,
   Heart,
   CreditCard,
-  Receipt
+  Receipt,
+  FolderOpen
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import PatientFormViewer from '@/components/PatientFormViewer';
+import { FileUpload } from '@/components/FileUpload';
+import { DocumentViewer } from '@/components/DocumentViewer';
 
 interface DigitalForm {
   id: string;
@@ -73,7 +76,7 @@ interface PatientDocument {
 }
 
 export default function PaperlessSystem() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('forms');
   const [forms, setForms] = useState<DigitalForm[]>([]);
   const [responses, setResponses] = useState<FormResponse[]>([]);
@@ -406,63 +409,65 @@ export default function PaperlessSystem() {
           </TabsContent>
 
           {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-2xl font-bold text-gray-900">Patient Documents</h2>
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg rounded-xl px-6">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Document
-              </Button>
-            </div>
+          <TabsContent value="documents" className="space-y-6">
+            <div className="grid gap-6">
+              {/* File Upload Section */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Upload className="w-5 h-5 text-blue-600" />
+                    <span>Upload Documents</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <FileUpload
+                    onUploadComplete={(fileUrl, fileName) => {
+                      // Create document record
+                      const createDocumentRecord = async () => {
+                        try {
+                          const { error } = await supabase
+                            .from('patient_documents')
+                            .insert({
+                              patient_id: profile?.id,
+                              clinic_id: profile?.clinic_id,
+                              document_type: 'upload',
+                              document_category: 'other',
+                              file_name: fileName,
+                              file_url: fileUrl,
+                              uploaded_by: user?.id,
+                              mime_type: 'application/octet-stream'
+                            });
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredDocuments.map((document) => (
-                <Card key={document.id} className="glass-card hover-scale">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-8 h-8 text-blue-500" />
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{document.file_name}</h3>
-                          <p className="text-sm text-gray-600">{document.patients?.full_name}</p>
-                        </div>
-                      </div>
-                      {document.is_signed && (
-                        <Badge className="bg-green-100 text-green-700">
-                          <Signature className="w-3 h-3 mr-1" />
-                          Signed
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Type:</span>
-                        <span className="capitalize">{document.document_type.replace('_', ' ')}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Category:</span>
-                        <span className="capitalize">{document.document_category?.replace('_', ' ') || 'General'}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Uploaded:</span>
-                        <span>{format(new Date(document.created_at), 'MMM dd, yyyy')}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1 rounded-lg">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1 rounded-lg">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                          if (error) {
+                            console.error('Error creating document record:', error);
+                          }
+                        } catch (error) {
+                          console.error('Error:', error);
+                        }
+                      };
+                      createDocumentRecord();
+                    }}
+                    acceptedTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
+                    maxSize={50}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Documents Viewer */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FolderOpen className="w-5 h-5 text-green-600" />
+                    <span>My Documents</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DocumentViewer 
+                    patientId={profile?.role === 'patient' ? profile?.id : undefined}
+                    showUpload={false}
+                  />
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
