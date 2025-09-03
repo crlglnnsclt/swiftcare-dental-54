@@ -43,29 +43,32 @@ export default function AdminDashboard() {
     try {
       // Fetch patients count
       const { count: patientCount } = await supabase
-        .from('profiles')
+        .from('patients')
         .select('*', { count: 'exact', head: true })
-        .eq('role', 'patient');
+        .eq('clinic_id', profile?.clinic_id);
 
       // Fetch staff count  
       const { count: staffCount } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*', { count: 'exact', head: true })
-        .in('role', ['dentist', 'staff']);
+        .in('role', ['dentist', 'staff', 'receptionist'])
+        .eq('clinic_id', profile?.clinic_id);
 
       // Fetch today's appointments
       const today = new Date().toISOString().split('T')[0];
       const { count: todayAppts } = await supabase
         .from('appointments')
         .select('*', { count: 'exact', head: true })
-        .gte('appointment_date', today)
-        .lt('appointment_date', `${today}T23:59:59`);
+        .eq('clinic_id', profile?.clinic_id)
+        .gte('scheduled_time', `${today}T00:00:00`)
+        .lt('scheduled_time', `${today}T23:59:59`);
 
       // Fetch pending payment approvals
       const { count: pendingApprovals } = await supabase
-        .from('payment_proofs')  
+        .from('payments')  
         .select('*', { count: 'exact', head: true })
-        .eq('verification_status', 'pending');
+        .eq('clinic_id', profile?.clinic_id)
+        .eq('payment_status', 'pending');
 
       setStats({
         totalPatients: patientCount || 0,

@@ -55,7 +55,7 @@ export function InventoryAutoDeduct({ appointmentId, isOpen, onClose, onComplete
         .from('inventory_items')
         .select('*')
         .eq('is_active', true)
-        .eq('branch_id', profile?.branch_id)
+        .eq('clinic_id', profile?.clinic_id)
         .order('name');
 
       if (error) throw error;

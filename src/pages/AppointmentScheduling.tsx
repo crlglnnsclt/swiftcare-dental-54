@@ -19,15 +19,12 @@ interface Appointment {
   id: string;
   patient_id: string;
   dentist_id?: string;
-  appointment_date: string;
-  estimated_duration?: number;
-  service_type: string;
-  status: string;
-  priority: string;
-  appointment_type: string;
-  fee: number;
+  scheduled_time: string;
+  duration_minutes?: number;
+  status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
   notes?: string;
   created_at: string;
+  clinic_id: string;
   // Joined data
   patient_name?: string;
   patient_email?: string;
@@ -38,10 +35,10 @@ interface Appointment {
 interface Service {
   id: string;
   name: string;
-  duration: number;
-  price: number;
-  description?: string;
-  is_active: boolean;
+  default_duration_minutes: number;
+  default_price: number;
+  service_code?: string;
+  is_active?: boolean;
 }
 
 interface TimeSlot {
@@ -92,9 +89,10 @@ export function AppointmentScheduling() {
     try {
       // Fetch services
       const { data: servicesData, error: servicesError } = await supabase
-        .from('services')
+        .from('treatments')
         .select('*')
         .eq('is_active', true)
+        .eq('clinic_id', profile?.clinic_id)
         .order('name');
 
       if (servicesError) throw servicesError;
@@ -102,10 +100,9 @@ export function AppointmentScheduling() {
 
       // Fetch patients
       const { data: patientsData, error: patientsError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, phone')
-        .eq('role', 'patient')
-        .eq('is_active', true)
+        .from('patients')
+        .select('id, full_name, email, contact_number')
+        .eq('clinic_id', profile?.clinic_id)
         .order('full_name');
 
       if (patientsError) throw patientsError;
@@ -113,10 +110,10 @@ export function AppointmentScheduling() {
 
       // Fetch dentists
       const { data: dentistsData, error: dentistsError } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id, full_name')
-        .eq('enhanced_role', 'dentist')
-        .eq('is_active', true)
+        .eq('role', 'dentist')
+        .eq('clinic_id', profile?.clinic_id)
         .order('full_name');
 
       if (dentistsError) throw dentistsError;
@@ -140,9 +137,9 @@ export function AppointmentScheduling() {
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
-        .gte('appointment_date', startDate.toISOString())
-        .lte('appointment_date', endDate.toISOString())
-        .order('appointment_date');
+        .gte('scheduled_time', startDate.toISOString())
+        .lte('scheduled_time', endDate.toISOString())
+        .order('scheduled_time');
 
       if (error) throw error;
 
@@ -154,20 +151,20 @@ export function AppointmentScheduling() {
         // Fetch patient info
         if (appointment.patient_id) {
           const { data: patient } = await supabase
-            .from('profiles')
-            .select('full_name, email, phone')
+            .from('patients')
+            .select('full_name, email, contact_number')
             .eq('id', appointment.patient_id)
-            .single();
+            .maybeSingle();
           patientInfo = patient;
         }
         
         // Fetch dentist info
         if (appointment.dentist_id) {
           const { data: dentist } = await supabase
-            .from('profiles')
+            .from('users')
             .select('full_name')
             .eq('id', appointment.dentist_id)
-            .single();
+            .maybeSingle();
           dentistInfo = dentist;
         }
         
@@ -175,7 +172,7 @@ export function AppointmentScheduling() {
           ...appointment,
           patient_name: patientInfo?.full_name || 'Unknown Patient',
           patient_email: patientInfo?.email || '',
-          patient_phone: patientInfo?.phone || '',
+          patient_phone: patientInfo?.contact_number || '',
           dentist_name: dentistInfo?.full_name || '',
         };
       }));
@@ -205,16 +202,16 @@ export function AppointmentScheduling() {
   const openAppointmentModal = (appointment?: Appointment) => {
     if (appointment) {
       setEditingAppointment(appointment);
-      const appointmentDate = new Date(appointment.appointment_date);
+      const appointmentDate = new Date(appointment.scheduled_time);
       setAppointmentForm({
         patient_id: appointment.patient_id,
         dentist_id: appointment.dentist_id || '',
         appointment_date: appointmentDate.toISOString().split('T')[0],
         appointment_time: appointmentDate.toTimeString().slice(0, 5),
         service_id: '', // Would need to link services properly
-        estimated_duration: appointment.estimated_duration || 30,
-        appointment_type: appointment.appointment_type,
-        priority: appointment.priority,
+        estimated_duration: appointment.duration_minutes || 30,
+        appointment_type: 'scheduled',
+        priority: 'normal',
         notes: appointment.notes || '',
       });
     } else {
@@ -241,15 +238,11 @@ export function AppointmentScheduling() {
       const appointmentData = {
         patient_id: appointmentForm.patient_id,
         dentist_id: appointmentForm.dentist_id || null,
-        appointment_date: appointmentDateTime.toISOString(),
-        estimated_duration: appointmentForm.estimated_duration,
-        service_type: selectedService?.name || 'General Consultation',
-        appointment_type: appointmentForm.appointment_type,
-        priority: appointmentForm.priority,
-        fee: selectedService?.price || 0,
+        scheduled_time: appointmentDateTime.toISOString(),
+        duration_minutes: appointmentForm.estimated_duration || 30,
         notes: appointmentForm.notes || null,
-        status: 'scheduled',
-        branch_id: profile?.branch_id,
+        status: 'booked' as const,
+        clinic_id: profile?.clinic_id,
       };
 
       if (editingAppointment) {
@@ -296,7 +289,7 @@ export function AppointmentScheduling() {
     }
   };
 
-  const updateAppointmentStatus = async (appointmentId: string, status: string) => {
+  const updateAppointmentStatus = async (appointmentId: string, status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show') => {
     try {
       const { error } = await supabase
         .from('appointments')
@@ -325,7 +318,7 @@ export function AppointmentScheduling() {
         slotDate.setHours(hour, minutes, 0, 0);
 
         const appointment = appointments.find(apt => {
-          const aptDate = new Date(apt.appointment_date);
+          const aptDate = new Date(apt.scheduled_time);
           return aptDate.getHours() === hour && aptDate.getMinutes() === minutes;
         });
 
@@ -364,8 +357,7 @@ export function AppointmentScheduling() {
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch = !searchTerm || 
       appointment.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.dentist_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.service_type.toLowerCase().includes(searchTerm.toLowerCase());
+      appointment.dentist_name?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
@@ -374,12 +366,12 @@ export function AppointmentScheduling() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'default';
-      case 'confirmed': return 'secondary';
-      case 'in-treatment': return 'default';
+      case 'booked': return 'default';
+      case 'checked_in': return 'secondary';
+      case 'in_progress': return 'default';
       case 'completed': return 'default';
       case 'cancelled': return 'destructive';
-      case 'no-show': return 'destructive';
+      case 'no_show': return 'destructive';
       default: return 'outline';
     }
   };
@@ -482,7 +474,7 @@ export function AppointmentScheduling() {
                               <div>
                                 <p className="font-medium">{slot.appointment.patient_name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {slot.appointment.service_type}
+                                  Appointment
                                   {slot.appointment.dentist_name && ` • Dr. ${slot.appointment.dentist_name}`}
                                 </p>
                               </div>
@@ -494,9 +486,6 @@ export function AppointmentScheduling() {
                             <div className="flex items-center gap-2">
                               <Badge variant={getStatusColor(slot.appointment.status)}>
                                 {slot.appointment.status}
-                              </Badge>
-                              <Badge variant={getPriorityColor(slot.appointment.priority)}>
-                                {slot.appointment.priority}
                               </Badge>
                             </div>
                           )}
@@ -548,7 +537,7 @@ export function AppointmentScheduling() {
                     </div>
                     {getWeekDays(currentWeek).map((day, dayIndex) => {
                       const dayAppointments = appointments.filter(apt => {
-                        const aptDate = new Date(apt.appointment_date);
+                        const aptDate = new Date(apt.scheduled_time);
                         return aptDate.toDateString() === day.toDateString() && 
                                aptDate.getHours() === hour;
                       });
@@ -558,7 +547,7 @@ export function AppointmentScheduling() {
                           {dayAppointments.map(apt => (
                             <div key={apt.id} className="text-xs bg-primary/10 rounded p-1 mb-1">
                               <div className="font-medium truncate">{apt.patient_name}</div>
-                              <div className="text-muted-foreground truncate">{apt.service_type}</div>
+                              <div className="text-muted-foreground truncate">Appointment</div>
                             </div>
                           ))}
                         </div>
@@ -588,14 +577,15 @@ export function AppointmentScheduling() {
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="in-treatment">In Treatment</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="booked">Booked</SelectItem>
+                    <SelectItem value="checked_in">Checked In</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="no_show">No Show</SelectItem>
+                  </SelectContent>
               </Select>
             </div>
           </Card>
@@ -610,10 +600,10 @@ export function AppointmentScheduling() {
                       <div>
                         <p className="font-medium">{appointment.patient_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(appointment.appointment_date).toLocaleString()}
+                          {new Date(appointment.scheduled_time).toLocaleString()}
                           {appointment.dentist_name && ` • Dr. ${appointment.dentist_name}`}
                         </p>
-                        <p className="text-sm text-muted-foreground">{appointment.service_type}</p>
+                        <p className="text-sm text-muted-foreground">Appointment</p>
                         {appointment.notes && (
                           <p className="text-sm text-muted-foreground italic">{appointment.notes}</p>
                         )}
@@ -622,9 +612,6 @@ export function AppointmentScheduling() {
                     <div className="flex items-center gap-2">
                       <Badge variant={getStatusColor(appointment.status)}>
                         {appointment.status}
-                      </Badge>
-                      <Badge variant={getPriorityColor(appointment.priority)}>
-                        {appointment.priority}
                       </Badge>
                       <div className="flex gap-1">
                         <Button
@@ -750,7 +737,7 @@ export function AppointmentScheduling() {
                     setAppointmentForm(prev => ({ 
                       ...prev, 
                       service_id: value,
-                      estimated_duration: service?.duration || 30
+                      estimated_duration: service?.default_duration_minutes || 30
                     }));
                   }}
                 >
@@ -760,7 +747,7 @@ export function AppointmentScheduling() {
                   <SelectContent>
                     {services.map(service => (
                       <SelectItem key={service.id} value={service.id}>
-                        {service.name} (${service.price})
+                        {service.name} (${service.default_price})
                       </SelectItem>
                     ))}
                   </SelectContent>
