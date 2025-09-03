@@ -22,7 +22,7 @@ import PatientResults from "./pages/PatientResults";
 import PatientNotifications from "./pages/PatientNotifications";
 import QRCheckIn from "./components/QRCheckIn";
 import DigitalForms from "./pages/DigitalForms";
-import { PatientForms } from "./pages/PatientForms";
+import PatientForms from "./pages/PatientForms";
 import FormResponses from "./pages/FormResponses";
 import InventoryManagement from "./pages/InventoryManagement";
 import { StaffManagement } from "./pages/StaffManagement";

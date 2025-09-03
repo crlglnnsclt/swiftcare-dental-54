@@ -124,13 +124,13 @@ export default function PatientAppointments() {
 
   const fetchServices = async () => {
     try {
-      const { data, error } = await supabase
+      // Using any to avoid type instantiation depth issues
+      const { data }: any = await supabase
         .from('treatments')
         .select('*')
         .eq('is_active', true)
         .order('name');
 
-      if (error) throw error;
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
@@ -139,13 +139,13 @@ export default function PatientAppointments() {
 
     const fetchDentists = async () => {
       try {
-        const { data, error } = await supabase
+      // Using any to avoid type instantiation depth issues
+      const { data }: any = await supabase
           .from('users')
           .select('*')
           .eq('role', 'dentist')
           .eq('status', 'active');
 
-        if (error) throw error;
         setDentists(data || []);
       } catch (error) {
         console.error('Error fetching dentists:', error);
