@@ -14,1172 +14,1236 @@ export type Database = {
   }
   public: {
     Tables: {
-      analytics_metrics: {
+      analytics_reports: {
         Row: {
-          clinic_id: string
-          created_at: string
+          branch_id: string | null
+          date_range_end: string | null
+          date_range_start: string | null
+          generated_at: string | null
+          generated_by: string
           id: string
-          metadata: Json | null
-          metric_date: string
-          metric_type: string
-          metric_value: number
+          report_data: Json
+          report_type: string
         }
         Insert: {
-          clinic_id: string
-          created_at?: string
+          branch_id?: string | null
+          date_range_end?: string | null
+          date_range_start?: string | null
+          generated_at?: string | null
+          generated_by: string
           id?: string
-          metadata?: Json | null
-          metric_date: string
-          metric_type: string
-          metric_value: number
+          report_data: Json
+          report_type: string
         }
         Update: {
-          clinic_id?: string
-          created_at?: string
+          branch_id?: string | null
+          date_range_end?: string | null
+          date_range_start?: string | null
+          generated_at?: string | null
+          generated_by?: string
           id?: string
-          metadata?: Json | null
-          metric_date?: string
-          metric_type?: string
-          metric_value?: number
-        }
-        Relationships: []
-      }
-      appointment_treatments: {
-        Row: {
-          appointment_id: string
-          created_at: string
-          id: string
-          notes: string | null
-          quantity: number | null
-          treatment_id: string
-        }
-        Insert: {
-          appointment_id: string
-          created_at?: string
-          id?: string
-          notes?: string | null
-          quantity?: number | null
-          treatment_id: string
-        }
-        Update: {
-          appointment_id?: string
-          created_at?: string
-          id?: string
-          notes?: string | null
-          quantity?: number | null
-          treatment_id?: string
+          report_data?: Json
+          report_type?: string
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_treatments_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: "analytics_reports_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "appointments"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "appointment_treatments_treatment_id_fkey"
-            columns: ["treatment_id"]
+            foreignKeyName: "analytics_reports_generated_by_fkey"
+            columns: ["generated_by"]
             isOneToOne: false
-            referencedRelation: "treatments"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
       appointments: {
         Row: {
-          booking_type: Database["public"]["Enums"]["booking_type"] | null
-          clinic_id: string
+          actual_end_time: string | null
+          actual_start_time: string | null
+          appointment_date: string
+          appointment_type: string | null
+          branch_id: string | null
+          can_start_treatment: boolean | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          check_in_time: string | null
           created_at: string
           dentist_id: string | null
-          duration_minutes: number | null
-          family_group_name: string | null
-          group_id: string | null
+          early_completion_prompt: string | null
+          estimated_duration: number | null
+          fee: number
+          forms_completed: boolean | null
+          grace_period_end: string | null
           id: string
-          is_group_booking: boolean | null
+          is_checked_in: boolean | null
+          is_no_show: boolean | null
           notes: string | null
           patient_id: string
-          qr_code: string | null
-          scheduled_time: string
-          status: Database["public"]["Enums"]["appointment_status"] | null
+          priority: string | null
+          procedure_id: string | null
+          queue_join_time: string | null
+          queue_position: number | null
+          service_id: string | null
+          service_type: string
+          status: string
           updated_at: string
         }
         Insert: {
-          booking_type?: Database["public"]["Enums"]["booking_type"] | null
-          clinic_id: string
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          appointment_date: string
+          appointment_type?: string | null
+          branch_id?: string | null
+          can_start_treatment?: boolean | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          check_in_time?: string | null
           created_at?: string
           dentist_id?: string | null
-          duration_minutes?: number | null
-          family_group_name?: string | null
-          group_id?: string | null
+          early_completion_prompt?: string | null
+          estimated_duration?: number | null
+          fee?: number
+          forms_completed?: boolean | null
+          grace_period_end?: string | null
           id?: string
-          is_group_booking?: boolean | null
+          is_checked_in?: boolean | null
+          is_no_show?: boolean | null
           notes?: string | null
           patient_id: string
-          qr_code?: string | null
-          scheduled_time: string
-          status?: Database["public"]["Enums"]["appointment_status"] | null
+          priority?: string | null
+          procedure_id?: string | null
+          queue_join_time?: string | null
+          queue_position?: number | null
+          service_id?: string | null
+          service_type: string
+          status?: string
           updated_at?: string
         }
         Update: {
-          booking_type?: Database["public"]["Enums"]["booking_type"] | null
-          clinic_id?: string
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          appointment_date?: string
+          appointment_type?: string | null
+          branch_id?: string | null
+          can_start_treatment?: boolean | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          check_in_time?: string | null
           created_at?: string
           dentist_id?: string | null
-          duration_minutes?: number | null
-          family_group_name?: string | null
-          group_id?: string | null
+          early_completion_prompt?: string | null
+          estimated_duration?: number | null
+          fee?: number
+          forms_completed?: boolean | null
+          grace_period_end?: string | null
           id?: string
-          is_group_booking?: boolean | null
+          is_checked_in?: boolean | null
+          is_no_show?: boolean | null
           notes?: string | null
           patient_id?: string
-          qr_code?: string | null
-          scheduled_time?: string
-          status?: Database["public"]["Enums"]["appointment_status"] | null
+          priority?: string | null
+          procedure_id?: string | null
+          queue_join_time?: string | null
+          queue_position?: number | null
+          service_id?: string | null
+          service_type?: string
+          status?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "appointments_clinic_id_fkey"
-            columns: ["clinic_id"]
+            foreignKeyName: "appointments_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "clinics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointments_dentist_id_fkey"
-            columns: ["dentist_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "appointments_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attachments: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          is_visible_to_patient: boolean | null
+          requires_payment_approval: boolean | null
+          updated_at: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          is_visible_to_patient?: boolean | null
+          requires_payment_approval?: boolean | null
+          updated_at?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_visible_to_patient?: boolean | null
+          requires_payment_approval?: boolean | null
+          updated_at?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
       }
       audit_logs: {
         Row: {
-          action_description: string
-          action_type: string
-          created_at: string
-          device_info: string | null
-          entity_id: string | null
-          entity_type: string | null
+          action: string
+          branch_id: string | null
           id: string
           ip_address: unknown | null
           new_values: Json | null
           old_values: Json | null
-          patient_id: string | null
+          performed_at: string | null
+          performed_by: string
+          record_id: string | null
+          table_name: string
           user_agent: string | null
-          user_id: string | null
         }
         Insert: {
-          action_description: string
-          action_type: string
-          created_at?: string
-          device_info?: string | null
-          entity_id?: string | null
-          entity_type?: string | null
+          action: string
+          branch_id?: string | null
           id?: string
           ip_address?: unknown | null
           new_values?: Json | null
           old_values?: Json | null
-          patient_id?: string | null
+          performed_at?: string | null
+          performed_by: string
+          record_id?: string | null
+          table_name: string
           user_agent?: string | null
-          user_id?: string | null
         }
         Update: {
-          action_description?: string
-          action_type?: string
-          created_at?: string
-          device_info?: string | null
-          entity_id?: string | null
-          entity_type?: string | null
+          action?: string
+          branch_id?: string | null
           id?: string
           ip_address?: unknown | null
           new_values?: Json | null
           old_values?: Json | null
-          patient_id?: string | null
+          performed_at?: string | null
+          performed_by?: string
+          record_id?: string | null
+          table_name?: string
           user_agent?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "audit_logs_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: "audit_logs_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
       }
-      clinic_billing: {
+      branch_features: {
         Row: {
-          billing_period_end: string
-          billing_period_start: string
-          clinic_id: string
+          branch_id: string
+          config: Json | null
           created_at: string
-          id: string
-          status: string | null
-          subscription_fees: number | null
-          tax_amount: number | null
-          total_expenses: number | null
-          total_revenue: number | null
-          updated_at: string
-        }
-        Insert: {
-          billing_period_end: string
-          billing_period_start: string
-          clinic_id: string
-          created_at?: string
-          id?: string
-          status?: string | null
-          subscription_fees?: number | null
-          tax_amount?: number | null
-          total_expenses?: number | null
-          total_revenue?: number | null
-          updated_at?: string
-        }
-        Update: {
-          billing_period_end?: string
-          billing_period_start?: string
-          clinic_id?: string
-          created_at?: string
-          id?: string
-          status?: string | null
-          subscription_fees?: number | null
-          tax_amount?: number | null
-          total_expenses?: number | null
-          total_revenue?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clinic_billing_clinic_id_fkey"
-            columns: ["clinic_id"]
-            isOneToOne: false
-            referencedRelation: "clinics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clinic_branding: {
-        Row: {
-          created_at: string
-          custom_button_labels: Json | null
-          id: string
-          logo_url: string | null
-          modified_by: string | null
-          patient_portal_theme: Json | null
-          primary_color: string | null
-          secondary_color: string | null
-          updated_at: string
-          welcome_message: string | null
-        }
-        Insert: {
-          created_at?: string
-          custom_button_labels?: Json | null
-          id?: string
-          logo_url?: string | null
-          modified_by?: string | null
-          patient_portal_theme?: Json | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          updated_at?: string
-          welcome_message?: string | null
-        }
-        Update: {
-          created_at?: string
-          custom_button_labels?: Json | null
-          id?: string
-          logo_url?: string | null
-          modified_by?: string | null
-          patient_portal_theme?: Json | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          updated_at?: string
-          welcome_message?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clinic_branding_modified_by_fkey"
-            columns: ["modified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clinic_feature_toggles: {
-        Row: {
-          clinic_id: string
-          created_at: string
-          description: string | null
           feature_name: string
           id: string
           is_enabled: boolean
-          modified_by: string | null
           updated_at: string
         }
         Insert: {
-          clinic_id: string
+          branch_id: string
+          config?: Json | null
           created_at?: string
-          description?: string | null
           feature_name: string
           id?: string
           is_enabled?: boolean
-          modified_by?: string | null
           updated_at?: string
         }
         Update: {
-          clinic_id?: string
+          branch_id?: string
+          config?: Json | null
           created_at?: string
-          description?: string | null
           feature_name?: string
           id?: string
           is_enabled?: boolean
-          modified_by?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "clinic_feature_toggles_clinic_id_fkey"
-            columns: ["clinic_id"]
+            foreignKeyName: "branch_features_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "clinics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clinic_feature_toggles_modified_by_fkey"
-            columns: ["modified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
       }
-      clinic_locations: {
-        Row: {
-          address: string
-          clinic_id: string
-          created_at: string
-          email: string | null
-          id: string
-          is_active: boolean | null
-          location_name: string
-          manager_id: string | null
-          operating_hours: Json | null
-          phone_number: string | null
-          updated_at: string
-        }
-        Insert: {
-          address: string
-          clinic_id: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          location_name: string
-          manager_id?: string | null
-          operating_hours?: Json | null
-          phone_number?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string
-          clinic_id?: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          location_name?: string
-          manager_id?: string | null
-          operating_hours?: Json | null
-          phone_number?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clinic_locations_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clinics: {
+      branches: {
         Row: {
           address: string | null
-          branding_overridden: boolean | null
-          clinic_name: string
           created_at: string
-          custom_button_labels: Json | null
-          custom_logo_url: string | null
           email: string | null
           id: string
-          location_type: string | null
+          is_active: boolean
           logo_url: string | null
-          operating_hours: Json | null
-          parent_clinic_id: string | null
-          phone_number: string | null
+          name: string
+          phone: string | null
           primary_color: string | null
           secondary_color: string | null
-          subscription_package:
-            | Database["public"]["Enums"]["subscription_package"]
-            | null
           updated_at: string
-          welcome_message: string | null
         }
         Insert: {
           address?: string | null
-          branding_overridden?: boolean | null
-          clinic_name: string
           created_at?: string
-          custom_button_labels?: Json | null
-          custom_logo_url?: string | null
           email?: string | null
           id?: string
-          location_type?: string | null
+          is_active?: boolean
           logo_url?: string | null
-          operating_hours?: Json | null
-          parent_clinic_id?: string | null
-          phone_number?: string | null
+          name: string
+          phone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
-          subscription_package?:
-            | Database["public"]["Enums"]["subscription_package"]
-            | null
           updated_at?: string
-          welcome_message?: string | null
         }
         Update: {
           address?: string | null
-          branding_overridden?: boolean | null
-          clinic_name?: string
           created_at?: string
-          custom_button_labels?: Json | null
-          custom_logo_url?: string | null
           email?: string | null
           id?: string
-          location_type?: string | null
+          is_active?: boolean
           logo_url?: string | null
-          operating_hours?: Json | null
-          parent_clinic_id?: string | null
-          phone_number?: string | null
+          name?: string
+          phone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
-          subscription_package?:
-            | Database["public"]["Enums"]["subscription_package"]
-            | null
           updated_at?: string
-          welcome_message?: string | null
         }
         Relationships: []
       }
-      communication_logs: {
+      chat_messages: {
         Row: {
-          appointment_id: string | null
-          clinic_id: string
-          content: string
           created_at: string
-          error_message: string | null
           id: string
+          message: string
           patient_id: string
-          recipient_email: string
-          sent_at: string | null
-          status: string
-          subject: string
-          template_id: string | null
+          recipient_id: string | null
+          sender_id: string
+          sender_name: string
+          sender_role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
-          appointment_id?: string | null
-          clinic_id: string
-          content: string
           created_at?: string
-          error_message?: string | null
           id?: string
+          message: string
           patient_id: string
-          recipient_email: string
-          sent_at?: string | null
-          status: string
-          subject: string
-          template_id?: string | null
+          recipient_id?: string | null
+          sender_id: string
+          sender_name: string
+          sender_role: Database["public"]["Enums"]["user_role"]
         }
         Update: {
-          appointment_id?: string | null
-          clinic_id?: string
-          content?: string
           created_at?: string
-          error_message?: string | null
           id?: string
+          message?: string
           patient_id?: string
-          recipient_email?: string
-          sent_at?: string | null
-          status?: string
-          subject?: string
-          template_id?: string | null
+          recipient_id?: string | null
+          sender_id?: string
+          sender_name?: string
+          sender_role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: [
           {
-            foreignKeyName: "communication_logs_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: "chat_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "communication_logs_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "communication_templates"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      communication_templates: {
+      dental_chart_audit: {
         Row: {
-          clinic_id: string
-          content: string
+          action: string
+          branch_id: string | null
+          chart_id: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          performed_at: string
+          performed_by: string
+        }
+        Insert: {
+          action: string
+          branch_id?: string | null
+          chart_id: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_at?: string
+          performed_by: string
+        }
+        Update: {
+          action?: string
+          branch_id?: string | null
+          chart_id?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_at?: string
+          performed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_chart_audit_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_chart_audit_chart_id_fkey"
+            columns: ["chart_id"]
+            isOneToOne: false
+            referencedRelation: "dental_charts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_chart_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_charts: {
+        Row: {
+          branch_id: string | null
           created_at: string
+          created_by: string | null
+          dentist_id: string | null
+          id: string
+          is_deleted: boolean | null
+          notes: string | null
+          patient_id: string
+          status: string
+          surface: string | null
+          tooth_number: number
+          treatment_date: string | null
+          treatment_type: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          dentist_id?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          notes?: string | null
+          patient_id: string
+          status?: string
+          surface?: string | null
+          tooth_number: number
+          treatment_date?: string | null
+          treatment_type: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          dentist_id?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          notes?: string | null
+          patient_id?: string
+          status?: string
+          surface?: string | null
+          tooth_number?: number
+          treatment_date?: string | null
+          treatment_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_charts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_charts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_charts_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_charts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      digital_forms: {
+        Row: {
+          attached_document_url: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_mode: string | null
+          form_fields: Json
           id: string
           is_active: boolean | null
           name: string
-          subject: string
-          template_type: string
+          requires_signature: boolean | null
+          terms_and_conditions: string | null
           updated_at: string
         }
         Insert: {
-          clinic_id: string
-          content: string
+          attached_document_url?: string | null
+          branch_id?: string | null
           created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_mode?: string | null
+          form_fields: Json
           id?: string
           is_active?: boolean | null
           name: string
-          subject: string
-          template_type: string
+          requires_signature?: boolean | null
+          terms_and_conditions?: string | null
           updated_at?: string
         }
         Update: {
-          clinic_id?: string
-          content?: string
+          attached_document_url?: string | null
+          branch_id?: string | null
           created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_mode?: string | null
+          form_fields?: Json
           id?: string
           is_active?: boolean | null
           name?: string
-          subject?: string
-          template_type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      cross_clinic_metrics: {
-        Row: {
-          clinic_id: string | null
-          comparison_data: Json | null
-          created_at: string
-          forecast_data: Json | null
-          id: string
-          metric_date: string
-          metric_type: string
-          metric_value: number
-        }
-        Insert: {
-          clinic_id?: string | null
-          comparison_data?: Json | null
-          created_at?: string
-          forecast_data?: Json | null
-          id?: string
-          metric_date: string
-          metric_type: string
-          metric_value: number
-        }
-        Update: {
-          clinic_id?: string | null
-          comparison_data?: Json | null
-          created_at?: string
-          forecast_data?: Json | null
-          id?: string
-          metric_date?: string
-          metric_type?: string
-          metric_value?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cross_clinic_metrics_clinic_id_fkey"
-            columns: ["clinic_id"]
-            isOneToOne: false
-            referencedRelation: "clinics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      documents: {
-        Row: {
-          appointment_id: string | null
-          created_at: string
-          document_type: Database["public"]["Enums"]["document_type"] | null
-          file_url: string | null
-          id: string
-          patient_id: string
-          signed_at: string | null
-          signed_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          appointment_id?: string | null
-          created_at?: string
-          document_type?: Database["public"]["Enums"]["document_type"] | null
-          file_url?: string | null
-          id?: string
-          patient_id: string
-          signed_at?: string | null
-          signed_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          appointment_id?: string | null
-          created_at?: string
-          document_type?: Database["public"]["Enums"]["document_type"] | null
-          file_url?: string | null
-          id?: string
-          patient_id?: string
-          signed_at?: string | null
-          signed_by?: string | null
+          requires_signature?: boolean | null
+          terms_and_conditions?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "documents_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: "digital_forms_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_signed_by_fkey"
-            columns: ["signed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
       }
-      family_members: {
+      form_procedures: {
         Row: {
-          created_at: string
+          created_at: string | null
+          form_id: string
           id: string
-          primary_patient_id: string
-          relationship: string
-          secondary_patient_id: string
-          updated_at: string
+          is_required: boolean | null
+          procedure_name: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
+          form_id: string
           id?: string
-          primary_patient_id: string
-          relationship: string
-          secondary_patient_id: string
-          updated_at?: string
+          is_required?: boolean | null
+          procedure_name: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
+          form_id?: string
           id?: string
-          primary_patient_id?: string
-          relationship?: string
-          secondary_patient_id?: string
-          updated_at?: string
+          is_required?: boolean | null
+          procedure_name?: string
         }
         Relationships: [
           {
-            foreignKeyName: "family_members_primary_patient_id_fkey"
-            columns: ["primary_patient_id"]
+            foreignKeyName: "form_procedures_form_id_fkey"
+            columns: ["form_id"]
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "family_members_secondary_patient_id_fkey"
-            columns: ["secondary_patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "digital_forms"
             referencedColumns: ["id"]
           },
         ]
-      }
-      feature_toggles: {
-        Row: {
-          created_at: string
-          description: string | null
-          feature_name: string
-          id: string
-          is_enabled: boolean | null
-          modified_by: string | null
-          reason: string | null
-          tooltip_text: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          feature_name: string
-          id?: string
-          is_enabled?: boolean | null
-          modified_by?: string | null
-          reason?: string | null
-          tooltip_text?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          feature_name?: string
-          id?: string
-          is_enabled?: boolean | null
-          modified_by?: string | null
-          reason?: string | null
-          tooltip_text?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feature_toggles_modified_by_fkey"
-            columns: ["modified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financial_settings: {
-        Row: {
-          created_at: string
-          currency_code: string | null
-          discount_rules: Json | null
-          id: string
-          invoice_settings: Json | null
-          modified_by: string | null
-          payment_methods: Json | null
-          tax_rate: number | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          currency_code?: string | null
-          discount_rules?: Json | null
-          id?: string
-          invoice_settings?: Json | null
-          modified_by?: string | null
-          payment_methods?: Json | null
-          tax_rate?: number | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          currency_code?: string | null
-          discount_rules?: Json | null
-          id?: string
-          invoice_settings?: Json | null
-          modified_by?: string | null
-          payment_methods?: Json | null
-          tax_rate?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financial_settings_modified_by_fkey"
-            columns: ["modified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      global_suppliers: {
-        Row: {
-          address: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          created_at: string
-          id: string
-          is_preferred: boolean | null
-          name: string
-          payment_terms: string | null
-        }
-        Insert: {
-          address?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          id?: string
-          is_preferred?: boolean | null
-          name: string
-          payment_terms?: string | null
-        }
-        Update: {
-          address?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          id?: string
-          is_preferred?: boolean | null
-          name?: string
-          payment_terms?: string | null
-        }
-        Relationships: []
-      }
-      inventory_alerts: {
-        Row: {
-          alert_type: string
-          clinic_id: string
-          created_at: string
-          id: string
-          is_resolved: boolean | null
-          item_id: string
-          message: string
-          resolved_at: string | null
-        }
-        Insert: {
-          alert_type: string
-          clinic_id: string
-          created_at?: string
-          id?: string
-          is_resolved?: boolean | null
-          item_id: string
-          message: string
-          resolved_at?: string | null
-        }
-        Update: {
-          alert_type?: string
-          clinic_id?: string
-          created_at?: string
-          id?: string
-          is_resolved?: boolean | null
-          item_id?: string
-          message?: string
-          resolved_at?: string | null
-        }
-        Relationships: []
       }
       inventory_categories: {
         Row: {
-          clinic_id: string
-          created_at: string
+          branch_id: string | null
+          created_at: string | null
           description: string | null
           id: string
+          is_active: boolean | null
           name: string
         }
         Insert: {
-          clinic_id: string
-          created_at?: string
+          branch_id?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
+          is_active?: boolean | null
           name: string
         }
         Update: {
-          clinic_id?: string
-          created_at?: string
+          branch_id?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
+          is_active?: boolean | null
           name?: string
         }
         Relationships: []
       }
       inventory_items: {
         Row: {
+          branch_id: string | null
           category_id: string | null
-          clinic_id: string
-          created_at: string
+          created_at: string | null
           current_stock: number | null
           description: string | null
           expiry_date: string | null
-          global_min_threshold: number | null
           id: string
           is_active: boolean | null
-          is_tracked_globally: boolean | null
-          location_in_clinic: string | null
+          maximum_stock: number | null
           minimum_stock: number | null
           name: string
           sku: string | null
-          supplier_contact: string | null
-          supplier_name: string | null
+          supplier_info: Json | null
           unit_cost: number | null
-          unit_type: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
+          branch_id?: string | null
           category_id?: string | null
-          clinic_id: string
-          created_at?: string
+          created_at?: string | null
           current_stock?: number | null
           description?: string | null
           expiry_date?: string | null
-          global_min_threshold?: number | null
           id?: string
           is_active?: boolean | null
-          is_tracked_globally?: boolean | null
-          location_in_clinic?: string | null
+          maximum_stock?: number | null
           minimum_stock?: number | null
           name: string
           sku?: string | null
-          supplier_contact?: string | null
-          supplier_name?: string | null
+          supplier_info?: Json | null
           unit_cost?: number | null
-          unit_type: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
+          branch_id?: string | null
           category_id?: string | null
-          clinic_id?: string
-          created_at?: string
+          created_at?: string | null
           current_stock?: number | null
           description?: string | null
           expiry_date?: string | null
-          global_min_threshold?: number | null
           id?: string
           is_active?: boolean | null
-          is_tracked_globally?: boolean | null
-          location_in_clinic?: string | null
+          maximum_stock?: number | null
           minimum_stock?: number | null
           name?: string
           sku?: string | null
-          supplier_contact?: string | null
-          supplier_name?: string | null
+          supplier_info?: Json | null
           unit_cost?: number | null
-          unit_type?: string
-          updated_at?: string
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_transactions: {
         Row: {
-          clinic_id: string
-          created_at: string
-          created_by: string
+          branch_id: string | null
+          created_at: string | null
           id: string
           item_id: string
           notes: string | null
+          performed_by: string
           quantity: number
           reference_id: string | null
+          reference_type: string | null
           total_cost: number | null
           transaction_type: string
           unit_cost: number | null
         }
         Insert: {
-          clinic_id: string
-          created_at?: string
-          created_by: string
+          branch_id?: string | null
+          created_at?: string | null
           id?: string
           item_id: string
           notes?: string | null
+          performed_by: string
           quantity: number
           reference_id?: string | null
+          reference_type?: string | null
           total_cost?: number | null
           transaction_type: string
           unit_cost?: number | null
         }
         Update: {
-          clinic_id?: string
-          created_at?: string
-          created_by?: string
+          branch_id?: string | null
+          created_at?: string | null
           id?: string
           item_id?: string
           notes?: string | null
+          performed_by?: string
           quantity?: number
           reference_id?: string | null
+          reference_type?: string | null
           total_cost?: number | null
           transaction_type?: string
           unit_cost?: number | null
         }
-        Relationships: []
-      }
-      inventory_usage: {
-        Row: {
-          created_at: string
-          id: string
-          inventory_item_id: string
-          notes: string | null
-          quantity_used: number
-          treatment_record_id: string
-          unit_cost_at_time: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          inventory_item_id: string
-          notes?: string | null
-          quantity_used: number
-          treatment_record_id: string
-          unit_cost_at_time: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          inventory_item_id?: string
-          notes?: string | null
-          quantity_used?: number
-          treatment_record_id?: string
-          unit_cost_at_time?: number
-        }
         Relationships: [
           {
-            foreignKeyName: "inventory_usage_inventory_item_id_fkey"
-            columns: ["inventory_item_id"]
+            foreignKeyName: "inventory_transactions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transactions_item_id_fkey"
+            columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inventory_usage_treatment_record_id_fkey"
-            columns: ["treatment_record_id"]
+            foreignKeyName: "inventory_transactions_performed_by_fkey"
+            columns: ["performed_by"]
             isOneToOne: false
-            referencedRelation: "treatment_records"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      patient_feedback: {
+      medical_documents: {
         Row: {
-          appointment_id: string | null
-          category: string | null
-          clinic_id: string
           created_at: string
-          feedback_text: string | null
+          description: string | null
+          document_type: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
           id: string
-          is_anonymous: boolean | null
+          is_visible_to_patient: boolean | null
           patient_id: string
-          rating: number | null
+          requires_payment_approval: boolean | null
+          updated_at: string
+          uploaded_by: string
         }
         Insert: {
-          appointment_id?: string | null
-          category?: string | null
-          clinic_id: string
           created_at?: string
-          feedback_text?: string | null
+          description?: string | null
+          document_type?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
           id?: string
-          is_anonymous?: boolean | null
+          is_visible_to_patient?: boolean | null
           patient_id: string
-          rating?: number | null
+          requires_payment_approval?: boolean | null
+          updated_at?: string
+          uploaded_by: string
         }
         Update: {
-          appointment_id?: string | null
-          category?: string | null
-          clinic_id?: string
           created_at?: string
-          feedback_text?: string | null
+          description?: string | null
+          document_type?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
           id?: string
-          is_anonymous?: boolean | null
+          is_visible_to_patient?: boolean | null
           patient_id?: string
-          rating?: number | null
+          requires_payment_approval?: boolean | null
+          updated_at?: string
+          uploaded_by?: string
         }
         Relationships: [
           {
-            foreignKeyName: "patient_feedback_appointment_id_fkey"
+            foreignKeyName: "medical_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          recipient_role: string
+          related_id: string | null
+          title: string
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          recipient_role: string
+          related_id?: string | null
+          title: string
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          recipient_role?: string
+          related_id?: string | null
+          title?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
+      patient_details: {
+        Row: {
+          age: number | null
+          allergies: string | null
+          blood_type: string | null
+          communication_preference: string | null
+          created_at: string
+          current_medications: string | null
+          date_of_birth: string | null
+          dental_concerns: string | null
+          dental_history: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          existing_medical_conditions: string | null
+          first_name: string | null
+          gender: string | null
+          home_address: string | null
+          id: string
+          insurance_provider: string | null
+          last_dental_visit: string | null
+          last_name: string | null
+          middle_name: string | null
+          occupation: string | null
+          patient_id: string
+          phone: string | null
+          policy_number: string | null
+          preferred_time: string | null
+          previous_surgeries: string | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          allergies?: string | null
+          blood_type?: string | null
+          communication_preference?: string | null
+          created_at?: string
+          current_medications?: string | null
+          date_of_birth?: string | null
+          dental_concerns?: string | null
+          dental_history?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          existing_medical_conditions?: string | null
+          first_name?: string | null
+          gender?: string | null
+          home_address?: string | null
+          id?: string
+          insurance_provider?: string | null
+          last_dental_visit?: string | null
+          last_name?: string | null
+          middle_name?: string | null
+          occupation?: string | null
+          patient_id: string
+          phone?: string | null
+          policy_number?: string | null
+          preferred_time?: string | null
+          previous_surgeries?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          allergies?: string | null
+          blood_type?: string | null
+          communication_preference?: string | null
+          created_at?: string
+          current_medications?: string | null
+          date_of_birth?: string | null
+          dental_concerns?: string | null
+          dental_history?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          existing_medical_conditions?: string | null
+          first_name?: string | null
+          gender?: string | null
+          home_address?: string | null
+          id?: string
+          insurance_provider?: string | null
+          last_dental_visit?: string | null
+          last_name?: string | null
+          middle_name?: string | null
+          occupation?: string | null
+          patient_id?: string
+          phone?: string | null
+          policy_number?: string | null
+          preferred_time?: string | null
+          previous_surgeries?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_details_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_form_responses: {
+        Row: {
+          branch_id: string | null
+          form_id: string
+          form_version: number | null
+          id: string
+          patient_id: string
+          responses: Json
+          signature_data: string | null
+          signature_timestamp: string | null
+          signer_ip: unknown | null
+          submitted_at: string
+          verification_notes: string | null
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          form_id: string
+          form_version?: number | null
+          id?: string
+          patient_id: string
+          responses: Json
+          signature_data?: string | null
+          signature_timestamp?: string | null
+          signer_ip?: unknown | null
+          submitted_at?: string
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          form_id?: string
+          form_version?: number | null
+          id?: string
+          patient_id?: string
+          responses?: Json
+          signature_data?: string | null
+          signature_timestamp?: string | null
+          signer_ip?: unknown | null
+          submitted_at?: string
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_form_responses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_form_responses_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "digital_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_form_responses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_notifications: {
+        Row: {
+          appointment_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          patient_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          patient_id: string
+          title: string
+          type?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          patient_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_notifications_appointment_id_fkey"
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "patient_feedback_patient_id_fkey"
+            foreignKeyName: "patient_notifications_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      patients: {
+      patient_results: {
         Row: {
-          address: string | null
-          clinic_id: string
-          contact_number: string | null
+          appointment_id: string | null
           created_at: string
-          date_of_birth: string | null
-          email: string | null
-          emergency_contact: string | null
-          full_name: string
-          gender: string | null
+          created_by: string | null
+          description: string | null
+          file_type: string | null
+          file_url: string | null
           id: string
-          insurance_info: string | null
-          medical_history: string | null
-          primary_guardian_id: string | null
+          is_visible_to_patient: boolean | null
+          patient_id: string
+          requires_payment: boolean | null
+          title: string
           updated_at: string
-          user_id: string | null
         }
         Insert: {
-          address?: string | null
-          clinic_id: string
-          contact_number?: string | null
+          appointment_id?: string | null
           created_at?: string
-          date_of_birth?: string | null
-          email?: string | null
-          emergency_contact?: string | null
-          full_name: string
-          gender?: string | null
+          created_by?: string | null
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
-          insurance_info?: string | null
-          medical_history?: string | null
-          primary_guardian_id?: string | null
+          is_visible_to_patient?: boolean | null
+          patient_id: string
+          requires_payment?: boolean | null
+          title: string
           updated_at?: string
-          user_id?: string | null
         }
         Update: {
-          address?: string | null
-          clinic_id?: string
-          contact_number?: string | null
+          appointment_id?: string | null
           created_at?: string
-          date_of_birth?: string | null
-          email?: string | null
-          emergency_contact?: string | null
-          full_name?: string
-          gender?: string | null
+          created_by?: string | null
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
-          insurance_info?: string | null
-          medical_history?: string | null
-          primary_guardian_id?: string | null
+          is_visible_to_patient?: boolean | null
+          patient_id?: string
+          requires_payment?: boolean | null
+          title?: string
           updated_at?: string
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "patients_clinic_id_fkey"
-            columns: ["clinic_id"]
+            foreignKeyName: "patient_results_appointment_id_fkey"
+            columns: ["appointment_id"]
             isOneToOne: false
-            referencedRelation: "clinics"
+            referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "patients_primary_guardian_id_fkey"
-            columns: ["primary_guardian_id"]
+            foreignKeyName: "patient_results_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_proofs: {
+        Row: {
+          appointment_id: string | null
+          file_name: string
+          file_url: string
+          id: string
+          notes: string | null
+          patient_id: string
+          payment_id: string | null
+          upload_date: string
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          payment_id?: string | null
+          upload_date?: string
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          payment_id?: string | null
+          upload_date?: string
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_proofs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "patients_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "payment_proofs_payment_id_fkey"
+            columns: ["payment_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_proofs_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1187,49 +1251,43 @@ export type Database = {
       payments: {
         Row: {
           amount: number
-          appointment_id: string | null
-          clinic_id: string
+          appointment_id: string
           created_at: string
-          currency: string
           id: string
-          notes: string | null
           patient_id: string
+          payment_date: string
           payment_method: string
           payment_status: string
-          treatment_description: string | null
-          updated_at: string
+          service_name: string | null
+          verification_status: string | null
           verified_at: string | null
           verified_by: string | null
         }
         Insert: {
           amount: number
-          appointment_id?: string | null
-          clinic_id: string
+          appointment_id: string
           created_at?: string
-          currency?: string
           id?: string
-          notes?: string | null
-          patient_id: string
+          patient_id?: string
+          payment_date?: string
           payment_method: string
           payment_status?: string
-          treatment_description?: string | null
-          updated_at?: string
+          service_name?: string | null
+          verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
         Update: {
           amount?: number
-          appointment_id?: string | null
-          clinic_id?: string
+          appointment_id?: string
           created_at?: string
-          currency?: string
           id?: string
-          notes?: string | null
           patient_id?: string
+          payment_date?: string
           payment_method?: string
           payment_status?: string
-          treatment_description?: string | null
-          updated_at?: string
+          service_name?: string | null
+          verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -1242,435 +1300,428 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payments_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "payments_verified_by_fkey"
             columns: ["verified_by"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      queue: {
+      payroll_records: {
         Row: {
-          appointment_id: string
-          created_at: string
-          estimated_wait_minutes: number | null
+          approved_at: string | null
+          approved_by: string | null
+          base_salary: number | null
+          bonus: number | null
+          branch_id: string | null
+          created_at: string | null
+          deductions: number | null
           id: string
-          manual_order: number | null
-          override_reason: string | null
-          position: number
-          predicted_completion_time: string | null
-          priority: Database["public"]["Enums"]["queue_priority"] | null
-          status: Database["public"]["Enums"]["queue_status"] | null
-          treatment_duration_override: number | null
-          updated_at: string
+          overtime_hours: number | null
+          overtime_rate: number | null
+          pay_period_end: string
+          pay_period_start: string
+          staff_id: string
+          status: string | null
+          total_gross: number | null
+          total_net: number | null
+          updated_at: string | null
         }
         Insert: {
-          appointment_id: string
-          created_at?: string
-          estimated_wait_minutes?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          base_salary?: number | null
+          bonus?: number | null
+          branch_id?: string | null
+          created_at?: string | null
+          deductions?: number | null
           id?: string
-          manual_order?: number | null
-          override_reason?: string | null
-          position: number
-          predicted_completion_time?: string | null
-          priority?: Database["public"]["Enums"]["queue_priority"] | null
-          status?: Database["public"]["Enums"]["queue_status"] | null
-          treatment_duration_override?: number | null
-          updated_at?: string
+          overtime_hours?: number | null
+          overtime_rate?: number | null
+          pay_period_end: string
+          pay_period_start: string
+          staff_id: string
+          status?: string | null
+          total_gross?: number | null
+          total_net?: number | null
+          updated_at?: string | null
         }
         Update: {
-          appointment_id?: string
-          created_at?: string
-          estimated_wait_minutes?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          base_salary?: number | null
+          bonus?: number | null
+          branch_id?: string | null
+          created_at?: string | null
+          deductions?: number | null
           id?: string
-          manual_order?: number | null
-          override_reason?: string | null
-          position?: number
-          predicted_completion_time?: string | null
-          priority?: Database["public"]["Enums"]["queue_priority"] | null
-          status?: Database["public"]["Enums"]["queue_status"] | null
-          treatment_duration_override?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "queue_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      staff_schedules: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean | null
-          notes: string | null
-          staff_id: string
-          updated_at: string
-          working_hours: Json
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          notes?: string | null
-          staff_id: string
-          updated_at?: string
-          working_hours: Json
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          notes?: string | null
+          overtime_hours?: number | null
+          overtime_rate?: number | null
+          pay_period_end?: string
+          pay_period_start?: string
           staff_id?: string
-          updated_at?: string
-          working_hours?: Json
+          status?: string | null
+          total_gross?: number | null
+          total_net?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "staff_schedules_staff_id_fkey"
+            foreignKeyName: "payroll_records_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_records_staff_id_fkey"
             columns: ["staff_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      subscription_history: {
+      procedures: {
         Row: {
-          changed_by: string | null
-          clinic_id: string
-          created_at: string
-          effective_date: string
+          branch_id: string | null
+          category: string | null
+          code: string | null
+          created_at: string | null
+          description: string | null
+          estimated_duration: number | null
           id: string
-          new_plan: string | null
-          old_plan: string | null
-          reason: string | null
+          is_active: boolean | null
+          name: string
+          requires_forms: boolean | null
+          updated_at: string | null
         }
         Insert: {
-          changed_by?: string | null
-          clinic_id: string
-          created_at?: string
-          effective_date?: string
+          branch_id?: string | null
+          category?: string | null
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_duration?: number | null
           id?: string
-          new_plan?: string | null
-          old_plan?: string | null
-          reason?: string | null
+          is_active?: boolean | null
+          name: string
+          requires_forms?: boolean | null
+          updated_at?: string | null
         }
         Update: {
-          changed_by?: string | null
-          clinic_id?: string
-          created_at?: string
-          effective_date?: string
+          branch_id?: string | null
+          category?: string | null
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_duration?: number | null
           id?: string
-          new_plan?: string | null
-          old_plan?: string | null
-          reason?: string | null
+          is_active?: boolean | null
+          name?: string
+          requires_forms?: boolean | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "subscription_history_changed_by_fkey"
-            columns: ["changed_by"]
+            foreignKeyName: "procedures_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subscription_history_clinic_id_fkey"
-            columns: ["clinic_id"]
-            isOneToOne: false
-            referencedRelation: "clinics"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
       }
-      subscription_plans: {
+      profiles: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          email: string
+          enhanced_role:
+            | Database["public"]["Enums"]["enhanced_user_role"]
+            | null
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          email: string
+          enhanced_role?:
+            | Database["public"]["Enums"]["enhanced_user_role"]
+            | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          email?: string
+          enhanced_role?:
+            | Database["public"]["Enums"]["enhanced_user_role"]
+            | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
         Row: {
           created_at: string
-          features: Json
+          description: string | null
+          duration: number | null
           id: string
           is_active: boolean | null
-          max_branches: number | null
-          max_users: number | null
-          monthly_price: number | null
           name: string
-          tier: number
-          yearly_price: number | null
+          price: number
+          updated_at: string
         }
         Insert: {
           created_at?: string
-          features: Json
+          description?: string | null
+          duration?: number | null
           id?: string
           is_active?: boolean | null
-          max_branches?: number | null
-          max_users?: number | null
-          monthly_price?: number | null
           name: string
-          tier: number
-          yearly_price?: number | null
+          price: number
+          updated_at?: string
         }
         Update: {
           created_at?: string
-          features?: Json
+          description?: string | null
+          duration?: number | null
           id?: string
           is_active?: boolean | null
-          max_branches?: number | null
-          max_users?: number | null
-          monthly_price?: number | null
           name?: string
-          tier?: number
-          yearly_price?: number | null
+          price?: number
+          updated_at?: string
         }
         Relationships: []
       }
-      super_admin_audit: {
+      telemedicine_sessions: {
         Row: {
-          action: string
-          admin_id: string
-          clinic_affected: string | null
-          created_at: string
-          entity_id: string | null
-          entity_type: string
-          id: string
-          ip_address: unknown | null
-          new_values: Json | null
-          old_values: Json | null
-          user_agent: string | null
-        }
-        Insert: {
-          action: string
-          admin_id: string
-          clinic_affected?: string | null
-          created_at?: string
-          entity_id?: string | null
-          entity_type: string
-          id?: string
-          ip_address?: unknown | null
-          new_values?: Json | null
-          old_values?: Json | null
-          user_agent?: string | null
-        }
-        Update: {
-          action?: string
-          admin_id?: string
-          clinic_affected?: string | null
-          created_at?: string
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          ip_address?: unknown | null
-          new_values?: Json | null
-          old_values?: Json | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "super_admin_audit_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "super_admin_audit_clinic_affected_fkey"
-            columns: ["clinic_affected"]
-            isOneToOne: false
-            referencedRelation: "clinics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      treatment_records: {
-        Row: {
-          actual_duration_minutes: number | null
           appointment_id: string | null
-          clinic_id: string
-          complications: string | null
-          created_at: string
+          branch_id: string | null
+          created_at: string | null
           dentist_id: string
-          end_time: string | null
-          follow_up_notes: string | null
-          follow_up_required: boolean | null
+          ended_at: string | null
           id: string
-          notes: string | null
+          meeting_link: string | null
           patient_id: string
-          price_charged: number | null
-          start_time: string
-          status: string
-          treatment_id: string
-          updated_at: string
+          recording_url: string | null
+          scheduled_at: string
+          session_notes: string | null
+          session_type: string | null
+          started_at: string | null
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
-          actual_duration_minutes?: number | null
           appointment_id?: string | null
-          clinic_id: string
-          complications?: string | null
-          created_at?: string
+          branch_id?: string | null
+          created_at?: string | null
           dentist_id: string
-          end_time?: string | null
-          follow_up_notes?: string | null
-          follow_up_required?: boolean | null
+          ended_at?: string | null
           id?: string
-          notes?: string | null
+          meeting_link?: string | null
           patient_id: string
-          price_charged?: number | null
-          start_time: string
-          status?: string
-          treatment_id: string
-          updated_at?: string
+          recording_url?: string | null
+          scheduled_at: string
+          session_notes?: string | null
+          session_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
-          actual_duration_minutes?: number | null
           appointment_id?: string | null
-          clinic_id?: string
-          complications?: string | null
-          created_at?: string
+          branch_id?: string | null
+          created_at?: string | null
           dentist_id?: string
-          end_time?: string | null
-          follow_up_notes?: string | null
-          follow_up_required?: boolean | null
+          ended_at?: string | null
           id?: string
-          notes?: string | null
+          meeting_link?: string | null
           patient_id?: string
-          price_charged?: number | null
-          start_time?: string
-          status?: string
-          treatment_id?: string
-          updated_at?: string
+          recording_url?: string | null
+          scheduled_at?: string
+          session_notes?: string | null
+          session_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "treatment_records_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: "telemedicine_sessions_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "appointments"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "treatment_records_dentist_id_fkey"
+            foreignKeyName: "telemedicine_sessions_dentist_id_fkey"
             columns: ["dentist_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "treatment_records_patient_id_fkey"
+            foreignKeyName: "telemedicine_sessions_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "treatment_records_treatment_id_fkey"
-            columns: ["treatment_id"]
-            isOneToOne: false
-            referencedRelation: "treatments"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      treatments: {
+      timesheets: {
         Row: {
-          clinic_id: string
-          created_at: string
-          created_by_super_admin: boolean | null
-          default_duration_minutes: number | null
-          default_price: number | null
+          approved_by: string | null
+          branch_id: string | null
+          break_end: string | null
+          break_start: string | null
+          clock_in: string | null
+          clock_out: string | null
+          created_at: string | null
+          date: string
           id: string
-          is_global_template: boolean | null
-          name: string
-          service_code: string | null
-          updated_at: string
+          notes: string | null
+          overtime_hours: number | null
+          staff_id: string
+          status: string | null
+          total_hours: number | null
+          updated_at: string | null
         }
         Insert: {
-          clinic_id: string
-          created_at?: string
-          created_by_super_admin?: boolean | null
-          default_duration_minutes?: number | null
-          default_price?: number | null
+          approved_by?: string | null
+          branch_id?: string | null
+          break_end?: string | null
+          break_start?: string | null
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string | null
+          date: string
           id?: string
-          is_global_template?: boolean | null
-          name: string
-          service_code?: string | null
-          updated_at?: string
+          notes?: string | null
+          overtime_hours?: number | null
+          staff_id: string
+          status?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
         }
         Update: {
-          clinic_id?: string
-          created_at?: string
-          created_by_super_admin?: boolean | null
-          default_duration_minutes?: number | null
-          default_price?: number | null
+          approved_by?: string | null
+          branch_id?: string | null
+          break_end?: string | null
+          break_start?: string | null
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string | null
+          date?: string
           id?: string
-          is_global_template?: boolean | null
-          name?: string
-          service_code?: string | null
-          updated_at?: string
+          notes?: string | null
+          overtime_hours?: number | null
+          staff_id?: string
+          status?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "treatments_clinic_id_fkey"
-            columns: ["clinic_id"]
+            foreignKeyName: "timesheets_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "clinics"
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheets_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      users: {
+      user_invitations: {
         Row: {
-          clinic_id: string | null
-          created_at: string
+          accepted_at: string | null
+          branch_id: string | null
+          created_at: string | null
           email: string
+          enhanced_role:
+            | Database["public"]["Enums"]["enhanced_user_role"]
+            | null
+          expires_at: string | null
           full_name: string
           id: string
-          phone: string | null
+          invitation_token: string | null
+          invited_by: string
           role: Database["public"]["Enums"]["user_role"]
           status: string | null
-          updated_at: string
-          user_id: string | null
         }
         Insert: {
-          clinic_id?: string | null
-          created_at?: string
+          accepted_at?: string | null
+          branch_id?: string | null
+          created_at?: string | null
           email: string
+          enhanced_role?:
+            | Database["public"]["Enums"]["enhanced_user_role"]
+            | null
+          expires_at?: string | null
           full_name: string
           id?: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
+          invitation_token?: string | null
+          invited_by: string
+          role: Database["public"]["Enums"]["user_role"]
           status?: string | null
-          updated_at?: string
-          user_id?: string | null
         }
         Update: {
-          clinic_id?: string | null
-          created_at?: string
+          accepted_at?: string | null
+          branch_id?: string | null
+          created_at?: string | null
           email?: string
+          enhanced_role?:
+            | Database["public"]["Enums"]["enhanced_user_role"]
+            | null
+          expires_at?: string | null
           full_name?: string
           id?: string
-          phone?: string | null
+          invitation_token?: string | null
+          invited_by?: string
           role?: Database["public"]["Enums"]["user_role"]
           status?: string | null
-          updated_at?: string
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "users_clinic_id_fkey"
-            columns: ["clinic_id"]
+            foreignKeyName: "user_invitations_branch_id_fkey"
+            columns: ["branch_id"]
             isOneToOne: false
-            referencedRelation: "clinics"
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
@@ -1680,75 +1731,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_auth_clinic: {
-        Args: Record<PropertyKey, never>
-        Returns: string
+      dentist_can_view_patient: {
+        Args: { patient_profile_id: string }
+        Returns: boolean
       }
-      get_auth_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_average_treatment_duration: {
-        Args: { treatment_name: string }
-        Returns: number
-      }
-      get_clinic_enabled_features: {
-        Args: { clinic_uuid: string }
-        Returns: {
-          feature_name: string
-          is_enabled: boolean
-        }[]
-      }
-      get_current_user_details: {
+      get_available_dentists: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_clinic_id: string
-          user_role: string
-        }[]
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_family_members: {
-        Args: { patient_id: string }
-        Returns: {
-          contact_number: string
-          date_of_birth: string
           full_name: string
-          member_id: string
-          relationship: string
+          id: string
         }[]
+      }
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      has_enhanced_role: {
+        Args: {
+          required_role: Database["public"]["Enums"]["enhanced_user_role"]
+          user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          required_role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
-      appointment_status:
-        | "booked"
-        | "checked_in"
-        | "in_progress"
-        | "completed"
-        | "cancelled"
-        | "no_show"
-      booking_type: "online" | "walk_in" | "emergency" | "virtual"
-      document_type:
-        | "consent_form"
-        | "insurance"
-        | "lab_result"
-        | "xray"
-        | "other"
-      notification_status: "pending" | "sent" | "failed"
-      notification_type: "sms" | "push" | "email" | "system"
-      payment_status: "paid" | "partial" | "unpaid"
-      queue_priority: "emergency" | "scheduled" | "walk_in"
-      queue_status: "waiting" | "skipped" | "called" | "completed"
-      subscription_package: "core" | "growth" | "premium"
-      user_role:
+      enhanced_user_role:
         | "super_admin"
-        | "clinic_admin"
+        | "admin"
         | "dentist"
         | "staff"
-        | "receptionist"
         | "patient"
+      user_role: "patient" | "admin" | "staff" | "dentist"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1876,36 +1896,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      appointment_status: [
-        "booked",
-        "checked_in",
-        "in_progress",
-        "completed",
-        "cancelled",
-        "no_show",
-      ],
-      booking_type: ["online", "walk_in", "emergency", "virtual"],
-      document_type: [
-        "consent_form",
-        "insurance",
-        "lab_result",
-        "xray",
-        "other",
-      ],
-      notification_status: ["pending", "sent", "failed"],
-      notification_type: ["sms", "push", "email", "system"],
-      payment_status: ["paid", "partial", "unpaid"],
-      queue_priority: ["emergency", "scheduled", "walk_in"],
-      queue_status: ["waiting", "skipped", "called", "completed"],
-      subscription_package: ["core", "growth", "premium"],
-      user_role: [
+      enhanced_user_role: [
         "super_admin",
-        "clinic_admin",
+        "admin",
         "dentist",
         "staff",
-        "receptionist",
         "patient",
       ],
+      user_role: ["patient", "admin", "staff", "dentist"],
     },
   },
 } as const
