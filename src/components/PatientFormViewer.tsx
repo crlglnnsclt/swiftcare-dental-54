@@ -150,9 +150,9 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
             .insert({
               user_id: profile.user_id,
               clinic_id: profile.clinic_id,
-              full_name: profile.full_name,
+              full_name: profile.full_name || profile.display_name || 'Unknown',
               email: profile.email,
-              contact_number: profile.phone
+              contact_number: profile.phone || profile.contact_number
             })
             .select('id')
             .single();
@@ -163,6 +163,10 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
           }
           targetPatientId = newPatient.id;
         }
+      }
+
+      if (!targetPatientId) {
+        throw new Error('No patient ID available for form submission');
       }
 
       const { error } = await supabase
