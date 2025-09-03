@@ -27,7 +27,7 @@ import {
   Heart,
   CreditCard,
   Receipt,
-  FolderOpen
+  Folder
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -457,7 +457,7 @@ export default function PaperlessSystem() {
               <Card className="glass-card">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <FolderOpen className="w-5 h-5 text-green-600" />
+                    <Folder className="w-5 h-5 text-green-600" />
                     <span>My Documents</span>
                   </CardTitle>
                 </CardHeader>
