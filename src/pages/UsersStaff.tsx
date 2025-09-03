@@ -103,8 +103,8 @@ export default function UsersStaff() {
         .from('users')
         .select(`
           *,
-          branches (
-            name
+          clinics (
+            clinic_name
           )
         `)
         .order('created_at', { ascending: false });
