@@ -540,7 +540,7 @@ export default function BranchManagement() {
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  {profile?.enhanced_role === 'super_admin' && (
+                  {profile?.role === 'super_admin' && (
                     <Button 
                       variant="ghost" 
                       size="sm" 

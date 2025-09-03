@@ -105,9 +105,9 @@ export function Layout() {
                         <p className="text-xs leading-none text-muted-foreground">
                           {user?.email}
                         </p>
-                        {profile?.enhanced_role && (
+                        {profile?.role && (
                           <p className="text-xs leading-none text-muted-foreground capitalize">
-                            {profile.enhanced_role.replace('_', ' ')}
+                            {profile.role.replace('_', ' ')}
                           </p>
                         )}
                       </div>

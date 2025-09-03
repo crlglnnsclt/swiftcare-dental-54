@@ -212,17 +212,16 @@ const Dashboard = () => {
                   <div>
                     <h1 className="text-2xl font-bold text-foreground mb-2">
                       {profile?.role === 'patient' ? 'Patient Portal' : 
-                       profile?.role === 'dentist' ? 'Dentist Dashboard' :
-                     profile?.enhanced_role === 'super_admin' ? 'Super Admin Dashboard' :
-                       profile?.enhanced_role === 'admin' ? 'Admin Dashboard' : 
-                       profile?.enhanced_role === 'dentist' ? 'Dentist Dashboard' : 'Dashboard'}
+                       profile?.role === 'super_admin' ? 'Super Admin Dashboard' :
+                       profile?.role === 'admin' ? 'Admin Dashboard' : 
+                       profile?.role === 'dentist' ? 'Dentist Dashboard' : 'Dashboard'}
                     </h1>
                     <p className="text-muted-foreground mb-2">
                       Welcome back, {profile?.full_name || user?.email}
                     </p>
-                    {profile?.enhanced_role && (
-                      <Badge variant="outline" className="capitalize">
-                        {profile.enhanced_role.replace('_', ' ')}
+                    {profile?.role && (
+                      <Badge variant="outline" className="ml-2">
+                        {profile.role.replace('_', ' ')}
                       </Badge>
                     )}
                   </div>
@@ -450,11 +449,11 @@ const Dashboard = () => {
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle>
-                  {profile?.enhanced_role === 'super_admin' ? 'Super Admin Actions' : 'Quick Actions'}
+                  {profile?.role === 'super_admin' ? 'Super Admin Actions' : 'Quick Actions'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {profile?.enhanced_role === 'super_admin' ? (
+                {profile?.role === 'super_admin' ? (
                   <>
                     <Button 
                       variant="outline" 
