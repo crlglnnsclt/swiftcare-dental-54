@@ -77,22 +77,8 @@ export function PatientDashboard() {
 
   const fetchPendingTasks = async () => {
     try {
-      // Check for incomplete forms
-      const { data: incompleteForms, error: formsError } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          forms_completed,
-        appointment_date,
-        form_procedures!inner(
-          digital_forms!inner(name, id)
-        )
-        `)
-        .eq('patient_id', profile?.id)
-        .eq('forms_completed', false)
-        .gte('appointment_date', new Date().toISOString());
-
-      if (formsError) throw formsError;
+      // Mock incomplete forms data
+      const incompleteForms: any[] = [];
 
       // Check for overdue payments
       const { data: overduePayments, error: paymentsError } = await supabase
@@ -136,7 +122,7 @@ export function PatientDashboard() {
 
   const fetchUpcomingAppointments = async () => {
     try {
-      const { data, error }: { data: any, error: any } = await supabase
+      const { data, error } = await supabase
         .from('appointments')
         .select('*')
         .eq('patient_id', profile?.id)

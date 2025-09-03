@@ -48,7 +48,7 @@ interface QueueAppointment {
 }
 
 type QueueFilter = 'all' | 'waiting' | 'in-progress' | 'completed' | 'emergency';
-type StatusUpdate = 'scheduled' | 'in-treatment' | 'completed' | 'cancelled' | 'no-show';
+type StatusUpdate = 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
 
 export default function QueueManagement() {
   const [appointments, setAppointments] = useState<QueueAppointment[]>([]);
@@ -96,17 +96,33 @@ export default function QueueManagement() {
         .from('appointments')
         .select(`
           *,
-          profiles:patient_id (
-            full_name,
-            phone
-          )
+          patients!inner(full_name)
         `)
-        .eq('appointment_date', today)
-        .in('status', ['scheduled', 'in-treatment', 'completed'])
-        .order('queue_position', { ascending: true });
+        .gte('scheduled_time', today + 'T00:00:00')
+        .lte('scheduled_time', today + 'T23:59:59')
+        .in('status', ['booked', 'checked_in', 'in_progress', 'completed'])
+        .order('scheduled_time', { ascending: true });
 
       if (error) throw error;
-      setAppointments(data || []);
+      const mappedData = (data || []).map(item => ({
+        id: item.id,
+        patient_id: item.patient_id,
+        appointment_date: item.scheduled_time,
+        service_type: 'General Consultation',
+        status: item.status,
+        priority: 'normal',
+        appointment_type: item.booking_type,
+        is_checked_in: item.status === 'checked_in',
+        queue_position: null,
+        queue_join_time: null,
+        grace_period_end: null,
+        estimated_duration: item.duration_minutes || 30,
+        actual_start_time: null,
+        actual_end_time: null,
+        is_no_show: false,
+        profiles: item.patients ? { full_name: item.patients.full_name } : undefined
+      }));
+      setAppointments(mappedData);
     } catch (error) {
       console.error('Error fetching queue:', error);
       toast({
@@ -123,12 +139,12 @@ export default function QueueManagement() {
     try {
       const updateData: any = { status };
       
-      if (status === 'in-treatment') {
-        updateData.actual_start_time = new Date().toISOString();
+      if (status === 'in_progress') {
+        updateData.scheduled_time = new Date().toISOString();
       } else if (status === 'completed') {
-        updateData.actual_end_time = new Date().toISOString();
-      } else if (status === 'no-show') {
-        updateData.is_no_show = true;
+        updateData.updated_at = new Date().toISOString();
+      } else if (status === 'no_show') {
+        // Handle no show status
       }
 
       const { error } = await supabase
@@ -159,8 +175,8 @@ export default function QueueManagement() {
       const { error } = await supabase
         .from('appointments')
         .update({
-          is_checked_in: true,
-          queue_join_time: new Date().toISOString()
+          status: 'checked_in',
+          updated_at: new Date().toISOString()
         })
         .eq('id', appointmentId);
 
@@ -187,8 +203,8 @@ export default function QueueManagement() {
       const { error } = await supabase
         .from('appointments')
         .update({
-          appointment_type: 'emergency',
-          priority: 'vip'
+          booking_type: 'emergency',
+          notes: 'Emergency priority'
         })
         .eq('id', appointmentId);
 
@@ -213,9 +229,9 @@ export default function QueueManagement() {
   const filteredAppointments = appointments.filter(apt => {
     switch (filter) {
       case 'waiting':
-        return apt.is_checked_in && apt.status === 'scheduled';
+        return apt.status === 'checked_in';
       case 'in-progress':
-        return apt.status === 'in-treatment';
+        return apt.status === 'in_progress';
       case 'completed':
         return apt.status === 'completed';
       case 'emergency':
@@ -227,15 +243,15 @@ export default function QueueManagement() {
 
   const queueStats = {
     total: appointments.length,
-    waiting: appointments.filter(a => a.is_checked_in && a.status === 'scheduled').length,
-    inProgress: appointments.filter(a => a.status === 'in-treatment').length,
+    waiting: appointments.filter(a => a.status === 'checked_in').length,
+    inProgress: appointments.filter(a => a.status === 'in_progress').length,
     completed: appointments.filter(a => a.status === 'completed').length,
     emergency: appointments.filter(a => a.appointment_type === 'emergency').length
   };
 
   const getStatusColor = (appointment: QueueAppointment) => {
     if (appointment.appointment_type === 'emergency') return 'bg-destructive text-destructive-foreground';
-    if (appointment.status === 'in-treatment') return 'bg-medical-blue text-white';
+    if (appointment.status === 'in_progress') return 'bg-medical-blue text-white';
     if (appointment.status === 'completed') return 'bg-success text-success-foreground';
     if (appointment.is_checked_in) return 'bg-warning text-warning-foreground';
     return 'bg-muted text-muted-foreground';
@@ -243,7 +259,7 @@ export default function QueueManagement() {
 
   const getPriorityIcon = (appointment: QueueAppointment) => {
     if (appointment.appointment_type === 'emergency') return <AlertTriangle className="w-4 h-4" />;
-    if (appointment.status === 'in-treatment') return <Play className="w-4 h-4" />;
+    if (appointment.status === 'in_progress') return <Play className="w-4 h-4" />;
     if (appointment.status === 'completed') return <CheckCircle className="w-4 h-4" />;
     if (appointment.is_checked_in) return <Clock className="w-4 h-4" />;
     return <Timer className="w-4 h-4" />;
@@ -433,7 +449,7 @@ export default function QueueManagement() {
                             <div className="flex items-center gap-1">
                               {getPriorityIcon(appointment)}
                               {appointment.appointment_type === 'emergency' ? 'EMERGENCY' :
-                               appointment.status === 'in-treatment' ? 'IN PROGRESS' :
+                               appointment.status === 'in_progress' ? 'IN PROGRESS' :
                                appointment.status === 'completed' ? 'COMPLETED' :
                                appointment.is_checked_in ? 'WAITING' : 'NOT CHECKED IN'}
                             </div>
@@ -488,18 +504,18 @@ export default function QueueManagement() {
                         </Button>
                       )}
 
-                      {appointment.is_checked_in && appointment.status === 'scheduled' && (
+                      {appointment.is_checked_in && appointment.status === 'checked_in' && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateAppointmentStatus(appointment.id, 'in-treatment')}
+                          onClick={() => updateAppointmentStatus(appointment.id, 'in_progress')}
                         >
                           <Play className="w-4 h-4 mr-1" />
                           Start
                         </Button>
                       )}
 
-                      {appointment.status === 'in-treatment' && (
+                      {appointment.status === 'in_progress' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -510,11 +526,11 @@ export default function QueueManagement() {
                         </Button>
                       )}
 
-                      {appointment.status === 'scheduled' && (
+                      {appointment.status === 'booked' && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateAppointmentStatus(appointment.id, 'no-show')}
+                          onClick={() => updateAppointmentStatus(appointment.id, 'no_show')}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
                           No Show

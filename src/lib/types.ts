@@ -6,14 +6,27 @@ export interface Appointment {
   clinic_id: string;
   scheduled_time: string;
   duration_minutes: number | null;
-  status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | null;
-  booking_type: 'online' | 'walk_in' | 'emergency' | 'virtual' | null;
+  status: string;
+  booking_type: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
   patients?: { full_name: string; contact_number?: string };
-  users?: { full_name: string };
   profiles?: { full_name: string };
+}
+
+export interface SimpleAppointment {
+  id: string;
+  patient_id: string;
+  dentist_id: string | null;
+  clinic_id: string;
+  scheduled_time: string;
+  duration_minutes: number | null;
+  status: string;
+  booking_type: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Treatment {
