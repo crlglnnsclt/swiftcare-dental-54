@@ -91,19 +91,19 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="appointments" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'dentist']}>
+          <ProtectedRoute requiredRole={['admin', 'staff', 'dentist', 'super_admin']}>
             <AppointmentScheduling />
           </ProtectedRoute>
         } />
         <Route path="analytics" element={
-          <ProtectedRoute requiredRole={['admin']}>
+          <ProtectedRoute requiredRole={['admin', 'super_admin']}>
             <Analytics />
           </ProtectedRoute>
         } />
         <Route path="queue" element={<QueueManagement />} />
         <Route path="staff-checkin" element={<PatientCheckIn />} />
         <Route path="digital-forms" element={
-          <ProtectedRoute requiredRole={['admin', 'staff']}>
+          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
             <DigitalForms />
           </ProtectedRoute>
         } />
@@ -113,7 +113,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="form-responses" element={
-          <ProtectedRoute requiredRole={['admin', 'staff']}>
+          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
             <FormResponses />
           </ProtectedRoute>
         } />

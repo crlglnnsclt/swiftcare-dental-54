@@ -59,21 +59,21 @@ const navigationItems: NavItem[] = [
     title: "System Overview",
     url: "/super-admin",
     icon: Shield,
-    roles: ["admin"],
+    roles: ["super_admin"],
     enhancedRoles: ["super_admin"]
   },
   {
     title: "Branch Management",
     url: "/branches",
     icon: Building2,
-    roles: ["admin"],
+    roles: ["super_admin"],
     enhancedRoles: ["super_admin"]
   },
   {
     title: "System Analytics",
     url: "/system-analytics",
     icon: Database,
-    roles: ["admin"],
+    roles: ["super_admin"],
     enhancedRoles: ["super_admin"]
   },
   
@@ -82,21 +82,21 @@ const navigationItems: NavItem[] = [
     title: "Dashboard",
     url: "/dashboard",
     icon: BarChart3,
-    roles: ["admin", "staff", "dentist"],
+    roles: ["admin", "staff", "dentist", "super_admin"],
     enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
   },
   {
     title: "Users & Staff",
     url: "/users",
     icon: Users,
-    roles: ["admin"],
+    roles: ["admin", "super_admin"],
     enhancedRoles: ["admin", "super_admin"]
   },
   {
     title: "Branch Settings",
     url: "/branch-settings",
     icon: Settings,
-    roles: ["admin"],
+    roles: ["admin", "super_admin"],
     enhancedRoles: ["admin", "super_admin"]
   },
   
@@ -105,14 +105,14 @@ const navigationItems: NavItem[] = [
     title: "Appointments", 
     url: "/appointments",
     icon: Calendar,
-    roles: ["admin", "staff", "dentist"],
+    roles: ["admin", "staff", "dentist", "super_admin"],
     enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
   },
   {
     title: "Queue Management",
     url: "/queue",
     icon: Clock,
-    roles: ["admin", "staff", "dentist"],
+    roles: ["admin", "staff", "dentist", "super_admin"],
     enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
   },
   {
@@ -174,7 +174,7 @@ const navigationItems: NavItem[] = [
     title: "Staff Management",
     url: "/staff-management",
     icon: Users,
-    roles: ["admin"],
+    roles: ["admin", "super_admin"],
     enhancedRoles: ["admin", "super_admin"]
   },
   
@@ -182,7 +182,7 @@ const navigationItems: NavItem[] = [
     title: "Billing & Payments",
     url: "/billing",
     icon: CreditCard,
-    roles: ["admin"],
+    roles: ["admin", "super_admin"],
     enhancedRoles: ["admin", "super_admin"]
   },
   {
@@ -196,7 +196,7 @@ const navigationItems: NavItem[] = [
     title: "Analytics & Reports",
     url: "/analytics",
     icon: Activity,
-    roles: ["admin"],
+    roles: ["admin", "super_admin"],
     enhancedRoles: ["admin", "super_admin"]
   },
   

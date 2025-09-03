@@ -87,7 +87,7 @@ export default function UsersStaff() {
   const [editData, setEditData] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    if (profile?.enhanced_role === 'super_admin' || profile?.enhanced_role === 'admin') {
+    if (profile?.role === 'super_admin' || profile?.role === 'admin') {
       fetchUsers();
       fetchBranches();
     }
@@ -316,7 +316,7 @@ export default function UsersStaff() {
     }
   };
 
-  if (profile?.enhanced_role !== 'super_admin' && profile?.enhanced_role !== 'admin') {
+  if (profile?.role !== 'super_admin' && profile?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 page-container flex items-center justify-center">
         <Card className="card-3d bg-card/80 backdrop-blur-sm border-2 border-border/50 max-w-md mx-auto">
@@ -366,7 +366,7 @@ export default function UsersStaff() {
                   <p className="text-muted-foreground">Manage users, roles, and access control</p>
                 </div>
               </div>
-              {profile?.enhanced_role === 'super_admin' && (
+              {profile?.role === 'super_admin' && (
                 <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
                   <Crown className="w-3 h-3 mr-1" />
                   Super Admin Access
@@ -435,7 +435,7 @@ export default function UsersStaff() {
                             <span>Branch Admin</span>
                           </div>
                         </SelectItem>
-                        {profile?.enhanced_role === 'super_admin' && (
+                        {profile?.role === 'super_admin' && (
                           <SelectItem value="super_admin">
                             <div className="flex items-center gap-2">
                               <Crown className="w-4 h-4 text-yellow-600" />
@@ -887,7 +887,7 @@ export default function UsersStaff() {
                           <span>Branch Admin</span>
                         </div>
                       </SelectItem>
-                      {profile?.enhanced_role === 'super_admin' && (
+                      {profile?.role === 'super_admin' && (
                         <SelectItem value="super_admin">
                           <div className="flex items-center gap-2">
                             <Crown className="w-4 h-4 text-yellow-600" />

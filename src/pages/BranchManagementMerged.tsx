@@ -131,7 +131,7 @@ export default function BranchManagementMerged() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile?.enhanced_role === 'super_admin') {
+    if (profile?.role === 'super_admin') {
       fetchBranches();
       fetchBranchFeatures();
     }
@@ -514,7 +514,7 @@ export default function BranchManagementMerged() {
     setIsSettingsOpen(true);
   };
 
-  if (profile?.enhanced_role !== 'super_admin') {
+  if (profile?.role !== 'super_admin') {
     return (
       <div className="p-8">
         <Card>
