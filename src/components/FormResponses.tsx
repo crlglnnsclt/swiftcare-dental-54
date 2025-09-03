@@ -38,17 +38,8 @@ export function FormResponses() {
   const fetchFormResponses = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('patient_form_responses')
-        .select(`
-          *,
-          profiles!patient_form_responses_patient_id_fkey(full_name, email),
-          digital_forms!patient_form_responses_form_id_fkey(name)
-        `)
-        .order('submitted_at', { ascending: false });
-
-      if (error) throw error;
-      setResponses(data || []);
+      // Since we don't have patient_form_responses table, we'll show an empty state
+      setResponses([]);
     } catch (error) {
       console.error('Error fetching form responses:', error);
       toast({
@@ -63,30 +54,17 @@ export function FormResponses() {
 
   const handleVerifyResponse = async (responseId: string, status: 'approved' | 'rejected') => {
     try {
-      const { error } = await supabase
-        .from('patient_form_responses')
-        .update({
-          verification_status: status,
-          verified_by: profile?.id,
-          verified_at: new Date().toISOString(),
-          verification_notes: verificationNotes
-        })
-        .eq('id', responseId);
-
-      if (error) throw error;
-
+      // Since we don't have patient_form_responses table, this is a no-op
       toast({
-        title: "Success",
-        description: `Form response ${status} successfully`,
+        title: "Feature Not Available",
+        description: "Form response verification is not available in this version",
+        variant: "default"
       });
-
-      setSelectedResponse(null);
-      setVerificationNotes('');
-      fetchFormResponses();
     } catch (error) {
+      console.error('Error verifying response:', error);
       toast({
         title: "Error",
-        description: "Failed to update verification status",
+        description: "Failed to verify response",
         variant: "destructive"
       });
     }

@@ -118,14 +118,13 @@ export function InventoryAutoDeduct({ appointmentId, isOpen, onClose, onComplete
       // Create inventory transactions for used items
       const transactions = usedItems.map(item => ({
         item_id: item.item_id,
+        clinic_id: profile?.clinic_id || '',
+        created_by: profile?.id || '',
         transaction_type: 'usage',
         quantity: -item.quantity, // Negative for deduction
         unit_cost: item.unit_cost,
         total_cost: -item.total_cost, // Negative for deduction
-        reference_type: 'appointment',
         reference_id: appointmentId,
-        performed_by: profile?.id,
-        branch_id: profile?.branch_id,
         notes: `Used in appointment completion`
       }));
 

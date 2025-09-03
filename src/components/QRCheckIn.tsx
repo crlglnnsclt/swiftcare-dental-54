@@ -115,7 +115,7 @@ export default function QRCheckIn() {
         .update({ 
           is_checked_in: true,
           check_in_time: new Date().toISOString(),
-          status: 'confirmed'
+          status: 'checked_in'
         })
         .eq('id', appointmentId);
 

@@ -28,20 +28,15 @@ interface User {
   email: string;
   full_name: string;
   role: string;
-  enhanced_role: string;
-  branch_id: string | null;
-  is_active: boolean;
+  clinic_id?: string;
   created_at: string;
-  branch?: {
-    name: string;
-  };
 }
 
 interface Branch {
   id: string;
-  name: string;
-  address: string;
-  is_active: boolean;
+  clinic_name: string;
+  address?: string;
+  created_at: string;
 }
 
 interface Permission {
@@ -63,19 +58,18 @@ export function BranchAssignment() {
 
   // Assignment form state
   const [assignmentForm, setAssignmentForm] = useState({
-    branch_id: '',
+    clinic_id: '',
     role: '',
-    enhanced_role: '',
     permissions: [] as string[]
   });
 
   const permissions: Permission[] = [
-    { id: 'view_all_patients', name: 'View All Patients', description: 'Access to view all patient records in the branch' },
+    { id: 'view_all_patients', name: 'View All Patients', description: 'Access to view all patient records in the clinic' },
     { id: 'manage_appointments', name: 'Manage Appointments', description: 'Create, edit, and delete appointments' },
     { id: 'access_financial_reports', name: 'Financial Reports', description: 'View revenue and financial analytics' },
     { id: 'manage_inventory', name: 'Manage Inventory', description: 'Add, edit, and track inventory items' },
     { id: 'manage_staff', name: 'Manage Staff', description: 'Add, edit, and manage staff members' },
-    { id: 'view_analytics', name: 'View Analytics', description: 'Access to branch analytics and reports' },
+    { id: 'view_analytics', name: 'View Analytics', description: 'Access to clinic analytics and reports' },
     { id: 'manage_forms', name: 'Manage Forms', description: 'Create and edit digital forms' },
     { id: 'access_chat', name: 'Access Messaging', description: 'Use internal messaging system' }
   ];
@@ -92,32 +86,10 @@ export function BranchAssignment() {
     try {
       setLoading(true);
       
-      // Debug: Log current user info
-      const { data: currentUser } = await supabase.auth.getUser();
-      console.log('Current user:', currentUser);
-      
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', currentUser?.user?.id)
-        .single();
-      console.log('Current user profile:', currentProfile);
-      
-      // Fetch users with branch info
+      // Fetch users
       const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          user_id,
-          email,
-          full_name,
-          role,
-          enhanced_role,
-          branch_id,
-          is_active,
-          created_at,
-          branches:branch_id(name)
-        `)
+        .from('users')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (usersError) {
@@ -125,23 +97,19 @@ export function BranchAssignment() {
         throw usersError;
       }
 
-      // Fetch all branches
-      const { data: branchesData, error: branchesError } = await supabase
-        .from('branches')
+      // Fetch all clinics
+      const { data: clinicsData, error: clinicsError } = await supabase
+        .from('clinics')
         .select('*')
-        .eq('is_active', true)
-        .order('name');
+        .order('clinic_name');
 
-      if (branchesError) {
-        console.error('Branches fetch error:', branchesError);
-        throw branchesError;
+      if (clinicsError) {
+        console.error('Clinics fetch error:', clinicsError);
+        throw clinicsError;
       }
 
-      console.log('Fetched branches:', branchesData);
-      console.log('Branches count:', branchesData?.length || 0);
-
       setUsers(usersData || []);
-      setBranches(branchesData || []);
+      setBranches(clinicsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load data');
@@ -163,15 +131,15 @@ export function BranchAssignment() {
 
     // Role filter
     if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.enhanced_role === roleFilter);
+      filtered = filtered.filter(user => user.role === roleFilter);
     }
 
     // Branch filter
     if (branchFilter !== 'all') {
       if (branchFilter === 'unassigned') {
-        filtered = filtered.filter(user => !user.branch_id);
+        filtered = filtered.filter(user => !user.clinic_id);
       } else {
-        filtered = filtered.filter(user => user.branch_id === branchFilter);
+        filtered = filtered.filter(user => user.clinic_id === branchFilter);
       }
     }
 
@@ -181,9 +149,8 @@ export function BranchAssignment() {
   const openAssignmentDialog = (user: User) => {
     setSelectedUser(user);
     setAssignmentForm({
-      branch_id: user.branch_id || '',
+      clinic_id: user.clinic_id || '',
       role: user.role || '',
-      enhanced_role: user.enhanced_role || '',
       permissions: [] // Would fetch from a user_permissions table
     });
     setIsAssignmentOpen(true);
@@ -192,27 +159,17 @@ export function BranchAssignment() {
   const handleAssignUser = async () => {
     if (!selectedUser) return;
 
-    console.log('Attempting to assign user:', selectedUser);
-    console.log('Assignment form data:', assignmentForm);
-
     try {
       const updateData = {
-        branch_id: assignmentForm.branch_id === 'unassigned' ? null : assignmentForm.branch_id || null,
-        role: assignmentForm.role as 'patient' | 'admin' | 'staff' | 'dentist',
-        enhanced_role: assignmentForm.enhanced_role as 'patient' | 'admin' | 'staff' | 'dentist' | 'super_admin',
+        clinic_id: assignmentForm.clinic_id === 'unassigned' ? null : assignmentForm.clinic_id || null,
+        role: assignmentForm.role as 'patient' | 'clinic_admin' | 'staff' | 'dentist' | 'receptionist' | 'super_admin',
         updated_at: new Date().toISOString()
       };
 
-      console.log('Update data:', updateData);
-      console.log('Updating user ID:', selectedUser.id);
-
-      const { data, error } = await supabase
-        .from('profiles')
+      const { error } = await supabase
+        .from('users')
         .update(updateData)
-        .eq('id', selectedUser.id)
-        .select();
-
-      console.log('Update result:', { data, error });
+        .eq('id', selectedUser.id);
 
       if (error) throw error;
 
@@ -228,9 +185,10 @@ export function BranchAssignment() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'super_admin': return 'bg-purple-100 text-purple-800';
-      case 'admin': return 'bg-red-100 text-red-800';
+      case 'clinic_admin': return 'bg-red-100 text-red-800';
       case 'dentist': return 'bg-blue-100 text-blue-800';
       case 'staff': return 'bg-green-100 text-green-800';
+      case 'receptionist': return 'bg-yellow-100 text-yellow-800';
       case 'patient': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -255,10 +213,10 @@ export function BranchAssignment() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5 float-gentle" />
-            Branch Assignment Management
+            Clinic Assignment Management
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Assign users to branches and manage their permissions
+            Assign users to clinics and manage their permissions
           </p>
         </CardHeader>
         <CardContent>
@@ -283,23 +241,24 @@ export function BranchAssignment() {
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="super_admin">Super Admin</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="clinic_admin">Clinic Admin</SelectItem>
                 <SelectItem value="dentist">Dentist</SelectItem>
                 <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="receptionist">Receptionist</SelectItem>
                 <SelectItem value="patient">Patient</SelectItem>
               </SelectContent>
             </Select>
             <Select value={branchFilter} onValueChange={setBranchFilter}>
               <SelectTrigger className="w-full sm:w-48">
                 <Building2 className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filter by branch" />
+                <SelectValue placeholder="Filter by clinic" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
+                <SelectItem value="all">All Clinics</SelectItem>
                 <SelectItem value="unassigned">Unassigned</SelectItem>
                 {branches.map((branch) => (
                   <SelectItem key={branch.id} value={branch.id}>
-                    {branch.name}
+                    {branch.clinic_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -325,13 +284,13 @@ export function BranchAssignment() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <Badge className={getRoleBadgeColor(user.enhanced_role)}>
-                      {user.enhanced_role?.replace('_', ' ').toLowerCase()}
+                    <Badge className={getRoleBadgeColor(user.role)}>
+                      {user.role?.replace('_', ' ').toLowerCase()}
                     </Badge>
                     
-                    {user.branch_id ? (
+                    {user.clinic_id ? (
                       <Badge variant="outline" className="text-xs">
-                        {user.branch?.name || 'Unknown Branch'}
+                        {branches.find(b => b.id === user.clinic_id)?.clinic_name || 'Unknown Clinic'}
                       </Badge>
                     ) : (
                       <Badge variant="secondary" className="text-xs">
@@ -369,7 +328,7 @@ export function BranchAssignment() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCheck className="w-5 h-5" />
-              Assign User to Branch
+              Assign User to Clinic
             </DialogTitle>
           </DialogHeader>
           
@@ -389,67 +348,48 @@ export function BranchAssignment() {
               {/* Assignment Form */}
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="branch">Branch Assignment</Label>
+                  <Label htmlFor="clinic">Clinic Assignment</Label>
                   <Select 
-                    value={assignmentForm.branch_id} 
-                    onValueChange={(value) => setAssignmentForm({...assignmentForm, branch_id: value})}
+                    value={assignmentForm.clinic_id} 
+                    onValueChange={(value) => setAssignmentForm({...assignmentForm, clinic_id: value})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a branch" />
+                      <SelectValue placeholder="Select a clinic" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="unassigned">No Branch (Unassigned)</SelectItem>
+                      <SelectItem value="unassigned">No Clinic (Unassigned)</SelectItem>
                       {branches.map((branch) => (
                         <SelectItem key={branch.id} value={branch.id}>
-                          {branch.name} - {branch.address}
+                          {branch.clinic_name} {branch.address && `- ${branch.address}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="role">Base Role</Label>
-                    <Select 
-                      value={assignmentForm.role} 
-                      onValueChange={(value) => setAssignmentForm({...assignmentForm, role: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="patient">Patient</SelectItem>
-                        <SelectItem value="staff">Staff</SelectItem>
-                        <SelectItem value="dentist">Dentist</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="enhanced_role">Enhanced Role</Label>
-                    <Select 
-                      value={assignmentForm.enhanced_role} 
-                      onValueChange={(value) => setAssignmentForm({...assignmentForm, enhanced_role: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select enhanced role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="patient">Patient</SelectItem>
-                        <SelectItem value="staff">Staff</SelectItem>
-                        <SelectItem value="dentist">Dentist</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="super_admin">Super Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Select 
+                    value={assignmentForm.role} 
+                    onValueChange={(value) => setAssignmentForm({...assignmentForm, role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="patient">Patient</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="receptionist">Receptionist</SelectItem>
+                      <SelectItem value="dentist">Dentist</SelectItem>
+                      <SelectItem value="clinic_admin">Clinic Admin</SelectItem>
+                      <SelectItem value="super_admin">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Permissions */}
                 <div>
-                  <Label className="text-base font-medium mb-3 block">Branch Permissions</Label>
+                  <Label className="text-base font-medium mb-3 block">Clinic Permissions</Label>
                   <div className="space-y-3 max-h-48 overflow-y-auto border rounded-lg p-3">
                     {permissions.map((permission) => (
                       <div key={permission.id} className="flex items-start space-x-3">
@@ -487,20 +427,18 @@ export function BranchAssignment() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-2 pt-4">
-                <Button
-                  variant="outline"
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleAssignUser} className="flex-1 btn-3d">
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  Update Assignment
+                </Button>
+                <Button 
+                  variant="outline" 
                   onClick={() => setIsAssignmentOpen(false)}
                   className="flex-1"
                 >
                   Cancel
-                </Button>
-                <Button
-                  onClick={handleAssignUser}
-                  className="flex-1 medical-gradient text-white"
-                >
-                  Update Assignment
                 </Button>
               </div>
             </div>

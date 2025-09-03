@@ -41,31 +41,13 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
   const fetchFiles = async () => {
     try {
       setLoading(true);
-      let query;
+      
+      // Fetch documents for this entity
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('patient_id', entityId);
 
-      switch (entityType) {
-        case 'patient':
-          query = supabase
-            .from('attachments')
-            .select('*')
-            .eq('entity_type', 'patient')
-            .eq('entity_id', entityId);
-          break;
-        case 'medical':
-          query = supabase
-            .from('medical_documents')
-            .select('*')
-            .eq('patient_id', entityId);
-          break;
-        default:
-          query = supabase
-            .from('attachments')
-            .select('*')
-            .eq('entity_type', entityType)
-            .eq('entity_id', entityId);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
 
       setFiles(data || []);
@@ -83,15 +65,16 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
 
   const checkPaymentStatus = async () => {
     try {
+      // Since we don't have a payment_proofs table, we'll check payments table
       const { data } = await supabase
-        .from('payment_proofs')
-        .select('verification_status')
+        .from('payments')
+        .select('payment_status')
         .eq('patient_id', profile?.id)
-        .order('upload_date', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(1);
 
       if (data && data.length > 0) {
-        setPaymentStatus(data[0].verification_status === 'approved' ? 'approved' : 'pending');
+        setPaymentStatus(data[0].payment_status === 'completed' ? 'approved' : 'pending');
       } else {
         setPaymentStatus('none');
       }
@@ -102,16 +85,16 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
 
   const canViewFile = (file: any) => {
     // Staff and admin can always view files
-    if (profile?.enhanced_role && ['admin', 'staff', 'dentist', 'super_admin'].includes(profile.enhanced_role)) {
+    if (profile?.role && ['clinic_admin', 'staff', 'dentist', 'super_admin'].includes(profile.role)) {
       return true;
     }
 
-    // For patients, check visibility and payment requirements
-    if (file.requires_payment_approval && paymentStatus !== 'approved') {
+    // For patients, check payment requirements if needed
+    if (requiresPayment && paymentStatus !== 'approved') {
       return false;
     }
 
-    return file.is_visible_to_patient !== false;
+    return true; // Default to accessible for patients
   };
 
   const handleDownload = async (file: any) => {
@@ -125,19 +108,13 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
     }
 
     try {
-      const { data } = await supabase.storage
-        .from('medical-documents')
-        .download(file.file_url);
-
-      if (data) {
-        const url = URL.createObjectURL(data);
+      if (file.file_url) {
         const a = document.createElement('a');
-        a.href = url;
-        a.download = file.file_name;
+        a.href = file.file_url;
+        a.download = `document_${file.id}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
       }
     } catch (error) {
       toast({
@@ -149,19 +126,17 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
   };
 
   const getSecurityIcon = (file: any) => {
-    if (file.requires_payment_approval) {
+    if (requiresPayment) {
       return paymentStatus === 'approved' ? 
         <CheckCircle className="w-4 h-4 text-success" /> :
         <Lock className="w-4 h-4 text-warning" />;
     }
     
-    return file.is_visible_to_patient ? 
-      <Unlock className="w-4 h-4 text-success" /> :
-      <Shield className="w-4 h-4 text-medical-blue" />;
+    return <Unlock className="w-4 h-4 text-success" />;
   };
 
   const getSecurityBadge = (file: any) => {
-    if (file.requires_payment_approval) {
+    if (requiresPayment) {
       if (paymentStatus === 'approved') {
         return <Badge className="bg-success/10 text-success">Payment Verified</Badge>;
       } else if (paymentStatus === 'pending') {
@@ -171,9 +146,7 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
       }
     }
 
-    return file.is_visible_to_patient ? 
-      <Badge className="bg-success/10 text-success">Accessible</Badge> :
-      <Badge className="bg-medical-blue/10 text-medical-blue">Staff Only</Badge>;
+    return <Badge className="bg-success/10 text-success">Accessible</Badge>;
   };
 
   if (loading) {
@@ -220,14 +193,14 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
                     <FileText className="w-5 h-5 text-medical-blue" />
                   </div>
                   <div>
-                    <p className="font-medium">{file.file_name}</p>
+                    <p className="font-medium">Document #{file.id}</p>
                     <p className="text-sm text-muted-foreground">
-                      {file.description || 'No description'}
+                      {file.document_type || 'General Document'}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       {getSecurityIcon(file)}
                       <span className="text-xs text-muted-foreground">
-                        {Math.round((file.file_size || 0) / 1024)} KB
+                        {new Date(file.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -250,14 +223,14 @@ export function FileSecurityViewer({ entityType, entityId, requiresPayment = fal
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl">
                         <DialogHeader>
-                          <DialogTitle>{file.file_name}</DialogTitle>
+                          <DialogTitle>Document #{file.id}</DialogTitle>
                         </DialogHeader>
                         <div className="p-4">
                           {canViewFile(file) ? (
                             <div className="text-center">
                               <p className="text-muted-foreground">File preview would appear here</p>
                               <p className="text-sm text-muted-foreground mt-2">
-                                {file.description}
+                                Type: {file.document_type || 'General Document'}
                               </p>
                             </div>
                           ) : (
