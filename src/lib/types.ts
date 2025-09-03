@@ -1,42 +1,80 @@
 // Simplified types to avoid deep instantiation issues
-import type { Database } from '@/integrations/supabase/types';
-
-export type Appointment = Database['public']['Tables']['appointments']['Row'] & {
+export interface Appointment {
+  id: string;
+  patient_id: string;
+  dentist_id: string | null;
+  clinic_id: string;
+  scheduled_time: string;
+  duration_minutes: number | null;
+  status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | null;
+  booking_type: 'online' | 'walk_in' | 'emergency' | 'virtual' | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
   patients?: { full_name: string; contact_number?: string };
   users?: { full_name: string };
   profiles?: { full_name: string };
-};
+}
 
-export type Treatment = Database['public']['Tables']['treatments']['Row'];
-
-export type Patient = Database['public']['Tables']['patients']['Row'];
-
-export type User = Database['public']['Tables']['users']['Row'];
-
-export type InventoryItem = Database['public']['Tables']['inventory_items']['Row'] & {
-  inventory_categories?: { name: string };
-  supplier_info?: string;
-};
-
-export type InventoryCategory = Database['public']['Tables']['inventory_categories']['Row'] & {
+export interface Treatment {
+  id: string;
+  name: string;
+  description?: string;
+  default_price: number | null;
+  default_duration_minutes: number | null;
   is_active: boolean;
-};
+  clinic_id: string;
+}
 
-export type InventoryTransaction = Database['public']['Tables']['inventory_transactions']['Row'] & {
-  inventory_items?: { name: string };
-  profiles?: { full_name: string };
+export interface Patient {
+  id: string;
+  full_name: string;
+  email?: string;
+  contact_number?: string;
+  date_of_birth?: string;
+  clinic_id: string;
+  user_id?: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  description?: string;
+  sku?: string;
+  current_stock: number;
+  minimum_stock: number;
+  unit_cost: number;
+  unit_type: string;
+  category_id?: string;
+  clinic_id: string;
+  is_active: boolean;
+  supplier_name?: string;
+  supplier_contact?: string;
+  expiry_date?: string;
+  supplier_info?: string;
+  category_name?: string;
+}
+
+export interface InventoryCategory {
+  id: string;
+  name: string;
+  description?: string;
+  clinic_id: string;
+  is_active: boolean;
+}
+
+export interface InventoryTransaction {
+  id: string;
+  item_id: string;
+  clinic_id: string;
   transaction_type: 'in' | 'out' | 'adjustment';
+  quantity: number;
+  unit_cost?: number;
+  total_cost?: number;
+  notes?: string;
+  created_by: string;
+  created_at: string;
+  performed_by: string;
   item_name?: string;
   performer_name?: string;
-  performed_by: string;
-};
-
-export type TreatmentRecord = Database['public']['Tables']['treatment_records']['Row'] & {
-  patients?: { full_name: string };
-  profiles?: { full_name: string };
-};
-
-// Enum types
-export type AppointmentStatus = Database['public']['Enums']['appointment_status'];
-export type BookingType = Database['public']['Enums']['booking_type'];
-export type UserRole = Database['public']['Enums']['user_role'];
+}

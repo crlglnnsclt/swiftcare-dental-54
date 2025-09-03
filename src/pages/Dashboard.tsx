@@ -22,6 +22,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import type { Appointment } from '@/lib/types';
 
 const Dashboard = () => {
   const [isNewApptOpen, setIsNewApptOpen] = useState(false);
@@ -36,6 +38,9 @@ const Dashboard = () => {
 
   const { user, profile } = useAuth();
   const { appointments, loading: apptLoading, checkInPatient, updateAppointmentStatus, createAppointment } = useAppointments();
+  
+  // Type assertion for appointments to use our simplified interface
+  const typedAppointments = appointments as Appointment[];
   const { stats, loading: statsLoading } = useDashboardStats();
   const { toast } = useToast();
 
@@ -117,11 +122,11 @@ const Dashboard = () => {
     }
   };
 
-  const queueAppointments = appointments.filter(apt => 
+  const queueAppointments = typedAppointments.filter(apt => 
     apt.status === 'checked_in'
   );
 
-  const todayAppointments = appointments.filter(apt => {
+  const todayAppointments = typedAppointments.filter(apt => {
     const today = new Date().toISOString().split('T')[0];
     const apptDate = new Date(apt.scheduled_time).toISOString().split('T')[0];
     return apptDate === today;
@@ -363,13 +368,13 @@ const Dashboard = () => {
                         <div className="flex items-center gap-2">
                           <Badge 
                             className={`${
-                              appointment.status === 'scheduled' ? 'bg-success/10 text-success' :
-                              appointment.status === 'in-treatment' ? 'bg-medical-blue/10 text-medical-blue' :
+                              appointment.status === 'booked' ? 'bg-success/10 text-success' :
+                              appointment.status === 'in_progress' ? 'bg-medical-blue/10 text-medical-blue' :
                               'bg-warning/10 text-warning'
                             }`}
                           >
-                            {appointment.status === 'in-treatment' ? 'In Progress' : 
-                             appointment.status === 'scheduled' ? 'Ready' : appointment.status}
+                            {appointment.status === 'in_progress' ? 'In Progress' : 
+                             appointment.status === 'booked' ? 'Ready' : appointment.status}
                           </Badge>
                           {appointment.status === 'booked' ? (
                             <Button 
@@ -381,7 +386,7 @@ const Dashboard = () => {
                               <UserCheck className="w-4 h-4 mr-1" />
                               Check In
                             </Button>
-                          ) : appointment.status === 'booked' ? (
+                          ) : appointment.status === 'checked_in' ? (
                             <Button 
                               variant="outline" 
                               size="sm"
