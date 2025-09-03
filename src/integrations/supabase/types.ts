@@ -1400,6 +1400,7 @@ export type Database = {
           document_type: string
           file_name: string
           file_size: number | null
+          file_storage_path: string | null
           file_url: string | null
           form_response_id: string | null
           id: string
@@ -1418,6 +1419,7 @@ export type Database = {
           document_type: string
           file_name: string
           file_size?: number | null
+          file_storage_path?: string | null
           file_url?: string | null
           form_response_id?: string | null
           id?: string
@@ -1436,6 +1438,7 @@ export type Database = {
           document_type?: string
           file_name?: string
           file_size?: number | null
+          file_storage_path?: string | null
           file_url?: string | null
           form_response_id?: string | null
           id?: string
@@ -2217,6 +2220,10 @@ export type Database = {
           member_id: string
           relationship: string
         }[]
+      }
+      get_patient_document_url: {
+        Args: { file_path: string }
+        Returns: string
       }
     }
     Enums: {
