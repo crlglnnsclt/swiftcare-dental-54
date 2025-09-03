@@ -31,7 +31,7 @@ export default function DentistDashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (profile?.enhanced_role === 'dentist') {
+    if (profile?.role === 'dentist') {
       fetchDentistStats();
       fetchTodayAppointments();
       fetchRecentDentalCharts();
@@ -160,7 +160,7 @@ export default function DentistDashboard() {
     }
   };
 
-  if (!profile || profile.enhanced_role !== 'dentist') {
+  if (!profile || profile.role !== 'dentist') {
     return (
       <div className="p-8">
         <Card>

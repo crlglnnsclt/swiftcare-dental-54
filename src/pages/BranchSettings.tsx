@@ -97,7 +97,7 @@ export default function BranchSettings() {
     }));
   };
 
-  if (profile?.role !== 'admin' && profile?.enhanced_role !== 'super_admin') {
+  if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
     return (
       <div className="p-8">
         <Card>

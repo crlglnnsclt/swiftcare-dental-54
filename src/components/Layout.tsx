@@ -26,7 +26,7 @@ export function Layout() {
 
   const handleProfileClick = () => {
     // Navigate to role-based dashboard
-    const role = profile?.enhanced_role || profile?.role;
+    const role = profile?.role;
     switch (role) {
       case 'super_admin':
         navigate('/super-admin');

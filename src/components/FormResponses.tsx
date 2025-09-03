@@ -30,7 +30,7 @@ export function FormResponses() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (profile?.enhanced_role && ['admin', 'staff', 'dentist', 'super_admin'].includes(profile.enhanced_role)) {
+    if (profile?.role && ['admin', 'staff', 'dentist', 'super_admin'].includes(profile.role)) {
       fetchFormResponses();
     }
   }, [profile]);

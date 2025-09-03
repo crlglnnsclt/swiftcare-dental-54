@@ -42,7 +42,7 @@ export default function SystemAnalytics() {
     setTimeout(() => setLoading(false), 1000);
   };
 
-  if (profile?.enhanced_role !== 'super_admin') {
+  if (profile?.role !== 'super_admin') {
     return (
       <div className="p-8">
         <Card>
