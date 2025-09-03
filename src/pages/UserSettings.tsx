@@ -60,7 +60,7 @@ export default function UserSettings() {
     try {
       // Update profile table
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
           full_name: profileData.full_name,
           phone: profileData.phone

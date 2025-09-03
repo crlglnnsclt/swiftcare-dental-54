@@ -25,7 +25,7 @@ import DigitalForms from "./pages/DigitalForms";
 import PatientForms from "./pages/PatientForms";
 import FormResponses from "./pages/FormResponses";
 import InventoryManagement from "./pages/InventoryManagement";
-import { StaffManagement } from "./pages/StaffManagement";
+import StaffManagement from "./pages/StaffManagement";
 import { PatientRecords } from "./pages/PatientRecords";
 import { Analytics } from "./pages/Analytics";
 import AppointmentScheduling from "./pages/AppointmentScheduling";

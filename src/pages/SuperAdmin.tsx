@@ -43,7 +43,7 @@ export default function SuperAdmin() {
     try {
       // Fetch user count
       const { count: userCount } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*', { count: 'exact', head: true });
 
       // Fetch branch count
