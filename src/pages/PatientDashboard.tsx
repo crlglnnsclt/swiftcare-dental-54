@@ -136,8 +136,7 @@ export function PatientDashboard() {
 
   const fetchUpcomingAppointments = async () => {
     try {
-        // Using any to avoid type instantiation depth issues
-        const { data }: any = await supabase
+      const { data, error }: { data: any, error: any } = await supabase
         .from('appointments')
         .select('*')
         .eq('patient_id', profile?.id)
@@ -145,7 +144,9 @@ export function PatientDashboard() {
         .order('scheduled_time')
         .limit(3);
 
-        const formattedAppointments = (data || []).map(apt => ({
+      if (error) throw error;
+
+      const formattedAppointments = (data || []).map(apt => ({
         ...apt,
         dentist_name: 'Dr. Smith' // Mock dentist name
       }));

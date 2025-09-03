@@ -124,33 +124,32 @@ export default function PatientAppointments() {
 
   const fetchServices = async () => {
     try {
-      // Using any to avoid type instantiation depth issues
-      const { data }: any = await supabase
+      const { data, error }: { data: any, error: any } = await supabase
         .from('treatments')
         .select('*')
         .eq('is_active', true)
         .order('name');
 
+      if (error) throw error;
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
     }
   };
 
-    const fetchDentists = async () => {
-      try {
-      // Using any to avoid type instantiation depth issues
-      const { data }: any = await supabase
-          .from('users')
-          .select('*')
-          .eq('role', 'dentist')
-          .eq('status', 'active');
+  const fetchDentists = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'dentist');
 
-        setDentists(data || []);
-      } catch (error) {
-        console.error('Error fetching dentists:', error);
-      }
-    };
+      if (error) throw error;
+      setDentists(data || []);
+    } catch (error) {
+      console.error('Error fetching dentists:', error);
+    }
+  };
 
   const bookAppointment = async () => {
     if (!selectedDate || !selectedTime || !selectedService || !profile?.id) {

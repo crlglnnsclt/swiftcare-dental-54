@@ -81,24 +81,39 @@ export default function PatientProfile() {
   const fetchPatientDetails = async () => {
     try {
       const { data, error } = await supabase
-        .from('patient_details')
+        .from('patients')
         .select('*')
-        .eq('patient_id', profile?.id)
+        .eq('id', profile?.id)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setPatientDetails(data);
+        setPatientDetails({
+          patient_id: data.id,
+          first_name: data.full_name?.split(' ')[0] || '',
+          last_name: data.full_name?.split(' ').slice(1).join(' ') || '',
+          email: data.email || '',
+          phone: data.contact_number || '',
+          date_of_birth: data.date_of_birth || '',
+          gender: data.gender || '',
+          home_address: data.address || '',
+          emergency_contact_name: data.emergency_contact?.split('|')[0] || '',
+          emergency_contact_phone: data.emergency_contact?.split('|')[1] || '',
+          allergies: data.medical_history?.split('|')[0] || '',
+          existing_medical_conditions: data.medical_history?.split('|')[1] || '',
+          current_medications: data.medical_history?.split('|')[2] || '',
+          previous_surgeries: data.medical_history?.split('|')[3] || '',
+        });
       } else {
         // Pre-populate with profile data if available
-        setPatientDetails(prev => ({
-          ...prev,
-          email: profile?.email || '',
-          phone: profile?.phone || '',
+        setPatientDetails({
+          patient_id: profile?.id || '',
           first_name: profile?.full_name?.split(' ')[0] || '',
           last_name: profile?.full_name?.split(' ').slice(1).join(' ') || '',
-        }));
+          email: profile?.email || '',
+          phone: profile?.phone || '',
+        });
         setIsEditing(true); // Start in edit mode for new profiles
       }
     } catch (error) {
@@ -126,21 +141,33 @@ export default function PatientProfile() {
       };
 
       const { error } = await supabase
-        .from('patient_details')
-        .upsert(dataToSave, { onConflict: 'patient_id' });
+        .from('patients')
+        .upsert({
+          id: patientDetails.patient_id,
+          full_name: `${patientDetails.first_name} ${patientDetails.last_name}`.trim(),
+          email: patientDetails.email || null,
+          contact_number: patientDetails.phone || null,
+          date_of_birth: patientDetails.date_of_birth || null,
+          gender: patientDetails.gender || null,
+          address: patientDetails.home_address || null,
+          emergency_contact: `${patientDetails.emergency_contact_name || ''}|${patientDetails.emergency_contact_phone || ''}`,
+          medical_history: `${patientDetails.allergies || ''}|${patientDetails.existing_medical_conditions || ''}|${patientDetails.current_medications || ''}|${patientDetails.previous_surgeries || ''}`,
+          clinic_id: profile?.clinic_id || '',
+          user_id: user?.id
+        }, { onConflict: 'id' });
 
       if (error) throw error;
 
-      // Update the profile table with basic info
-      const { error: profileError } = await supabase
-        .from('profiles')
+      // Update the users table with basic info
+      const { error: userError } = await supabase
+        .from('users')
         .update({
           full_name: `${patientDetails.first_name} ${patientDetails.last_name}`.trim(),
           phone: patientDetails.phone || null
         })
-        .eq('id', profile?.id);
+        .eq('user_id', user?.id);
 
-      if (profileError) throw profileError;
+      if (userError) throw userError;
 
       toast.success('Profile updated successfully!');
       setIsEditing(false);
