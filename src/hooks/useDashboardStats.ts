@@ -36,16 +36,24 @@ export function useDashboardStats() {
 
       if (profile.role === 'dentist') {
         appointmentsQuery = appointmentsQuery.eq('dentist_id', profile.id);
+      } else if (profile.role !== 'super_admin' && profile.clinic_id) {
+        appointmentsQuery = appointmentsQuery.eq('clinic_id', profile.clinic_id);
       }
 
       const { data: todayAppointments } = await appointmentsQuery;
 
       // Get today's payments for revenue calculation
-      const { data: payments } = await supabase
+      let paymentsQuery = supabase
         .from('payments')
         .select('amount')
         .gte('created_at', `${today}T00:00:00`)
         .lt('created_at', `${today}T23:59:59`);
+
+      if (profile.role !== 'super_admin' && profile.clinic_id) {
+        paymentsQuery = paymentsQuery.eq('clinic_id', profile.clinic_id);
+      }
+
+      const { data: payments } = await paymentsQuery;
 
       // Calculate stats
       const completedAppointments = todayAppointments?.filter(apt => apt.status === 'completed') || [];

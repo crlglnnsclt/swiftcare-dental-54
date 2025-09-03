@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 
 const mockUsageData = [
   { month: 'Jan', users: 120, appointments: 450, forms: 89 },
@@ -33,13 +34,68 @@ const mockBranchData = [
 
 export default function SystemAnalytics() {
   const [timeframe, setTimeframe] = useState('6months');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
+  const [systemData, setSystemData] = useState({
+    totalUsers: 0,
+    monthlyAppointments: 0,
+    formsCompleted: 0,
+    totalClinics: 0,
+    totalPatients: 0,
+    avgResponseTime: 0,
+    errorRate: 0,
+    storageUsed: 0
+  });
 
-  const refreshData = async () => {
+  useEffect(() => {
+    fetchSystemData();
+  }, [timeframe]);
+
+  const fetchSystemData = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => setLoading(false), 1000);
+    try {
+      // Fetch total users
+      const { count: userCount } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch total clinics
+      const { count: clinicCount } = await supabase
+        .from('clinics')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch monthly appointments
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      const { count: appointmentCount } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .gte('scheduled_time', currentMonth.toISOString());
+
+      // Fetch total patients
+      const { count: patientCount } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true });
+
+      setSystemData({
+        totalUsers: userCount || 0,
+        monthlyAppointments: appointmentCount || 0,
+        formsCompleted: Math.floor((appointmentCount || 0) * 0.7), // Estimate
+        totalClinics: clinicCount || 0,
+        totalPatients: patientCount || 0,
+        avgResponseTime: 85, // Mock data
+        errorRate: 0.3, // Mock data
+        storageUsed: 4.2 // Mock data
+      });
+    } catch (error) {
+      console.error('Error fetching system data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshData = () => {
+    fetchSystemData();
   };
 
   if (profile?.role !== 'super_admin') {
@@ -101,9 +157,9 @@ export default function SystemAnalytics() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">195</div>
+            <div className="text-2xl font-bold">{loading ? '...' : systemData.totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">↗ +12%</span> from last month
+              <span className="text-green-600">↗ Active users</span> across all clinics
             </p>
           </CardContent>
         </Card>
@@ -114,9 +170,9 @@ export default function SystemAnalytics() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">750</div>
+            <div className="text-2xl font-bold">{loading ? '...' : systemData.monthlyAppointments}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">↗ +8.7%</span> from last month
+              <span className="text-green-600">↗ This month</span> appointments scheduled
             </p>
           </CardContent>
         </Card>
@@ -127,22 +183,22 @@ export default function SystemAnalytics() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">156</div>
+            <div className="text-2xl font-bold">{loading ? '...' : systemData.formsCompleted}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">↗ +9.8%</span> from last month
+              <span className="text-green-600">↗ Digital forms</span> completed this month
             </p>
           </CardContent>
         </Card>
 
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Clinics</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">99.9%</div>
+            <div className="text-2xl font-bold">{loading ? '...' : systemData.totalClinics}</div>
             <p className="text-xs text-muted-foreground">
-              <Badge variant="default" className="text-xs">Excellent</Badge>
+              <Badge variant="default" className="text-xs">Active clinics</Badge>
             </p>
           </CardContent>
         </Card>
@@ -169,7 +225,7 @@ export default function SystemAnalytics() {
 
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Branch Distribution</CardTitle>
+            <CardTitle>Clinic Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <PieChart width={400} height={300}>
