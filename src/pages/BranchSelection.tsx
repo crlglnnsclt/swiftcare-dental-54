@@ -38,13 +38,24 @@ export default function BranchSelection() {
   const fetchBranches = async () => {
     try {
       const { data, error } = await supabase
-        .from('branches')
+        .from('clinics')
         .select('*')
-        .eq('is_active', true)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setBranches(data || []);
+      setBranches(data?.map(clinic => ({
+        id: clinic.id,
+        name: clinic.clinic_name,
+        address: clinic.address || '',
+        phone: clinic.phone_number || '',
+        email: clinic.email || '',
+        logo_url: clinic.logo_url || '',
+        primary_color: clinic.primary_color || '#2563eb',
+        secondary_color: clinic.secondary_color || '#10b981',
+        is_active: true,
+        created_at: clinic.created_at,
+        updated_at: clinic.updated_at
+      })) || []);
     } catch (error) {
       console.error('Error fetching branches:', error);
       toast({
@@ -75,11 +86,11 @@ export default function BranchSelection() {
       localStorage.setItem(`selected_branch_${user.id}`, branchId);
       setSelectedBranch(branchId);
 
-      // Update user profile with selected branch if needed
+      // Update user with selected branch if needed
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({ 
-          branch_id: branchId,
+          clinic_id: branchId,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);

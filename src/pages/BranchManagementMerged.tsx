@@ -140,12 +140,24 @@ export default function BranchManagementMerged() {
   const fetchBranches = async () => {
     try {
       const { data, error } = await supabase
-        .from('branches')
+        .from('clinics')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBranches(data || []);
+      setBranches(data?.map(clinic => ({
+        id: clinic.id,
+        name: clinic.clinic_name,
+        address: clinic.address || '',
+        phone: clinic.phone_number || '',
+        email: clinic.email || '',
+        logo_url: clinic.logo_url || '',
+        primary_color: clinic.primary_color || '#2563eb',
+        secondary_color: clinic.secondary_color || '#10b981',
+        is_active: true,
+        created_at: clinic.created_at,
+        updated_at: clinic.updated_at
+      })) || []);
     } catch (error) {
       console.error('Error fetching branches:', error);
       toast({
@@ -161,11 +173,17 @@ export default function BranchManagementMerged() {
   const fetchBranchFeatures = async () => {
     try {
       const { data, error } = await supabase
-        .from('branch_features')
+        .from('clinic_feature_toggles')
         .select('*');
 
       if (error) throw error;
-      setBranchFeatures(data || []);
+      setBranchFeatures(data?.map(feature => ({
+        id: feature.id,
+        branch_id: feature.clinic_id,
+        feature_name: feature.feature_name,
+        is_enabled: feature.is_enabled,
+        config: {}
+      })) || []);
     } catch (error) {
       console.error('Error fetching branch features:', error);
     }
@@ -174,15 +192,14 @@ export default function BranchManagementMerged() {
   const createBranch = async () => {
     try {
       const { data, error } = await supabase
-        .from('branches')
+        .from('clinics')
         .insert([{
-          name: newBranch.name,
+          clinic_name: newBranch.name,
           address: newBranch.address || null,
-          phone: newBranch.phone || null,
+          phone_number: newBranch.phone || null,
           email: newBranch.email || null,
           primary_color: newBranch.primary_color,
-          secondary_color: newBranch.secondary_color,
-          is_active: true
+          secondary_color: newBranch.secondary_color
         }])
         .select()
         .single();
@@ -198,10 +215,26 @@ export default function BranchManagementMerged() {
       }));
 
       await supabase
-        .from('branch_features')
-        .insert(defaultFeatures);
+        .from('clinic_feature_toggles')
+        .insert(defaultFeatures.map(f => ({
+          clinic_id: data.id,
+          feature_name: f.feature_name,
+          is_enabled: f.is_enabled
+        })));
 
-      setBranches([data, ...branches]);
+      setBranches([{
+        id: data.id,
+        name: data.clinic_name,
+        address: data.address,
+        phone: data.phone_number,
+        email: data.email,
+        logo_url: data.logo_url,
+        primary_color: data.primary_color,
+        secondary_color: data.secondary_color,
+        is_active: true,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      }, ...branches]);
       setIsNewBranchOpen(false);
       setNewBranch({
         name: '',
@@ -238,17 +271,16 @@ export default function BranchManagementMerged() {
         logoUrl = await uploadLogo(logoFile, editBranch.id);
       }
 
-      const { error } = await supabase
-        .from('branches')
+      const { data, error } = await supabase
+        .from('clinics')
         .update({
-          name: editBranch.name,
+          clinic_name: editBranch.name,
           address: editBranch.address || null,
-          phone: editBranch.phone || null,
+          phone_number: editBranch.phone || null,
           email: editBranch.email || null,
           primary_color: editBranch.primary_color,
           secondary_color: editBranch.secondary_color,
-          logo_url: logoUrl,
-          is_active: editBranch.is_active
+          logo_url: logoUrl
         })
         .eq('id', editBranch.id);
 
@@ -286,7 +318,7 @@ export default function BranchManagementMerged() {
 
     try {
       const { error } = await supabase
-        .from('branches')
+        .from('clinics')
         .delete()
         .eq('id', branchId);
 
@@ -316,19 +348,18 @@ export default function BranchManagementMerged() {
 
       if (existingFeature) {
         const { error } = await supabase
-          .from('branch_features')
+          .from('clinic_feature_toggles')
           .update({ is_enabled: !currentStatus })
           .eq('id', existingFeature.id);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('branch_features')
+          .from('clinic_feature_toggles')
           .insert([{
-            branch_id: branchId,
+            clinic_id: branchId,
             feature_name: featureName,
-            is_enabled: !currentStatus,
-            config: {}
+            is_enabled: !currentStatus
           }]);
 
         if (error) throw error;
@@ -415,17 +446,17 @@ export default function BranchManagementMerged() {
 
       if (existingSettings) {
         await supabase
-          .from('branch_features')
-          .update({ config: branchSettings as any })
+          .from('clinic_feature_toggles')
+          .update({ description: JSON.stringify(branchSettings) })
           .eq('id', existingSettings.id);
       } else {
         await supabase
-          .from('branch_features')
+          .from('clinic_feature_toggles')
           .insert([{
-            branch_id: selectedBranch.id,
+            clinic_id: selectedBranch.id,
             feature_name: 'branch_settings',
             is_enabled: true,
-            config: branchSettings as any
+            description: JSON.stringify(branchSettings)
           }]);
       }
 

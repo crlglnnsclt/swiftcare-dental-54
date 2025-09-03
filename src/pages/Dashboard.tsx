@@ -118,12 +118,12 @@ const Dashboard = () => {
   };
 
   const queueAppointments = appointments.filter(apt => 
-    apt.is_checked_in && !['completed', 'cancelled', 'no-show'].includes(apt.status)
+    apt.status === 'checked_in'
   );
 
   const todayAppointments = appointments.filter(apt => {
     const today = new Date().toISOString().split('T')[0];
-    const apptDate = new Date(apt.appointment_date).toISOString().split('T')[0];
+    const apptDate = new Date(apt.scheduled_time).toISOString().split('T')[0];
     return apptDate === today;
   });
 
@@ -355,7 +355,7 @@ const Dashboard = () => {
                                 {appointment.appointment_type}
                               </Badge>
                               <span className="text-sm text-muted-foreground">
-                                {new Date(appointment.appointment_date).toLocaleTimeString()}
+                                {new Date(appointment.scheduled_time).toLocaleTimeString()}
                               </span>
                             </div>
                           </div>
@@ -371,7 +371,7 @@ const Dashboard = () => {
                             {appointment.status === 'in-treatment' ? 'In Progress' : 
                              appointment.status === 'scheduled' ? 'Ready' : appointment.status}
                           </Badge>
-                          {!appointment.is_checked_in ? (
+                          {appointment.status !== 'checked_in' ? (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -430,7 +430,7 @@ const Dashboard = () => {
                         <p className="text-xs text-muted-foreground">{appointment.service_type}</p>
                       </div>
                       <span className="text-xs font-medium text-medical-blue">
-                        {new Date(appointment.appointment_date).toLocaleTimeString([], {
+                        {new Date(appointment.scheduled_time).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}

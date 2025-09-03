@@ -132,13 +132,15 @@ export default function UsersStaff() {
   const fetchBranches = async () => {
     try {
       const { data, error } = await supabase
-        .from('branches')
-        .select('id, name')
-        .eq('is_active', true)
-        .order('name');
+        .from('clinics')
+        .select('id, clinic_name')
+        .order('clinic_name');
 
       if (error) throw error;
-      setBranches(data || []);
+      setBranches(data?.map(clinic => ({
+        id: clinic.id,
+        name: clinic.clinic_name
+      })) || []);
     } catch (error) {
       console.error('Error fetching branches:', error);
     }

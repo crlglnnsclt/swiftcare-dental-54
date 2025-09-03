@@ -70,7 +70,7 @@ export default function Billing() {
       const { data: pendingPayments } = await supabase
         .from('payments')
         .select('amount')
-        .eq('verification_status', 'pending');
+        .eq('payment_status', 'pending');
 
       const pendingAmount = pendingPayments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
 
@@ -101,10 +101,10 @@ export default function Billing() {
         .insert({
           patient_id: newInvoice.patient_id,
           appointment_id: '00000000-0000-0000-0000-000000000000', // Placeholder for invoice-only payments
-          service_name: newInvoice.service_name,
+          treatment_description: newInvoice.service_name,
           amount: Number(newInvoice.amount),
           payment_status: 'pending',
-          verification_status: 'pending',
+          clinic_id: profile?.clinic_id || '',
           payment_method: 'invoice'
         });
 
@@ -312,8 +312,8 @@ export default function Billing() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <Badge className={getStatusColor(invoice.verification_status)}>
-                          {invoice.verification_status}
+                        <Badge className={getStatusColor(invoice.payment_status)}>
+                          {invoice.payment_status}
                         </Badge>
                         <p className="font-bold text-lg">${Number(invoice.amount).toFixed(2)}</p>
                         <div className="flex gap-2">

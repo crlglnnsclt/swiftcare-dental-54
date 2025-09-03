@@ -48,7 +48,7 @@ export default function SuperAdmin() {
 
       // Fetch branch count
       const { count: branchCount } = await supabase
-        .from('branches')
+        .from('clinics')
         .select('*', { count: 'exact', head: true });
 
       setStats({

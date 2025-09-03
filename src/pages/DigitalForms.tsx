@@ -92,14 +92,8 @@ export function DigitalForms() {
 
   const fetchProcedures = async () => {
     try {
-      const { data, error } = await supabase
-        .from('procedures')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setProcedures(data || []);
+        // Show placeholder message for procedures functionality  
+        setProcedures([]);
     } catch (error) {
       console.error('Error fetching procedures:', error);
       toast.error('Failed to load procedures');

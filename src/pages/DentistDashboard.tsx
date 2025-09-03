@@ -47,12 +47,12 @@ export default function DentistDashboard() {
         .from('appointments')
         .select('*')
         .eq('dentist_id', profile?.id)
-        .gte('appointment_date', today)
-        .lt('appointment_date', `${today}T23:59:59`);
+        .gte('scheduled_time', `${today}T00:00:00`)
+        .lt('scheduled_time', `${today}T23:59:59`);
 
       const inProgress = todayAppts?.filter(apt => apt.status === 'in-treatment').length || 0;
       const completed = todayAppts?.filter(apt => apt.status === 'completed').length || 0;
-      const waiting = todayAppts?.filter(apt => apt.is_checked_in && apt.status === 'scheduled').length || 0;
+      const waiting = todayAppts?.filter(apt => apt.status === 'checked_in').length || 0;
 
       setStats({
         todayAppointments: todayAppts?.length || 0,
@@ -109,7 +109,7 @@ export default function DentistDashboard() {
       const { error } = await supabase
         .from('appointments')
         .update({ 
-          status: 'in-treatment',
+          status: 'in_progress' as const,
           actual_start_time: new Date().toISOString()
         })
         .eq('id', appointmentId);

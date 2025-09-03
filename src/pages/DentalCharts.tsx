@@ -114,10 +114,9 @@ export default function DentalCharts() {
   const fetchPatients = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('patients')
         .select('id, full_name, email')
-        .eq('role', 'patient')
-        .eq('is_active', true)
+        .eq('clinic_id', profile?.clinic_id)
         .order('full_name');
 
       if (error) throw error;
@@ -136,12 +135,8 @@ export default function DentalCharts() {
   const fetchPatientData = async (patientId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          patient_details(*),
-          dental_charts(*)
-        `)
+        .from('patients')
+        .select('*')
         .eq('id', patientId)
         .single();
 

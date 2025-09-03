@@ -101,10 +101,10 @@ export default function PatientAppointments() {
         let dentistInfo = null;
         if (appointment.dentist_id) {
           const { data: dentist } = await supabase
-            .from('profiles')
+            .from('users')
             .select('full_name')
             .eq('id', appointment.dentist_id)
-            .single();
+            .maybeSingle();
           dentistInfo = dentist;
         }
         
