@@ -20,7 +20,8 @@ import {
   Package,
   Bell,
   QrCode,
-  User
+  User,
+  Smartphone
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -146,7 +147,14 @@ const navigationItems: NavItem[] = [
     enhancedRoles: ["dentist", "admin", "super_admin", "staff"]
   },
   
-  // Digital Forms
+  // Digital Forms & Paperless
+  {
+    title: "Paperless System",
+    url: "/paperless",
+    icon: Smartphone,
+    roles: ["admin", "staff", "dentist"],
+    enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
+  },
   {
     title: "Form Management",
     url: "/digital-forms",

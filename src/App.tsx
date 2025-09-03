@@ -33,6 +33,7 @@ import ProfileSwitcher from "./pages/ProfileSwitcher";
 import NotFound from "./pages/NotFound";
 import BranchSelection from "./pages/BranchSelection";
 import SuperAdmin from "./pages/SuperAdmin";
+import PaperlessSystem from "./pages/PaperlessSystem";
 import SystemAnalytics from "./pages/SystemAnalytics";
 import Billing from "./pages/Billing";
 import PatientEngagement from "./pages/PatientEngagement";
@@ -102,6 +103,11 @@ function AppRoutes() {
         } />
         <Route path="queue" element={<QueueManagement />} />
         <Route path="staff-checkin" element={<PatientCheckIn />} />
+        <Route path="paperless" element={
+          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin', 'dentist']}>
+            <PaperlessSystem />
+          </ProtectedRoute>
+        } />
         <Route path="digital-forms" element={
           <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
             <DigitalForms />
