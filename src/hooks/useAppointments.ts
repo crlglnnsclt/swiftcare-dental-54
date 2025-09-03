@@ -6,13 +6,13 @@ interface Appointment {
   id: string;
   patient_id: string;
   dentist_id: string | null;
-  appointment_date: string;
+  scheduled_time: string;
   status: string;
-  service_type: string;
-  is_checked_in: boolean;
-  queue_position: number | null;
-  priority: string;
-  appointment_type: string;
+  duration_minutes?: number;
+  notes?: string;
+  clinic_id: string;
+  created_at: string;
+  updated_at: string;
   profiles?: {
     full_name: string;
   };
@@ -31,9 +31,9 @@ export function useAppointments() {
         .from('appointments')
         .select(`
           *,
-          profiles:patient_id (full_name)
+          patients(full_name)
         `)
-        .order('queue_position', { ascending: true });
+        .order('scheduled_time', { ascending: true });
 
       // Filter based on user role
       if (profile.role === 'patient') {
@@ -63,8 +63,7 @@ export function useAppointments() {
       const { error } = await supabase
         .from('appointments')
         .update({ 
-          is_checked_in: true,
-          check_in_time: new Date().toISOString()
+          status: 'checked_in'
         })
         .eq('id', appointmentId);
 

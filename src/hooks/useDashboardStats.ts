@@ -31,8 +31,8 @@ export function useDashboardStats() {
       let appointmentsQuery = supabase
         .from('appointments')
         .select('*')
-        .gte('appointment_date', `${today}T00:00:00`)
-        .lt('appointment_date', `${today}T23:59:59`);
+        .gte('scheduled_time', `${today}T00:00:00`)
+        .lt('scheduled_time', `${today}T23:59:59`);
 
       if (profile.role === 'dentist') {
         appointmentsQuery = appointmentsQuery.eq('dentist_id', profile.id);
@@ -40,22 +40,29 @@ export function useDashboardStats() {
 
       const { data: todayAppointments } = await appointmentsQuery;
 
+      // Get today's payments for revenue calculation
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('amount')
+        .gte('created_at', `${today}T00:00:00`)
+        .lt('created_at', `${today}T23:59:59`);
+
       // Calculate stats
       const completedAppointments = todayAppointments?.filter(apt => apt.status === 'completed') || [];
-      const checkedInPatients = todayAppointments?.filter(apt => apt.is_checked_in) || [];
+      const checkedInPatients = todayAppointments?.filter(apt => apt.status === 'checked_in') || [];
       const queuePatients = todayAppointments?.filter(apt => 
-        apt.is_checked_in && !['completed', 'cancelled', 'no-show'].includes(apt.status)
+        apt.status === 'checked_in' || apt.status === 'in_progress'
       ) || [];
 
-      // Simulate revenue calculation (you might want to add actual payment tracking)
-      const estimatedRevenue = completedAppointments.length * 150; // Average treatment cost
+      // Calculate actual revenue from payments
+      const totalRevenue = payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
 
       // Calculate average wait time (simplified)
       const avgWait = queuePatients.length > 0 ? 12 : 0; // Minutes
 
       setStats({
         todayPatients: checkedInPatients.length,
-        todayRevenue: estimatedRevenue,
+        todayRevenue: totalRevenue,
         todayAppointments: todayAppointments?.length || 0,
         avgWaitTime: avgWait,
         queueCount: queuePatients.length

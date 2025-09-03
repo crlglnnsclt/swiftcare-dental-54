@@ -20,11 +20,13 @@ import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 
 interface TodayAppointment {
   id: string;
-  appointment_date: string;
-  service_type: string;
+  scheduled_time: string;
   status: string;
-  is_checked_in: boolean;
-  queue_position?: number;
+  notes?: string;
+  duration_minutes?: number;
+  patient_id: string;
+  dentist_id?: string;
+  clinic_id: string;
   dentist?: {
     full_name: string;
   };
@@ -85,19 +87,20 @@ export default function QRCheckIn() {
         .from('appointments')
         .select(`
           *,
-          dentist:profiles!appointments_dentist_id_fkey(full_name)
+          patients(full_name),
+          users!appointments_dentist_id_fkey(full_name)
         `)
         .eq('patient_id', profile?.id)
-        .gte('appointment_date', startOfToday.toISOString())
-        .lte('appointment_date', endOfToday.toISOString())
+        .gte('scheduled_time', startOfToday.toISOString())
+        .lte('scheduled_time', endOfToday.toISOString())
         .neq('status', 'cancelled')
-        .order('appointment_date', { ascending: true });
+        .order('scheduled_time', { ascending: true });
 
       if (error) throw error;
       
       setTodayAppointments((data || []).map(item => ({
         ...item,
-        dentist: Array.isArray(item.dentist) ? item.dentist[0] : item.dentist
+        dentist: item.users ? { full_name: item.users.full_name } : undefined
       })));
     } catch (error) {
       console.error('Error fetching today appointments:', error);
@@ -113,8 +116,6 @@ export default function QRCheckIn() {
       const { error } = await supabase
         .from('appointments')
         .update({ 
-          is_checked_in: true,
-          check_in_time: new Date().toISOString(),
           status: 'checked_in'
         })
         .eq('id', appointmentId);
@@ -135,20 +136,18 @@ export default function QRCheckIn() {
   };
 
   const getAppointmentStatusBadge = (appointment: TodayAppointment) => {
-    if (appointment.is_checked_in) {
-      if (appointment.status === 'in-treatment') {
-        return (
-          <Badge className="bg-purple-100 text-purple-800">
-            <User className="w-3 h-3 mr-1" />
-            In Treatment
-          </Badge>
-        );
-      }
-      
+    if (appointment.status === 'checked_in') {
       return (
         <Badge className="bg-green-100 text-green-800">
           <CheckCircle className="w-3 h-3 mr-1" />
           Checked In
+        </Badge>
+      );
+    } else if (appointment.status === 'in_progress') {
+      return (
+        <Badge className="bg-purple-100 text-purple-800">
+          <User className="w-3 h-3 mr-1" />
+          In Treatment
         </Badge>
       );
     }
@@ -218,9 +217,9 @@ export default function QRCheckIn() {
                       <Calendar className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{appointment.service_type}</CardTitle>
+                      <CardTitle className="text-lg">Appointment</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {formatAppointmentTime(appointment.appointment_date)}
+                        {formatAppointmentTime(appointment.scheduled_time)}
                       </p>
                     </div>
                   </div>
@@ -243,22 +242,22 @@ export default function QRCheckIn() {
                     </div>
                   </div>
 
-                  {appointment.is_checked_in && appointment.queue_position && (
+                  {appointment.status === 'checked_in' && (
                     <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 border border-green-200">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-green-700">
-                          #{appointment.queue_position}
+                          Checked In
                         </div>
-                        <p className="text-sm text-green-600">Your position in queue</p>
-                        {appointment.status === 'in-treatment' ? (
-                          <p className="text-xs text-purple-600 mt-1 font-medium">
-                            🎯 Please proceed to treatment room
-                          </p>
-                        ) : (
-                          <p className="text-xs text-green-600 mt-1">
-                            Please wait for your turn
-                          </p>
-                        )}
+                        <p className="text-sm text-green-600">Waiting for your turn</p>
+                         {appointment.status === 'checked_in' ? (
+                           <p className="text-xs text-green-600 mt-1">
+                             Please wait for your turn
+                           </p>
+                         ) : (
+                           <p className="text-xs text-purple-600 mt-1 font-medium">
+                             🎯 Please proceed to treatment room
+                           </p>
+                         )}
                       </div>
                     </div>
                   )}
@@ -266,7 +265,7 @@ export default function QRCheckIn() {
 
                 {/* Check-in Actions */}
                 <div className="flex gap-2 pt-2 border-t">
-                  {!appointment.is_checked_in ? (
+                  {appointment.status !== 'checked_in' ? (
                     <Button
                       onClick={() => handleCheckIn(appointment.id)}
                       disabled={checkingIn === appointment.id}
@@ -289,10 +288,7 @@ export default function QRCheckIn() {
                       <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-1" />
                       <p className="text-sm text-green-700 font-medium">Successfully Checked In</p>
                       <p className="text-xs text-green-600">
-                        {appointment.status === 'in-treatment' 
-                          ? 'Your appointment has started'
-                          : 'Wait for your turn to be called'
-                        }
+                         Please wait for your turn
                       </p>
                     </div>
                   )}
