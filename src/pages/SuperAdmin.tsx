@@ -34,7 +34,7 @@ export default function SuperAdmin() {
   const { profile } = useAuth();
 
   useEffect(() => {
-    if (profile?.enhanced_role === 'super_admin') {
+    if (profile?.role === 'super_admin') {
       fetchSystemStats();
     }
   }, [profile]);
@@ -51,10 +51,18 @@ export default function SuperAdmin() {
         .from('clinics')
         .select('*', { count: 'exact', head: true });
 
+      // Fetch today's appointments
+      const today = new Date().toISOString().split('T')[0];
+      const { count: appointmentCount } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .gte('scheduled_time', `${today}T00:00:00`)
+        .lt('scheduled_time', `${today}T23:59:59`);
+
       setStats({
         totalUsers: userCount || 0,
         totalBranches: branchCount || 0,
-        activeAppointments: 0, // TODO: Fetch from appointments table
+        activeAppointments: appointmentCount || 0,
         systemAlerts: 2
       });
     } catch (error) {
@@ -62,7 +70,7 @@ export default function SuperAdmin() {
     }
   };
 
-  if (profile?.enhanced_role !== 'super_admin') {
+  if (profile?.role !== 'super_admin') {
     return (
       <div className="p-8">
         <Card>

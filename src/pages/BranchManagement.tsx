@@ -87,7 +87,7 @@ export default function BranchManagement() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Check if user has admin privileges (admin or super_admin)
-  const hasAdminAccess = profile?.enhanced_role === 'super_admin' || profile?.enhanced_role === 'admin';
+  const hasAdminAccess = profile?.role === 'super_admin' || profile?.role === 'admin';
 
   useEffect(() => {
     if (hasAdminAccess) {
