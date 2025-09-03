@@ -50,7 +50,7 @@ export default function DentistDashboard() {
         .gte('scheduled_time', `${today}T00:00:00`)
         .lt('scheduled_time', `${today}T23:59:59`);
 
-      const inProgress = todayAppts?.filter(apt => apt.status === 'in-treatment').length || 0;
+      const inProgress = todayAppts?.filter(apt => apt.status === 'in_progress').length || 0;
       const completed = todayAppts?.filter(apt => apt.status === 'completed').length || 0;
       const waiting = todayAppts?.filter(apt => apt.status === 'checked_in').length || 0;
 
@@ -89,7 +89,7 @@ export default function DentistDashboard() {
   const fetchRecentDentalCharts = async () => {
     try {
       const { data } = await supabase
-        .from('dental_charts')
+        .from('treatment_records')
         .select(`
           *,
           profiles!dental_charts_patient_id_fkey(full_name)

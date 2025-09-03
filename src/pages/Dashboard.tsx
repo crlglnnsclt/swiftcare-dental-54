@@ -346,13 +346,13 @@ const Dashboard = () => {
                             <div className="flex items-center gap-2">
                               <Badge 
                                 variant="outline" 
-                                className={`text-xs ${
-                                  appointment.appointment_type === 'emergency' ? 'border-destructive text-destructive' :
-                                  appointment.appointment_type === 'scheduled' ? 'border-medical-blue text-medical-blue' :
-                                  'border-warning text-warning'
-                                }`}
-                              >
-                                {appointment.appointment_type}
+                                 className={`text-xs ${
+                                   appointment.booking_type === 'emergency' ? 'border-destructive text-destructive' :
+                                   appointment.booking_type === 'online' ? 'border-medical-blue text-medical-blue' :
+                                   'border-warning text-warning'
+                                 }`}
+                               >
+                                 {appointment.booking_type || 'online'}
                               </Badge>
                               <span className="text-sm text-muted-foreground">
                                 {new Date(appointment.scheduled_time).toLocaleTimeString()}
@@ -371,7 +371,7 @@ const Dashboard = () => {
                             {appointment.status === 'in-treatment' ? 'In Progress' : 
                              appointment.status === 'scheduled' ? 'Ready' : appointment.status}
                           </Badge>
-                          {appointment.status !== 'checked_in' ? (
+                          {appointment.status === 'booked' ? (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -381,17 +381,17 @@ const Dashboard = () => {
                               <UserCheck className="w-4 h-4 mr-1" />
                               Check In
                             </Button>
-                          ) : appointment.status === 'scheduled' ? (
+                          ) : appointment.status === 'booked' ? (
                             <Button 
                               variant="outline" 
                               size="sm"
                               className="btn-3d"
-                              onClick={() => handleStatusUpdate(appointment.id, 'in-treatment')}
+                              onClick={() => handleStatusUpdate(appointment.id, 'in_progress')}
                             >
                               <Phone className="w-4 h-4 mr-1" />
                               Call
                             </Button>
-                          ) : appointment.status === 'in-treatment' ? (
+                          ) : appointment.status === 'in_progress' ? (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -427,7 +427,7 @@ const Dashboard = () => {
                         <p className="font-medium text-sm">
                           {appointment.profiles?.full_name || 'Patient'}
                         </p>
-                        <p className="text-xs text-muted-foreground">{appointment.service_type}</p>
+                        <p className="text-xs text-muted-foreground">Treatment</p>
                       </div>
                       <span className="text-xs font-medium text-medical-blue">
                         {new Date(appointment.scheduled_time).toLocaleTimeString([], {
