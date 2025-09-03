@@ -82,7 +82,7 @@ const mockPatient = {
   lastName: 'Smith',
   email: 'john.smith@email.com',
   phone: '(555) 123-4567',
-  isAuthenticated: true, // In real app, check auth state
+  isAuthenticated: false, // In real app, check auth state - Set to false to test login screen
   memberSince: '2023',
   upcomingAppointments: 2,
   familyMembers: [
