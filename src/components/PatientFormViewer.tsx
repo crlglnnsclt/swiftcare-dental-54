@@ -130,16 +130,48 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
 
     setSubmitting(true);
     try {
+      // First, get or create a patient record
+      let targetPatientId = patientId;
+      
+      if (!targetPatientId && profile) {
+        // Check if user is already a patient
+        const { data: existingPatient } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('user_id', profile.user_id)
+          .single();
+
+        if (existingPatient) {
+          targetPatientId = existingPatient.id;
+        } else {
+          // Create a new patient record
+          const { data: newPatient, error: patientError } = await supabase
+            .from('patients')
+            .insert({
+              user_id: profile.user_id,
+              clinic_id: profile.clinic_id,
+              full_name: profile.full_name,
+              email: profile.email,
+              contact_number: profile.phone
+            })
+            .select('id')
+            .single();
+
+          if (patientError) throw patientError;
+          targetPatientId = newPatient.id;
+        }
+      }
+
       const { error } = await supabase
         .from('form_responses')
         .insert({
           form_id: formId,
-          patient_id: patientId || profile?.id,
+          patient_id: targetPatientId,
           clinic_id: profile?.clinic_id,
           responses,
           signature_data: signature,
           signed_by: user?.id,
-          signed_at: new Date().toISOString(),
+          signed_at: signature ? new Date().toISOString() : null,
           ip_address: '192.168.1.1', // In production, get real IP
           device_info: navigator.userAgent,
           status: form?.requires_signature ? 'signed' : 'submitted'

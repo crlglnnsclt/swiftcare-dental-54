@@ -32,6 +32,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import PatientFormViewer from '@/components/PatientFormViewer';
 
 interface DigitalForm {
   id: string;
@@ -80,6 +81,8 @@ export default function PaperlessSystem() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -336,7 +339,14 @@ export default function PaperlessSystem() {
                         <Eye className="w-4 h-4 mr-2" />
                         Preview
                       </Button>
-                      <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                        onClick={() => {
+                          setSelectedFormId(form.id);
+                          setSelectedPatientId(profile?.id || null);
+                        }}
+                      >
                         <Plus className="w-4 h-4 mr-2" />
                         Use Form
                       </Button>
@@ -502,6 +512,19 @@ export default function PaperlessSystem() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Patient Form Viewer Modal */}
+        {selectedFormId && (
+          <PatientFormViewer
+            formId={selectedFormId}
+            patientId={selectedPatientId}
+            onClose={() => {
+              setSelectedFormId(null);
+              setSelectedPatientId(null);
+              fetchData(); // Refresh data after form submission
+            }}
+          />
+        )}
       </div>
     </div>
   );
