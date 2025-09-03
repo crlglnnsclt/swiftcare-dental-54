@@ -139,7 +139,7 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
           .from('patients')
           .select('id')
           .eq('user_id', profile.user_id)
-          .single();
+          .maybeSingle();
 
         if (existingPatient) {
           targetPatientId = existingPatient.id;
@@ -157,7 +157,10 @@ export default function PatientFormViewer({ formId, patientId, onClose }: Patien
             .select('id')
             .single();
 
-          if (patientError) throw patientError;
+          if (patientError) {
+            console.error('Error creating patient record:', patientError);
+            throw patientError;
+          }
           targetPatientId = newPatient.id;
         }
       }

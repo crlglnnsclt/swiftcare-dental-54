@@ -421,31 +421,67 @@ export default function PaperlessSystem() {
                 </CardHeader>
                 <CardContent>
                   <FileUpload
-                    onUploadComplete={(fileUrl, fileName) => {
+                    onUploadComplete={async (fileUrl, fileName) => {
                       // Create document record
-                      const createDocumentRecord = async () => {
-                        try {
-                          const { error } = await supabase
-                            .from('patient_documents')
-                            .insert({
-                              patient_id: profile?.id,
-                              clinic_id: profile?.clinic_id,
-                              document_type: 'upload',
-                              document_category: 'other',
-                              file_name: fileName,
-                              file_url: fileUrl,
-                              uploaded_by: user?.id,
-                              mime_type: 'application/octet-stream'
-                            });
+                      try {
+                        // First, check if user has a patient record, if not create one
+                        let targetPatientId = profile?.id;
+                        
+                        if (profile?.role === 'patient') {
+                          const { data: existingPatient } = await supabase
+                            .from('patients')
+                            .select('id')
+                            .eq('user_id', profile.user_id)
+                            .single();
 
-                          if (error) {
-                            console.error('Error creating document record:', error);
+                          if (existingPatient) {
+                            targetPatientId = existingPatient.id;
+                          } else {
+                            // Create patient record
+                            const { data: newPatient, error: patientError } = await supabase
+                              .from('patients')
+                              .insert({
+                                user_id: profile.user_id,
+                                clinic_id: profile.clinic_id,
+                                full_name: profile.full_name,
+                                email: profile.email,
+                                contact_number: profile.phone
+                              })
+                              .select('id')
+                              .single();
+
+                            if (patientError) {
+                              console.error('Error creating patient record:', patientError);
+                              throw patientError;
+                            }
+                            targetPatientId = newPatient.id;
                           }
-                        } catch (error) {
-                          console.error('Error:', error);
                         }
-                      };
-                      createDocumentRecord();
+
+                        const { error } = await supabase
+                          .from('patient_documents')
+                          .insert({
+                            patient_id: targetPatientId,
+                            clinic_id: profile?.clinic_id,
+                            document_type: 'upload',
+                            document_category: 'other',
+                            file_name: fileName,
+                            file_url: fileUrl,
+                            uploaded_by: user?.id,
+                            mime_type: 'application/octet-stream'
+                          });
+
+                        if (error) {
+                          console.error('Error creating document record:', error);
+                          throw error;
+                        }
+                        
+                        fetchData(); // Refresh data
+                        toast.success('Document uploaded successfully!');
+                      } catch (error) {
+                        console.error('Error:', error);
+                        toast.error('Failed to save document record');
+                      }
                     }}
                     acceptedTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
                     maxSize={50}
