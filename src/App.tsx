@@ -103,11 +103,7 @@ function AppRoutes() {
         } />
         <Route path="queue" element={<QueueManagement />} />
         <Route path="staff-checkin" element={<PatientCheckIn />} />
-        <Route path="paperless" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin', 'dentist']}>
-            <PaperlessSystem />
-          </ProtectedRoute>
-        } />
+        <Route path="paperless" element={<PaperlessSystem />} />
         <Route path="digital-forms" element={
           <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
             <DigitalForms />

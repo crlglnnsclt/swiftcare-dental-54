@@ -152,8 +152,8 @@ const navigationItems: NavItem[] = [
     title: "Paperless System",
     url: "/paperless",
     icon: Smartphone,
-    roles: ["admin", "staff", "dentist"],
-    enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
+    roles: ["admin", "staff", "dentist", "patient"],
+    enhancedRoles: ["admin", "super_admin", "staff", "dentist", "patient"]
   },
   {
     title: "Form Management",
