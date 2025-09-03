@@ -255,8 +255,9 @@ export function AppSidebar() {
   // Filter navigation items based on user role
   const allowedItems = navigationItems.filter(item => {
     const hasRole = profile?.role && item.roles.includes(profile.role);
-    const hasEnhancedRole = profile?.enhanced_role && 
-      item.enhancedRoles?.includes(profile.enhanced_role);
+    // Since enhanced_role doesn't exist in DB, just use regular role
+    const hasEnhancedRole = profile?.role && 
+      item.enhancedRoles?.includes(profile.role);
     return hasRole || hasEnhancedRole;
   });
 
@@ -266,9 +267,8 @@ export function AppSidebar() {
   );
   
   const superAdminItems = allowedItems.filter(item => 
-    item.enhancedRoles?.includes("super_admin") && 
-    item.enhancedRoles?.length === 1 &&
-    profile?.enhanced_role === "super_admin"
+    (item.enhancedRoles?.includes("super_admin") || item.roles.includes("super_admin")) && 
+    profile?.role === "super_admin"
   );
   
   const managementItems = allowedItems.filter(item => 
@@ -337,7 +337,7 @@ export function AppSidebar() {
                   {profile?.full_name || 'User'}
                 </p>
                 <p className="text-xs text-muted-foreground capitalize">
-                  {profile?.enhanced_role?.replace('_', ' ') || profile?.role}
+                  {profile?.role?.replace('_', ' ')}
                 </p>
               </div>
             )}
