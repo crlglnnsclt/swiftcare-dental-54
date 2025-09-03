@@ -112,9 +112,9 @@ export default function Messaging() {
   const fetchAllUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, role, enhanced_role')
-        .eq('is_active', true)
+        .from('users')
+        .select('id, full_name, email, role')
+        .eq('status', 'active')
         .neq('id', profile?.id) // Exclude current user
         .order('full_name');
 

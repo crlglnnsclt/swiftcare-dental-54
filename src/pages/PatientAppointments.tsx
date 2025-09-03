@@ -28,13 +28,11 @@ import { format, addDays, isBefore, startOfDay } from 'date-fns';
 
 interface Appointment {
   id: string;
-  appointment_date: string;
-  service_type: string;
-  status: 'scheduled' | 'confirmed' | 'in-treatment' | 'completed' | 'cancelled' | 'no-show';
+  scheduled_time: string;
+  status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
   notes?: string;
-  fee: number;
+  duration_minutes?: number;
   dentist_id?: string;
-  is_checked_in: boolean;
   queue_position?: number;
   dentist?: {
     full_name: string;
@@ -44,9 +42,9 @@ interface Appointment {
 interface Service {
   id: string;
   name: string;
-  description: string;
-  duration: number;
-  price: number;
+  description?: string;
+  default_duration_minutes: number;
+  default_price: number;
 }
 
 interface Dentist {
@@ -89,10 +87,10 @@ export default function PatientAppointments() {
         .from('appointments')
         .select(`
           *,
-          profiles!inner(full_name)
+          patients!inner(full_name)
         `)
         .eq('patient_id', profile?.id)
-        .order('appointment_date', { ascending: true });
+        .order('scheduled_time', { ascending: true });
 
       if (error) throw error;
       
@@ -110,7 +108,7 @@ export default function PatientAppointments() {
         
         return {
           ...appointment,
-          status: appointment.status as 'scheduled' | 'confirmed' | 'in-treatment' | 'completed' | 'cancelled' | 'no-show',
+          status: appointment.status as 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show',
           dentist: dentistInfo
         };
       }));
@@ -127,7 +125,7 @@ export default function PatientAppointments() {
   const fetchServices = async () => {
     try {
       const { data, error } = await supabase
-        .from('services')
+        .from('treatments')
         .select('*')
         .eq('is_active', true)
         .order('name');
@@ -139,17 +137,20 @@ export default function PatientAppointments() {
     }
   };
 
-  const fetchDentists = async () => {
-    try {
-      const { data, error } = await supabase
-        .rpc('get_available_dentists');
+    const fetchDentists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('role', 'dentist')
+          .eq('status', 'active');
 
-      if (error) throw error;
-      setDentists(data || []);
-    } catch (error) {
-      console.error('Error fetching dentists:', error);
-    }
-  };
+        if (error) throw error;
+        setDentists(data || []);
+      } catch (error) {
+        console.error('Error fetching dentists:', error);
+      }
+    };
 
   const bookAppointment = async () => {
     if (!selectedDate || !selectedTime || !selectedService || !profile?.id) {
@@ -169,16 +170,12 @@ export default function PatientAppointments() {
         .from('appointments')
         .insert({
           patient_id: profile.id,
-          appointment_date: appointmentDateTime.toISOString(),
-          service_type: selectedServiceData?.name || 'General Consultation',
-          service_id: selectedService,
+          scheduled_time: appointmentDateTime.toISOString(),
           dentist_id: selectedDentist || null,
-          fee: selectedServiceData?.price || 0,
+          duration_minutes: selectedServiceData?.default_duration_minutes || 30,
           notes: appointmentNotes,
-          status: 'scheduled',
-          branch_id: profile.branch_id,
-          estimated_duration: selectedServiceData?.duration || 30,
-          appointment_type: 'scheduled'
+          clinic_id: profile.clinic_id,
+          status: 'booked'
         });
 
       if (error) throw error;
@@ -227,15 +224,15 @@ export default function PatientAppointments() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      scheduled: { color: 'bg-blue-100 text-blue-800', label: 'Scheduled' },
-      confirmed: { color: 'bg-green-100 text-green-800', label: 'Confirmed' },
-      'in-treatment': { color: 'bg-purple-100 text-purple-800', label: 'In Treatment' },
+      booked: { color: 'bg-blue-100 text-blue-800', label: 'Booked' },
+      checked_in: { color: 'bg-yellow-100 text-yellow-800', label: 'Checked In' },
+      in_progress: { color: 'bg-purple-100 text-purple-800', label: 'In Progress' },
       completed: { color: 'bg-green-100 text-green-800', label: 'Completed' },
       cancelled: { color: 'bg-red-100 text-red-800', label: 'Cancelled' },
-      'no-show': { color: 'bg-gray-100 text-gray-800', label: 'No Show' }
+      no_show: { color: 'bg-gray-100 text-gray-800', label: 'No Show' }
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.scheduled;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.booked;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -246,7 +243,7 @@ export default function PatientAppointments() {
       case 'cancelled':
       case 'no-show':
         return <XCircle className="w-5 h-5 text-red-600" />;
-      case 'in-treatment':
+      case 'in_progress':
         return <AlertCircle className="w-5 h-5 text-purple-600" />;
       default:
         return <Clock className="w-5 h-5 text-blue-600" />;
@@ -258,7 +255,7 @@ export default function PatientAppointments() {
     const now = new Date();
     const hoursDifference = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
     
-    return status === 'scheduled' && hoursDifference > 24;
+    return status === 'booked' && hoursDifference > 24;
   };
 
   if (loading) {
@@ -302,7 +299,7 @@ export default function PatientAppointments() {
                       <SelectItem key={service.id} value={service.id}>
                         <div className="flex justify-between w-full">
                           <span>{service.name}</span>
-                          <span className="text-muted-foreground ml-4">${service.price}</span>
+                          <span className="text-muted-foreground ml-4">${service.default_price}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -376,8 +373,8 @@ export default function PatientAppointments() {
                     <p><strong>Service:</strong> {services.find(s => s.id === selectedService)?.name}</p>
                     <p><strong>Date:</strong> {format(selectedDate, 'EEEE, MMMM do, yyyy')}</p>
                     <p><strong>Time:</strong> {selectedTime}</p>
-                    <p><strong>Duration:</strong> {services.find(s => s.id === selectedService)?.duration} minutes</p>
-                    <p><strong>Fee:</strong> ${services.find(s => s.id === selectedService)?.price}</p>
+                    <p><strong>Duration:</strong> {services.find(s => s.id === selectedService)?.default_duration_minutes} minutes</p>
+                    <p><strong>Fee:</strong> ${services.find(s => s.id === selectedService)?.default_price}</p>
                     {selectedDentist && (
                       <p><strong>Dentist:</strong> Dr. {dentists.find(d => d.id === selectedDentist)?.full_name}</p>
                     )}
@@ -435,9 +432,9 @@ export default function PatientAppointments() {
                   <div className="flex items-center gap-3">
                     {getStatusIcon(appointment.status)}
                     <div>
-                      <CardTitle className="text-lg">{appointment.service_type}</CardTitle>
+                      <CardTitle className="text-lg">Appointment</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(appointment.appointment_date), 'EEEE, MMMM do, yyyy • h:mm a')}
+                        {format(new Date(appointment.scheduled_time), 'EEEE, MMMM do, yyyy • h:mm a')}
                       </p>
                     </div>
                   </div>
@@ -456,14 +453,11 @@ export default function PatientAppointments() {
                     )}
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">Duration: 30-60 minutes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Fee: ${appointment.fee}</span>
+                      <span className="text-sm">Duration: {appointment.duration_minutes || 30} minutes</span>
                     </div>
                   </div>
 
-                  {appointment.is_checked_in && appointment.queue_position && (
+                  {appointment.status === 'checked_in' && appointment.queue_position && (
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <p className="text-sm font-medium text-blue-800">
                         Queue Position: #{appointment.queue_position}
@@ -480,7 +474,7 @@ export default function PatientAppointments() {
                 )}
 
                 <div className="flex gap-2 pt-2 border-t">
-                  {canCancelAppointment(appointment.appointment_date, appointment.status) && (
+                  {canCancelAppointment(appointment.scheduled_time, appointment.status) && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -508,7 +502,7 @@ export default function PatientAppointments() {
                     </AlertDialog>
                   )}
 
-                  {appointment.status === 'scheduled' && (
+                  {appointment.status === 'booked' && (
                     <div className="text-xs text-muted-foreground">
                       • Cancellation allowed up to 24 hours before appointment
                     </div>

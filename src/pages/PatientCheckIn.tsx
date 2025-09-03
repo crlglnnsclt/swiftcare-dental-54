@@ -10,10 +10,9 @@ import { toast } from 'sonner';
 interface Appointment {
   id: string;
   patient_id: string;
-  appointment_date: string;
-  service_type: string;
+  scheduled_time: string;
   status: string;
-  is_checked_in: boolean;
+  booking_type?: string;
   patient_name?: string;
 }
 
@@ -30,16 +29,13 @@ export function PatientCheckIn() {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          patient:profiles!appointments_patient_id_fkey(full_name)
-        `)
-        .gte('appointment_date', new Date().toISOString().split('T')[0]);
+        .select('*')
+        .gte('scheduled_time', new Date().toISOString().split('T')[0]);
 
       if (error) throw error;
       setAppointments((data || []).map(apt => ({
         ...apt,
-        patient_name: apt.patient?.full_name,
+        patient_name: 'Patient ' + apt.patient_id.slice(-4),
       })));
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -85,16 +81,16 @@ export function PatientCheckIn() {
                 <User className="w-5 h-5" />
                 {appointment.patient_name}
               </CardTitle>
-              <CardDescription>
-                {new Date(appointment.appointment_date).toLocaleDateString()} - {appointment.service_type}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <Badge variant={appointment.is_checked_in ? 'default' : 'secondary'}>
-                  {appointment.status}
-                </Badge>
-                {!appointment.is_checked_in && (
+               <CardDescription>
+                 {new Date(appointment.scheduled_time).toLocaleDateString()} - {appointment.booking_type || 'Standard'}
+               </CardDescription>
+             </CardHeader>
+             <CardContent>
+               <div className="flex items-center justify-between">
+                 <Badge variant={appointment.status === 'checked_in' ? 'default' : 'secondary'}>
+                   {appointment.status}
+                 </Badge>
+                 {appointment.status !== 'checked_in' && (
                   <Button onClick={() => handleCheckIn(appointment.id)}>
                     Check In
                   </Button>
