@@ -626,6 +626,62 @@ export type Database = {
           },
         ]
       }
+      digital_forms: {
+        Row: {
+          category: string
+          clinic_id: string | null
+          created_at: string
+          description: string | null
+          form_fields: Json
+          form_type: string
+          id: string
+          is_active: boolean | null
+          name: string
+          requires_signature: boolean | null
+          template_data: Json | null
+          updated_at: string
+          version: number | null
+        }
+        Insert: {
+          category: string
+          clinic_id?: string | null
+          created_at?: string
+          description?: string | null
+          form_fields?: Json
+          form_type: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requires_signature?: boolean | null
+          template_data?: Json | null
+          updated_at?: string
+          version?: number | null
+        }
+        Update: {
+          category?: string
+          clinic_id?: string | null
+          created_at?: string
+          description?: string | null
+          form_fields?: Json
+          form_type?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requires_signature?: boolean | null
+          template_data?: Json | null
+          updated_at?: string
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_forms_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           appointment_id: string | null
@@ -808,6 +864,76 @@ export type Database = {
           {
             foreignKeyName: "financial_settings_modified_by_fkey"
             columns: ["modified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_responses: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          device_info: string | null
+          form_id: string | null
+          id: string
+          ip_address: unknown | null
+          patient_id: string | null
+          responses: Json
+          signature_data: string | null
+          signed_at: string | null
+          signed_by: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          device_info?: string | null
+          form_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          patient_id?: string | null
+          responses?: Json
+          signature_data?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          device_info?: string | null
+          form_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          patient_id?: string | null
+          responses?: Json
+          signature_data?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_responses_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "digital_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_responses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_responses_signed_by_fkey"
+            columns: ["signed_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1057,6 +1183,300 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount_paid: number
+          appointment_id: string | null
+          balance_due: number
+          clinic_id: string
+          created_at: string
+          discount_amount: number
+          id: string
+          insurance_claim_amount: number | null
+          insurance_claim_status: string | null
+          insurance_coverage: number
+          invoice_number: string
+          invoice_type: string | null
+          issued_by: string | null
+          patient_id: string | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string | null
+          pdf_url: string | null
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          treatments: Json | null
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          appointment_id?: string | null
+          balance_due?: number
+          clinic_id: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          insurance_claim_amount?: number | null
+          insurance_claim_status?: string | null
+          insurance_coverage?: number
+          invoice_number: string
+          invoice_type?: string | null
+          issued_by?: string | null
+          patient_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pdf_url?: string | null
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          treatments?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          appointment_id?: string | null
+          balance_due?: number
+          clinic_id?: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          insurance_claim_amount?: number | null
+          insurance_claim_status?: string | null
+          insurance_coverage?: number
+          invoice_number?: string
+          invoice_type?: string | null
+          issued_by?: string | null
+          patient_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pdf_url?: string | null
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          treatments?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_histories: {
+        Row: {
+          allergies: string[] | null
+          blood_type: string | null
+          clinic_id: string
+          created_at: string
+          current_medications: string[] | null
+          dental_concerns: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          family_medical_history: string[] | null
+          guardian_name: string | null
+          guardian_relationship: string | null
+          height: string | null
+          id: string
+          is_breastfeeding: boolean | null
+          is_minor: boolean | null
+          is_pregnant: boolean | null
+          last_dental_visit: string | null
+          last_updated_at: string | null
+          last_updated_by: string | null
+          medical_conditions: string[] | null
+          patient_id: string | null
+          philhealth_category: string | null
+          philhealth_number: string | null
+          pregnancy_details: string | null
+          previous_dental_work: string[] | null
+          previous_surgeries: string[] | null
+          weight: string | null
+        }
+        Insert: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          clinic_id: string
+          created_at?: string
+          current_medications?: string[] | null
+          dental_concerns?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          family_medical_history?: string[] | null
+          guardian_name?: string | null
+          guardian_relationship?: string | null
+          height?: string | null
+          id?: string
+          is_breastfeeding?: boolean | null
+          is_minor?: boolean | null
+          is_pregnant?: boolean | null
+          last_dental_visit?: string | null
+          last_updated_at?: string | null
+          last_updated_by?: string | null
+          medical_conditions?: string[] | null
+          patient_id?: string | null
+          philhealth_category?: string | null
+          philhealth_number?: string | null
+          pregnancy_details?: string | null
+          previous_dental_work?: string[] | null
+          previous_surgeries?: string[] | null
+          weight?: string | null
+        }
+        Update: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          clinic_id?: string
+          created_at?: string
+          current_medications?: string[] | null
+          dental_concerns?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          family_medical_history?: string[] | null
+          guardian_name?: string | null
+          guardian_relationship?: string | null
+          height?: string | null
+          id?: string
+          is_breastfeeding?: boolean | null
+          is_minor?: boolean | null
+          is_pregnant?: boolean | null
+          last_dental_visit?: string | null
+          last_updated_at?: string | null
+          last_updated_by?: string | null
+          medical_conditions?: string[] | null
+          patient_id?: string | null
+          philhealth_category?: string | null
+          philhealth_number?: string | null
+          pregnancy_details?: string | null
+          previous_dental_work?: string[] | null
+          previous_surgeries?: string[] | null
+          weight?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_histories_last_updated_by_fkey"
+            columns: ["last_updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_histories_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_documents: {
+        Row: {
+          appointment_id: string | null
+          clinic_id: string
+          created_at: string
+          document_category: string | null
+          document_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string | null
+          form_response_id: string | null
+          id: string
+          is_signed: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          patient_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          clinic_id: string
+          created_at?: string
+          document_category?: string | null
+          document_type: string
+          file_name: string
+          file_size?: number | null
+          file_url?: string | null
+          form_response_id?: string | null
+          id?: string
+          is_signed?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          patient_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          clinic_id?: string
+          created_at?: string
+          document_category?: string | null
+          document_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string | null
+          form_response_id?: string | null
+          id?: string
+          is_signed?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          patient_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_documents_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_documents_form_response_id_fkey"
+            columns: ["form_response_id"]
+            isOneToOne: false
+            referencedRelation: "form_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_feedback: {
         Row: {
           appointment_id: string | null
@@ -1104,6 +1524,84 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_insurance: {
+        Row: {
+          annual_limit: number | null
+          card_expiry: string | null
+          card_image_url: string | null
+          clinic_id: string
+          coverage_percentage: number | null
+          coverage_type: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          member_id: string | null
+          patient_id: string | null
+          policy_number: string | null
+          provider_name: string | null
+          provider_type: string
+          remaining_balance: number | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          annual_limit?: number | null
+          card_expiry?: string | null
+          card_image_url?: string | null
+          clinic_id: string
+          coverage_percentage?: number | null
+          coverage_type?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          member_id?: string | null
+          patient_id?: string | null
+          policy_number?: string | null
+          provider_name?: string | null
+          provider_type: string
+          remaining_balance?: number | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          annual_limit?: number | null
+          card_expiry?: string | null
+          card_image_url?: string | null
+          clinic_id?: string
+          coverage_percentage?: number | null
+          coverage_type?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          member_id?: string | null
+          patient_id?: string | null
+          policy_number?: string | null
+          provider_name?: string | null
+          provider_type?: string
+          remaining_balance?: number | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_insurance_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_insurance_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
