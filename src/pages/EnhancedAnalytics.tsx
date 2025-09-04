@@ -57,14 +57,14 @@ const EnhancedAnalytics: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue/5 to-dental-mint/5 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-                <BarChart3 className="h-8 w-8 text-medical-blue" />
+                <BarChart3 className="h-8 w-8 text-primary" />
                 Enhanced Analytics Dashboard
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -88,7 +88,7 @@ const EnhancedAnalytics: React.FC = () => {
               <Button
                 onClick={refreshData}
                 disabled={isLoading}
-                className="bg-gradient-to-r from-medical-blue to-dental-mint"
+                className="bg-gradient-to-r from-primary to-secondary"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 {isLoading ? 'Refreshing...' : 'Refresh Data'}

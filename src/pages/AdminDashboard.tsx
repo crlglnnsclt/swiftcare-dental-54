@@ -24,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AppointmentCreationDialog } from '@/components/AppointmentCreationDialog';
 import { useNavigate } from 'react-router-dom';
+import { DashboardLayout } from '@/components/DashboardLayout';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -125,24 +126,23 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 page-container">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Branch management and oversight</p>
-        </div>
-        <div className="flex gap-3">
+    <DashboardLayout 
+      title="Admin Dashboard" 
+      subtitle="Branch management and oversight"
+      showStats={true}
+      showQuickActions={true}
+    >
+      <div className="space-y-6">
+        <div className="flex gap-3 justify-end">
           <Button variant="outline" className="btn-3d" onClick={() => navigate('/clinic-branding')}>
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
-          <Button className="medical-gradient text-white btn-3d" onClick={() => setIsApptDialogOpen(true)}>
+          <Button className="bg-gradient-to-r from-primary to-secondary text-primary-foreground btn-3d" onClick={() => setIsApptDialogOpen(true)}>
             <Calendar className="w-4 h-4 mr-2" />
             New Appointment
           </Button>
         </div>
-      </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground float-gentle" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-medical-blue">{stats.totalPatients}</div>
+                <div className="text-2xl font-bold text-primary">{stats.totalPatients}</div>
                 <p className="text-xs text-muted-foreground">+12% from last month</p>
               </CardContent>
             </Card>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 <Building2 className="h-4 w-4 text-muted-foreground float-gentle" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-dental-mint">{stats.totalStaff}</div>
+                <div className="text-2xl font-bold text-secondary">{stats.totalStaff}</div>
                 <p className="text-xs text-muted-foreground">Across all roles</p>
               </CardContent>
             </Card>
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground float-gentle" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">${stats.monthlyRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-chart-2">${stats.monthlyRevenue.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">+8% from last month</p>
               </CardContent>
             </Card>
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
                 <Calendar className="h-4 w-4 text-muted-foreground float-gentle" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-professional-navy">{stats.todayAppointments}</div>
+                <div className="text-2xl font-bold text-chart-4">{stats.todayAppointments}</div>
                 <p className="text-xs text-muted-foreground">Scheduled for today</p>
               </CardContent>
             </Card>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                 <Clock className="h-4 w-4 text-muted-foreground float-gentle" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-warning">{stats.pendingApprovals}</div>
+                <div className="text-2xl font-bold text-chart-3">{stats.pendingApprovals}</div>
                 <p className="text-xs text-muted-foreground">Require attention</p>
               </CardContent>
             </Card>
@@ -386,11 +386,13 @@ export default function AdminDashboard() {
         </TabsContent>
       </Tabs>
 
+      </div>
+
       <AppointmentCreationDialog 
         isOpen={isApptDialogOpen}
         onClose={() => setIsApptDialogOpen(false)}
         onSuccess={refetchData}
       />
-    </div>
+    </DashboardLayout>
   );
 }
