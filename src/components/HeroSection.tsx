@@ -2,8 +2,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Play, Smartphone, Users, Calendar, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import heroImage from '@/assets/dental-hero.jpg';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 const HeroSection = () => {
+  const { stats, loading } = useDashboardStats();
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with gradient overlay */}
@@ -94,19 +97,31 @@ const HeroSection = () => {
                 <h3 className="font-semibold text-foreground">Today's Queue</h3>
                 <BarChart3 className="w-5 h-5 text-medical-blue" />
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Waiting</span>
-                  <span className="px-2 py-1 rounded-full bg-warning/20 text-warning text-xs font-medium">12</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">In Progress</span>
-                  <span className="px-2 py-1 rounded-full bg-medical-blue/20 text-medical-blue text-xs font-medium">3</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Completed</span>
-                  <span className="px-2 py-1 rounded-full bg-success/20 text-success text-xs font-medium">28</span>
-                </div>
+               <div className="space-y-3">
+                {loading ? (
+                  <div className="text-sm text-muted-foreground">Loading...</div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">In Queue</span>
+                      <span className="px-2 py-1 rounded-full bg-warning/20 text-warning text-xs font-medium">
+                        {stats?.queueCount || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Today's Patients</span>
+                      <span className="px-2 py-1 rounded-full bg-medical-blue/20 text-medical-blue text-xs font-medium">
+                        {stats?.todayPatients || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Appointments</span>
+                      <span className="px-2 py-1 rounded-full bg-success/20 text-success text-xs font-medium">
+                        {stats?.todayAppointments || 0}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
