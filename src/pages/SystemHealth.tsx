@@ -711,14 +711,14 @@ const SystemHealth: React.FC = () => {
         { data: appointmentData, error: appointmentError },
         { data: clinicData, error: clinicError },
         { data: patientData, error: patientError },
-        { data: billingData, error: billingError },
+        { data: invoiceData, error: invoiceError },
         { data: featureToggleData, error: featureError }
       ] = await Promise.all([
         supabase.from('users').select('id, role'),
         supabase.from('appointments').select('id, status, created_at'),
         supabase.from('clinics').select('id, clinic_name'),
         supabase.from('patients').select('id'),
-        supabase.from('clinic_billing').select('id, status'),
+        supabase.from('invoices').select('id, payment_status'),
         supabase.from('clinic_feature_toggles').select('id, is_enabled, clinic_id')
       ]);
 
@@ -746,7 +746,7 @@ const SystemHealth: React.FC = () => {
               totalAppointments: appointmentData?.length || 0,
               totalClinics: clinicData?.length || 0,
               totalPatients: patientData?.length || 0,
-              pendingBilling: billingData?.filter(b => b.status === 'pending').length || 0,
+              pendingInvoices: invoiceData?.filter(i => i.payment_status === 'pending').length || 0,
               enabledFeatures: featureToggleData?.filter(f => f.is_enabled).length || 0,
               autoFixedCount: featureResults.filter(f => f.autoFixed).length
             },
