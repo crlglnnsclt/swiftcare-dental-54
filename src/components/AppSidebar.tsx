@@ -245,13 +245,6 @@ const moduleNavigation: NavItem[] = [
     module: "administration"
   },
   {
-    title: "Clinic Customization",
-    url: "/clinic-branding",
-    icon: Palette,
-    roles: ["clinic_admin", "super_admin"],
-    module: "administration"
-  },
-  {
     title: "Branch Data Sharing",
     url: "/branch-sharing",
     icon: Share2,

@@ -12,11 +12,13 @@ import {
   Shield,
   Database,
   Globe,
-  Settings
+  Settings,
+  Palette
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BranchAssignment } from '@/components/BranchAssignment';
+import { ClinicBrandingManager } from '@/components/ClinicBrandingManager';
 
 export default function SuperAdmin() {
   const [stats, setStats] = useState({
@@ -95,9 +97,10 @@ export default function SuperAdmin() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">System Overview</TabsTrigger>
           <TabsTrigger value="assignments">Branch Assignments</TabsTrigger>
+          <TabsTrigger value="branding">Clinic Branding</TabsTrigger>
           <TabsTrigger value="settings">System Settings</TabsTrigger>
         </TabsList>
 
@@ -261,6 +264,10 @@ export default function SuperAdmin() {
 
         <TabsContent value="assignments">
           <BranchAssignment />
+        </TabsContent>
+
+        <TabsContent value="branding">
+          <ClinicBrandingManager />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
