@@ -109,14 +109,13 @@ export default function PatientAppointments() {
         return;
       }
 
-      // Get the first patient record for this user (in case of duplicates)
+      // Get the first patient record for this user (handle duplicates gracefully)
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .select('id')
+        .select('id, clinic_id')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
 
       console.log('Patient lookup result:', { patientData, patientError });
 
@@ -127,7 +126,7 @@ export default function PatientAppointments() {
         return;
       }
 
-      if (!patientData) {
+      if (!patientData || patientData.length === 0) {
         console.log('No patient record found for this user');
         setError('No patient record found. Please contact your clinic to set up your patient profile.');
         setAppointments([]);
@@ -135,13 +134,15 @@ export default function PatientAppointments() {
         return;
       }
 
+      const patient = patientData[0]; // Get first patient record
+
       const { data, error } = await supabase
         .from('appointments')
         .select(`
           *,
           patients!inner(full_name)
         `)
-        .eq('patient_id', patientData.id)
+        .eq('patient_id', patient.id)
         .order('scheduled_time', { ascending: true });
 
       if (error) throw error;
@@ -254,19 +255,18 @@ export default function PatientAppointments() {
 
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .select('id')
+        .select('id, clinic_id')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
 
-      console.log('Patient lookup error:', patientError);
-
-      if (patientError || !patientData) {
+      if (patientError || !patientData || patientData.length === 0) {
         throw new Error('Patient record not found');
       }
 
-      console.log('Found patient record:', patientData);
+      const patient = patientData[0];
+
+      console.log('Found patient record:', patient);
 
       setBookingLoading(true);
       
@@ -279,12 +279,12 @@ export default function PatientAppointments() {
       const { error } = await supabase
         .from('appointments')
         .insert({
-          patient_id: patientData.id,
+          patient_id: patient.id,
           scheduled_time: appointmentDateTime.toISOString(),
           dentist_id: selectedDentist === 'any' ? null : selectedDentist || null,
           duration_minutes: selectedServiceData?.default_duration_minutes || 30,
           notes: appointmentNotes,
-          clinic_id: userData.clinic_id,
+          clinic_id: patient.clinic_id,
           status: 'booked'
         });
 
