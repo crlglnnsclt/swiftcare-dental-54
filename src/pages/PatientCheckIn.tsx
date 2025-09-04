@@ -38,14 +38,10 @@ export function PatientCheckIn() {
       setError('');
       
       if (!user?.id || !profile) {
-        console.log('Authentication check failed:', { userId: user?.id, profile });
         setError('Authentication required. Please sign in.');
         setLoading(false);
         return;
       }
-
-      console.log('Fetching appointments for user:', user.id);
-      console.log('User profile role:', profile.role);
 
       // Check if user is a patient
       if (profile.role !== 'patient') {
@@ -54,57 +50,24 @@ export function PatientCheckIn() {
         return;
       }
 
-      // Get user record
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, clinic_id, role')
-        .eq('user_id', user.id)
-        .single();
-
-      console.log('User lookup result:', { userData, userError });
-
-      if (userError || !userData) {
-        console.error('User lookup error:', userError);
-        setError('Failed to load user data. Please try signing out and back in.');
-        setLoading(false);
-        return;
-      }
-
-      // Get patient record  
+      // Get patient record directly from patients table using user profile
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('id, clinic_id, full_name')
-        .eq('user_id', userData.id)
-        .order('created_at', { ascending: true })
-        .limit(1);
+        .eq('user_id', profile.id) // Use profile.id instead of users.id
+        .maybeSingle();
 
-      console.log('Patient lookup result:', { patientData, patientError });
-
-      if (patientError || !patientData || patientData.length === 0) {
+      if (patientError || !patientData) {
         console.error('Patient lookup error:', patientError);
         setError('No patient record found. Please contact the clinic to set up your account.');
         setLoading(false);
         return;
       }
 
-      const patient = patientData[0];
-      console.log('Found patient:', patient);
-
       // Get appointments for this week and future for this specific patient
       const today = new Date();
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(today.getDate() - 7);
-      
-      console.log('Querying appointments for patient:', patient.id, 'from date:', oneWeekAgo.toISOString());
-
-      // Try a simpler query first to test RLS
-      const { data: testQuery, error: testError } = await supabase
-        .from('appointments')
-        .select('id, scheduled_time, status')
-        .eq('patient_id', patient.id)
-        .limit(5);
-
-      console.log('Test query result:', { testQuery, testError });
 
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
@@ -118,19 +81,16 @@ export function PatientCheckIn() {
           notes,
           profiles:users!dentist_id(full_name)
         `)
-        .eq('patient_id', patient.id)
+        .eq('patient_id', patientData.id)
         .gte('scheduled_time', oneWeekAgo.toISOString())
         .in('status', ['booked', 'checked_in'])
         .order('scheduled_time', { ascending: true });
-
-      console.log('Appointments query result:', { appointmentData, appointmentError });
 
       if (appointmentError) {
         console.error('Appointments query error:', appointmentError);
         throw new Error(`Failed to load appointments: ${appointmentError.message}`);
       }
 
-      console.log('Setting appointments:', appointmentData || []);
       setAppointments(appointmentData || []);
       
     } catch (error) {
