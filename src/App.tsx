@@ -58,6 +58,9 @@ import FeatureToggles from "./pages/FeatureToggles";
 import UserRoles from "./pages/UserRoles";
 import MyBilling from "./pages/MyBilling";
 import AppointmentSettings from "./pages/AppointmentSettings";
+import DentistStaffSignatures from "./pages/DentistStaffSignatures";
+import ESignForms from "./pages/ESignForms";
+import DocumentsUploads from "./pages/DocumentsUploads";
 
 const queryClient = new QueryClient();
 
@@ -263,6 +266,15 @@ function AppRoutes() {
         <Route path="my-billing" element={
           <ProtectedRoute requiredRole={['patient']}>
             <MyBilling />
+          </ProtectedRoute>
+        } />
+        
+        {/* Paperless Records Routes */}
+        <Route path="esign-forms" element={<ESignForms />} />
+        <Route path="documents-uploads" element={<DocumentsUploads />} />
+        <Route path="dentist-signatures" element={
+          <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'staff']}>
+            <DentistStaffSignatures />
           </ProtectedRoute>
         } />
       </Route>

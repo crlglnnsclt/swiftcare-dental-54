@@ -1513,6 +1513,7 @@ export type Database = {
           appointment_id: string | null
           clinic_id: string
           created_at: string
+          dentist_signature_id: string | null
           document_category: string | null
           document_type: string
           file_name: string
@@ -1527,6 +1528,7 @@ export type Database = {
           mime_type: string | null
           patient_id: string | null
           rejection_reason: string | null
+          signature_image: string | null
           updated_at: string
           uploaded_by: string | null
           verification_status: string | null
@@ -1537,6 +1539,7 @@ export type Database = {
           appointment_id?: string | null
           clinic_id: string
           created_at?: string
+          dentist_signature_id?: string | null
           document_category?: string | null
           document_type: string
           file_name: string
@@ -1551,6 +1554,7 @@ export type Database = {
           mime_type?: string | null
           patient_id?: string | null
           rejection_reason?: string | null
+          signature_image?: string | null
           updated_at?: string
           uploaded_by?: string | null
           verification_status?: string | null
@@ -1561,6 +1565,7 @@ export type Database = {
           appointment_id?: string | null
           clinic_id?: string
           created_at?: string
+          dentist_signature_id?: string | null
           document_category?: string | null
           document_type?: string
           file_name?: string
@@ -1575,6 +1580,7 @@ export type Database = {
           mime_type?: string | null
           patient_id?: string | null
           rejection_reason?: string | null
+          signature_image?: string | null
           updated_at?: string
           uploaded_by?: string | null
           verification_status?: string | null
@@ -1587,6 +1593,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_documents_dentist_signature_id_fkey"
+            columns: ["dentist_signature_id"]
+            isOneToOne: false
+            referencedRelation: "dentist_signatures"
             referencedColumns: ["id"]
           },
           {
