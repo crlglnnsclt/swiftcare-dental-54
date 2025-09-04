@@ -19,7 +19,8 @@ import {
   CheckCircle,
   AlertCircle,
   XCircle,
-  Loader2
+  Loader2,
+  Filter
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,6 +68,11 @@ export default function PatientAppointments() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState('');
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [timeFilter, setTimeFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('latest');
   
   // Booking form state
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -338,6 +344,55 @@ export default function PatientAppointments() {
     }
   };
 
+  // Filter and sort appointments
+  const filteredAndSortedAppointments = () => {
+    let filtered = [...appointments];
+    
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(apt => apt.status === statusFilter);
+    }
+    
+    // Time filter
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    if (timeFilter === 'upcoming') {
+      filtered = filtered.filter(apt => new Date(apt.scheduled_time) >= now);
+    } else if (timeFilter === 'today') {
+      const tomorrow = new Date(today.getTime() + (24 * 60 * 60 * 1000));
+      filtered = filtered.filter(apt => {
+        const aptDate = new Date(apt.scheduled_time);
+        return aptDate >= today && aptDate < tomorrow;
+      });
+    } else if (timeFilter === 'this_week') {
+      filtered = filtered.filter(apt => new Date(apt.scheduled_time) >= thisWeek);
+    } else if (timeFilter === 'this_month') {
+      filtered = filtered.filter(apt => new Date(apt.scheduled_time) >= thisMonth);
+    } else if (timeFilter === 'past') {
+      filtered = filtered.filter(apt => new Date(apt.scheduled_time) < now);
+    }
+    
+    // Sort appointments
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.scheduled_time);
+      const dateB = new Date(b.scheduled_time);
+      
+      if (sortBy === 'latest') {
+        return dateB.getTime() - dateA.getTime(); // Most recent first
+      } else if (sortBy === 'oldest') {
+        return dateA.getTime() - dateB.getTime(); // Oldest first
+      } else if (sortBy === 'upcoming') {
+        return dateA.getTime() - dateB.getTime(); // Soonest first
+      }
+      return 0;
+    });
+    
+    return filtered;
+  };
+
   const resetBookingForm = () => {
     setSelectedDate(undefined);
     setSelectedTime('');
@@ -406,183 +461,265 @@ export default function PatientAppointments() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 page-container">
-      {/* Header */}
+    <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">My Appointments</h1>
-          <p className="text-muted-foreground">Book, manage, and track your dental appointments</p>
+          <h1 className="text-3xl font-bold">My Appointments</h1>
+          <p className="text-muted-foreground mt-1">View and manage your dental appointments</p>
         </div>
-        <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-          <DialogTrigger asChild>
-            <Button className="medical-gradient text-white btn-3d">
-              <Plus className="w-4 h-4 mr-2" />
-              Book Appointment
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Book New Appointment</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              {/* Service Selection */}
-              <div>
-                <Label htmlFor="service">Service *</Label>
-                <Select value={selectedService} onValueChange={setSelectedService}>
-                    <SelectTrigger className="bg-background border border-border z-10">
-                    <SelectValue placeholder="Select a service" />
-                  </SelectTrigger>
-                   <SelectContent className="bg-background border border-border shadow-lg z-50 backdrop-blur-sm">
-                    {services.map((service) => (
-                      <SelectItem 
-                        key={service.id} 
-                        value={service.id}
-                        className="bg-background hover:bg-muted"
-                      >
-                        <div className="flex justify-between w-full">
-                          <span>{service.name}</span>
-                          <span className="text-muted-foreground ml-4">
-                            ${service.default_price} • {service.default_duration_minutes}min
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Dentist Selection */}
-              <div>
-                <Label htmlFor="dentist">Preferred Dentist (Optional)</Label>
-                <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                   <SelectTrigger className="bg-background border border-border z-10">
-                    <SelectValue placeholder="Any available dentist" />
-                  </SelectTrigger>
-                   <SelectContent className="bg-background border-border shadow-lg z-[9999]">
-                     <SelectItem value="any" className="bg-background hover:bg-muted">
-                       Any available dentist
-                     </SelectItem>
-                    {dentists.map((dentist) => (
-                      <SelectItem 
-                        key={dentist.id} 
-                        value={dentist.id}
-                        className="bg-background hover:bg-muted"
-                      >
-                        Dr. {dentist.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Date Selection */}
-              <div>
-                <Label>Appointment Date *</Label>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) => isBefore(date, startOfDay(new Date())) || date.getDay() === 0}
-                  className="rounded-md border"
-                />
-              </div>
-
-              {/* Time Selection */}
-              <div>
-                <Label htmlFor="time">Appointment Time *</Label>
-                <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger className="bg-background border border-border z-10">
-                    <SelectValue placeholder="Select time slot" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border shadow-lg z-50 backdrop-blur-sm">
-                    {timeSlots.map((time) => (
-                      <SelectItem 
-                        key={time} 
-                        value={time}
-                        className="bg-background hover:bg-muted"
-                      >
-                        {time}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={appointmentNotes}
-                  onChange={(e) => setAppointmentNotes(e.target.value)}
-                  placeholder="Any specific concerns or requests..."
-                  rows={3}
-                />
-              </div>
-
-              {/* Booking Summary */}
-              {selectedService && selectedDate && selectedTime && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <h4 className="font-medium mb-2">Booking Summary</h4>
-                  <div className="space-y-1 text-sm">
-                    <p><strong>Service:</strong> {services.find(s => s.id === selectedService)?.name}</p>
-                    <p><strong>Date:</strong> {format(selectedDate, 'EEEE, MMMM do, yyyy')}</p>
-                    <p><strong>Time:</strong> {selectedTime}</p>
-                    <p><strong>Duration:</strong> {services.find(s => s.id === selectedService)?.default_duration_minutes} minutes</p>
-                    <p><strong>Fee:</strong> ${services.find(s => s.id === selectedService)?.default_price}</p>
-                    {selectedDentist && (
-                      <p><strong>Dentist:</strong> Dr. {dentists.find(d => d.id === selectedDentist)?.full_name}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsBookingOpen(false)}
-                  disabled={bookingLoading}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={bookAppointment}
-                  disabled={bookingLoading}
-                  className="flex-1"
-                >
-                  {bookingLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Booking...
-                    </>
-                  ) : (
-                    'Book Appointment'
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsBookingOpen(true)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Book Appointment
+        </Button>
       </div>
 
-      {/* Appointments List */}
-      <div className="space-y-4">
-        {appointments.length === 0 ? (
-          <Card className="text-center p-12 card-3d interactive-3d">
-            <CalendarIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4 float-gentle" />
-            <h3 className="text-xl font-semibold mb-2">No Appointments Yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Book your first appointment to get started with your dental care.
-            </p>
-            <Button onClick={() => setIsBookingOpen(true)} className="medical-gradient text-white btn-3d">
-              <Plus className="w-4 h-4 mr-2" />
-              Book First Appointment
+      {/* Filters Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filter Appointments
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="booked">Booked</SelectItem>
+                  <SelectItem value="checked_in">Checked In</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Time Period</label>
+              <Select value={timeFilter} onValueChange={setTimeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="this_week">This Week</SelectItem>
+                  <SelectItem value="this_month">This Month</SelectItem>
+                  <SelectItem value="past">Past</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sort By</label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest">Latest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="upcoming">Next Appointment</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setStatusFilter('all');
+                setTimeFilter('all');
+                setSortBy('latest');
+              }}
+            >
+              Clear Filters
             </Button>
-          </Card>
-        ) : (
-          appointments.map((appointment, index) => (
-            <Card key={appointment.id} className={`hover:shadow-md transition-shadow card-3d interactive-3d card-stagger-${(index % 4) + 1}`}>
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredAndSortedAppointments().length} of {appointments.length} appointments
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Book New Appointment</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Service Selection */}
+            <div>
+              <Label htmlFor="service">Service *</Label>
+              <Select value={selectedService} onValueChange={setSelectedService}>
+                  <SelectTrigger className="bg-background border border-border z-10">
+                  <SelectValue placeholder="Select a service" />
+                </SelectTrigger>
+                 <SelectContent className="bg-background border border-border shadow-lg z-50 backdrop-blur-sm">
+                  {services.map((service) => (
+                    <SelectItem 
+                      key={service.id} 
+                      value={service.id}
+                      className="bg-background hover:bg-muted"
+                    >
+                      <div className="flex justify-between w-full">
+                        <span>{service.name}</span>
+                        <span className="text-muted-foreground ml-4">
+                          ${service.default_price} • {service.default_duration_minutes}min
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Dentist Selection */}
+            <div>
+              <Label htmlFor="dentist">Preferred Dentist (Optional)</Label>
+              <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+                 <SelectTrigger className="bg-background border border-border z-10">
+                  <SelectValue placeholder="Any available dentist" />
+                </SelectTrigger>
+                 <SelectContent className="bg-background border-border shadow-lg z-[9999]">
+                   <SelectItem value="any" className="bg-background hover:bg-muted">
+                     Any available dentist
+                   </SelectItem>
+                  {dentists.map((dentist) => (
+                    <SelectItem 
+                      key={dentist.id} 
+                      value={dentist.id}
+                      className="bg-background hover:bg-muted"
+                    >
+                      Dr. {dentist.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Selection */}
+            <div>
+              <Label>Appointment Date *</Label>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={(date) => isBefore(date, startOfDay(new Date())) || date.getDay() === 0}
+                className="rounded-md border"
+              />
+            </div>
+
+            {/* Time Selection */}
+            <div>
+              <Label htmlFor="time">Appointment Time *</Label>
+              <Select value={selectedTime} onValueChange={setSelectedTime}>
+                <SelectTrigger className="bg-background border border-border z-10">
+                  <SelectValue placeholder="Select time slot" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border border-border shadow-lg z-50 backdrop-blur-sm">
+                  {timeSlots.map((time) => (
+                    <SelectItem 
+                      key={time} 
+                      value={time}
+                      className="bg-background hover:bg-muted"
+                    >
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label htmlFor="notes">Additional Notes</Label>
+              <Textarea
+                id="notes"
+                value={appointmentNotes}
+                onChange={(e) => setAppointmentNotes(e.target.value)}
+                placeholder="Any specific concerns or requests..."
+                rows={3}
+              />
+            </div>
+
+            {/* Booking Summary */}
+            {selectedService && selectedDate && selectedTime && (
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">Booking Summary</h4>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Service:</strong> {services.find(s => s.id === selectedService)?.name}</p>
+                  <p><strong>Date:</strong> {format(selectedDate, 'EEEE, MMMM do, yyyy')}</p>
+                  <p><strong>Time:</strong> {selectedTime}</p>
+                  <p><strong>Duration:</strong> {services.find(s => s.id === selectedService)?.default_duration_minutes} minutes</p>
+                  <p><strong>Fee:</strong> ${services.find(s => s.id === selectedService)?.default_price}</p>
+                  {selectedDentist && (
+                    <p><strong>Dentist:</strong> Dr. {dentists.find(d => d.id === selectedDentist)?.full_name}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsBookingOpen(false)}
+                disabled={bookingLoading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={bookAppointment}
+                disabled={bookingLoading}
+                className="flex-1"
+              >
+                {bookingLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Booking...
+                  </>
+                ) : (
+                  'Book Appointment'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Appointments List */}
+      {filteredAndSortedAppointments().length === 0 ? (
+        <Card className="text-center p-8">
+          <CalendarIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">
+            {appointments.length === 0 ? 'No Appointments Found' : 'No appointments match your filters'}
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            {appointments.length === 0 
+              ? 'You don\'t have any appointments yet. Book your first appointment to get started!'
+              : 'Try adjusting your filters to see more appointments.'
+            }
+          </p>
+          {appointments.length === 0 && (
+            <Button onClick={() => setIsBookingOpen(true)}>
+              Book Your First Appointment
+            </Button>
+          )}
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {filteredAndSortedAppointments().map((appointment, index) => (
+            <Card key={appointment.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -666,9 +803,9 @@ export default function PatientAppointments() {
                 </div>
               </CardContent>
             </Card>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
