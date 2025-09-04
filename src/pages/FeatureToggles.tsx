@@ -40,9 +40,11 @@ export default function FeatureToggles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [tierFilter, setTierFilter] = useState<string>("all");
+  const [clinicFilter, setClinicFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [features, setFeatures] = useState<ClinicFeature[]>([]);
+  const [clinics, setClinics] = useState<{id: string, clinic_name: string}[]>([]);
   const [newFeature, setNewFeature] = useState({
     name: "",
     description: "",
@@ -188,6 +190,15 @@ export default function FeatureToggles() {
         })) || [];
         
         setFeatures(featuresWithClinicNames);
+        
+        // Fetch clinic list for filter
+        const { data: clinicsData, error: clinicsError } = await supabase
+          .from('clinics')
+          .select('id, clinic_name')
+          .order('clinic_name');
+          
+        if (clinicsError) throw clinicsError;
+        setClinics(clinicsData || []);
       } else {
         // Clinic admins see only their clinic's features
         const { data, error } = await supabase
@@ -199,7 +210,6 @@ export default function FeatureToggles() {
         setFeatures(data || []);
       }
     } catch (error) {
-      console.error('Error fetching features:', error);
       toast({
         title: "Error",
         description: "Failed to load feature toggles.",
@@ -230,7 +240,11 @@ export default function FeatureToggles() {
     const featureTier = featureDefinitions[feature.feature_name]?.tier || 'core';
     const matchesTier = tierFilter === "all" || tierFilter === featureTier;
     
-    return matchesSearch && matchesStatus && matchesTier;
+    const matchesClinic = 
+      clinicFilter === "all" || 
+      feature.clinic_id === clinicFilter;
+    
+    return matchesSearch && matchesStatus && matchesTier && matchesClinic;
   });
 
   const handleToggleFeature = async (featureId: string) => {
@@ -483,6 +497,23 @@ export default function FeatureToggles() {
               <SelectItem value="integration">Integration</SelectItem>
             </SelectContent>
           </Select>
+          
+          {profile?.role === 'super_admin' && (
+            <Select value={clinicFilter} onValueChange={setClinicFilter}>
+              <SelectTrigger className="w-[160px]">
+                <Building2 className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Clinic" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Clinics</SelectItem>
+                {clinics.map((clinic) => (
+                  <SelectItem key={clinic.id} value={clinic.id}>
+                    {clinic.clinic_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
