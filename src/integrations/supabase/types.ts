@@ -2483,13 +2483,78 @@ export type Database = {
           },
         ]
       }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          branch_id: string | null
+          clinic_id: string
+          created_at: string
+          created_by: string
+          email: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          accepted_at?: string | null
+          branch_id?: string | null
+          clinic_id: string
+          created_at?: string
+          created_by: string
+          email: string
+          expires_at?: string
+          id?: string
+          invitation_token: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          accepted_at?: string | null
+          branch_id?: string | null
+          clinic_id?: string
+          created_at?: string
+          created_by?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_invitations_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_invitations_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
+          branch_id: string | null
           clinic_id: string | null
           created_at: string
+          created_by: string | null
+          date_of_birth: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          first_name: string | null
           full_name: string
           id: string
+          insurance_policy_number: string | null
+          insurance_provider: string | null
+          is_email_verified: boolean | null
+          is_temp_password: boolean | null
+          last_name: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           status: string | null
@@ -2497,11 +2562,22 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          branch_id?: string | null
           clinic_id?: string | null
           created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
           full_name: string
           id?: string
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          is_email_verified?: boolean | null
+          is_temp_password?: boolean | null
+          last_name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: string | null
@@ -2509,11 +2585,22 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          branch_id?: string | null
           clinic_id?: string | null
           created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          first_name?: string | null
           full_name?: string
           id?: string
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          is_email_verified?: boolean | null
+          is_temp_password?: boolean | null
+          last_name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           status?: string | null
@@ -2521,6 +2608,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "users_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "users_clinic_id_fkey"
             columns: ["clinic_id"]
