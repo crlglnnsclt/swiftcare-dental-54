@@ -84,28 +84,31 @@ export default function TreatmentNotes() {
         return;
       }
 
-      // Fetch patients using simple approach
+      // Fetch patients for this clinic only
       const patientsResult = await supabase
         .from('patients')
-        .select('id, full_name, contact_number');
+        .select('id, full_name, contact_number')
+        .eq('clinic_id', profile.clinic_id);
       
       if (patientsResult.data) {
         setPatients(patientsResult.data);
       }
 
-      // Fetch treatments using simple approach
+      // Fetch treatments for this clinic only  
       const treatmentsResult = await supabase
         .from('treatments')
-        .select('id, name, default_price, default_duration_minutes');
+        .select('id, name, default_price, default_duration_minutes')
+        .eq('clinic_id', profile.clinic_id);
       
       if (treatmentsResult.data) {
         setTreatments(treatmentsResult.data);
       }
 
-      // Fetch treatment records using simple approach
+      // Fetch treatment records for this clinic only
       const recordsResult = await supabase
         .from('treatment_records')
-        .select('*');
+        .select('*')
+        .eq('clinic_id', profile.clinic_id);
       
       if (recordsResult.data) {
         setTreatmentNotes(recordsResult.data);

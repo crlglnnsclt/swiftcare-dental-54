@@ -102,7 +102,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="users" element={
-          <ProtectedRoute requiredRole={['admin', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <UsersStaff />
           </ProtectedRoute>
         } />
@@ -112,12 +112,12 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="appointments" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'dentist', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist', 'super_admin']}>
             <AppointmentScheduling />
           </ProtectedRoute>
         } />
         <Route path="analytics" element={
-          <ProtectedRoute requiredRole={['admin', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <Analytics />
           </ProtectedRoute>
         } />
@@ -125,7 +125,7 @@ function AppRoutes() {
         <Route path="staff-checkin" element={<PatientCheckIn />} />
         <Route path="paperless" element={<PaperlessSystem />} />
         <Route path="digital-forms" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
             <DigitalForms />
           </ProtectedRoute>
         } />
@@ -135,7 +135,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="form-responses" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
             <FormResponses />
           </ProtectedRoute>
         } />
@@ -143,22 +143,22 @@ function AppRoutes() {
         <Route path="charts" element={<DentalCharts />} />
         <Route path="odontogram-designs" element={<OdontogramDesigns />} />
         <Route path="patients" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'dentist']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist']}>
             <PatientRecords />
           </ProtectedRoute>
         } />
         <Route path="inventory" element={
-          <ProtectedRoute requiredRole={['admin', 'staff']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff']}>
             <InventoryManagement />
           </ProtectedRoute>
         } />
         <Route path="staff-management" element={
-          <ProtectedRoute requiredRole={['admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin']}>
             <StaffManagement />
           </ProtectedRoute>
         } />
         <Route path="patient-records" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'dentist']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist']}>
             <PatientRecords />
           </ProtectedRoute>
         } />
@@ -187,7 +187,7 @@ function AppRoutes() {
         
         {/* New Business Features */}
         <Route path="billing" element={
-          <ProtectedRoute requiredRole={['admin', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <Billing />
           </ProtectedRoute>
         } />
@@ -197,7 +197,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="patient-engagement" element={
-          <ProtectedRoute requiredRole={['admin', 'staff', 'super_admin']}>
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
             <PatientEngagement />
           </ProtectedRoute>
         } />
