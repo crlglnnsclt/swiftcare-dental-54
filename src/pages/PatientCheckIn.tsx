@@ -97,10 +97,25 @@ export function PatientCheckIn() {
       
       console.log('Querying appointments for patient:', patient.id, 'from date:', oneWeekAgo.toISOString());
 
+      // Try a simpler query first to test RLS
+      const { data: testQuery, error: testError } = await supabase
+        .from('appointments')
+        .select('id, scheduled_time, status')
+        .eq('patient_id', patient.id)
+        .limit(5);
+
+      console.log('Test query result:', { testQuery, testError });
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .select(`
-          *,
+          id,
+          patient_id,
+          dentist_id,
+          scheduled_time,
+          status,
+          booking_type,
+          notes,
           profiles:users!dentist_id(full_name)
         `)
         .eq('patient_id', patient.id)
