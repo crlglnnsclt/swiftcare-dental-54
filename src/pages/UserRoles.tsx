@@ -12,20 +12,54 @@ import { Shield, Users, Plus, Search, Edit, Trash2, Eye, Settings } from "lucide
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
+interface PermissionSet {
+  user_management: boolean;
+  clinic_management: boolean;
+  feature_toggles: boolean;
+  system_settings: boolean;
+  billing_access: boolean;
+  reports_access: boolean;
+  patient_management: boolean;
+  appointment_management: boolean;
+  inventory_management: boolean;
+  audit_logs: boolean;
+}
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+  users: number;
+  isSystem: boolean;
+  color: string;
+  permissions: PermissionSet;
+}
+
 export default function UserRoles() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [newRole, setNewRole] = useState({
     name: "",
     description: "",
-    permissions: {}
+    permissions: {
+      user_management: false,
+      clinic_management: false,
+      feature_toggles: false,
+      system_settings: false,
+      billing_access: false,
+      reports_access: false,
+      patient_management: false,
+      appointment_management: false,
+      inventory_management: false,
+      audit_logs: false
+    } as PermissionSet
   });
 
   // Demo roles and permissions data
-  const [roles, setRoles] = useState([
+  const [roles, setRoles] = useState<Role[]>([
     {
       id: 1,
       name: "Super Admin",
@@ -187,7 +221,18 @@ export default function UserRoles() {
     setNewRole({
       name: "",
       description: "",
-      permissions: {}
+      permissions: {
+        user_management: false,
+        clinic_management: false,
+        feature_toggles: false,
+        system_settings: false,
+        billing_access: false,
+        reports_access: false,
+        patient_management: false,
+        appointment_management: false,
+        inventory_management: false,
+        audit_logs: false
+      }
     });
     setShowCreateDialog(false);
 
@@ -225,7 +270,7 @@ export default function UserRoles() {
     });
   };
 
-  const getPermissionCount = (role: any) => {
+  const getPermissionCount = (role: Role) => {
     return Object.values(role.permissions).filter(Boolean).length;
   };
 
