@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -22,7 +23,9 @@ import {
   QrCode,
   Save,
   RotateCcw,
-  Volume2
+  Volume2,
+  VolumeX,
+  Play
 } from 'lucide-react';
 
 interface AppointmentSettings {
@@ -54,6 +57,30 @@ interface AppointmentSettings {
   monitor_welcome_message: string;
   monitor_ticker_text: string;
   monitor_theme_color: string;
+  
+  // Voice Announcements
+  voice_announcements_enabled: boolean;
+  voice_selected_voice: string;
+  voice_rate: number;
+  voice_pitch: number;
+  voice_volume: number;
+  voice_patient_callout: string;
+  voice_family_callout: string;
+  voice_queue_open: string;
+  voice_queue_reminder: string;
+  voice_queue_empty: string;
+  voice_error_message: string;
+  voice_checkin_success: string;
+  voice_checkin_duplicate: string;
+  voice_checkin_invalid: string;
+  voice_staff_time_in: string;
+  voice_staff_time_out: string;
+  voice_staff_duplicate: string;
+  voice_staff_expired: string;
+  voice_auto_trigger_patient_called: boolean;
+  voice_auto_trigger_checkin: boolean;
+  voice_auto_trigger_queue_updates: boolean;
+  voice_auto_trigger_staff_events: boolean;
   
   // QR Code Settings
   qr_check_in_enabled: boolean;
@@ -87,6 +114,29 @@ const defaultSettings: AppointmentSettings = {
   monitor_ticker_text: 'Please maintain social distancing • Masks required • Hand sanitizer available',
   monitor_theme_color: '#2563eb',
   
+  voice_announcements_enabled: true,
+  voice_selected_voice: 'default',
+  voice_rate: 0.75,
+  voice_pitch: 1,
+  voice_volume: 0.9,
+  voice_patient_callout: 'Now serving [First Name] [Last Initial], please proceed to Room [Room #].',
+  voice_family_callout: 'Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].',
+  voice_queue_open: 'The queue is now open. Please check in using the QR code.',
+  voice_queue_reminder: 'Please ensure you have checked in. If you need assistance, please speak to reception.',
+  voice_queue_empty: 'No patients currently waiting. Walk-ins are welcome.',
+  voice_error_message: 'System temporarily unavailable. Please speak to reception for assistance.',
+  voice_checkin_success: 'Thank you [First Name], you have been successfully checked in.',
+  voice_checkin_duplicate: 'You are already checked in. Please wait to be called.',
+  voice_checkin_invalid: 'Invalid QR code or appointment not found. Please speak to reception.',
+  voice_staff_time_in: 'Welcome [Staff Name], you are now clocked in.',
+  voice_staff_time_out: 'Thank you [Staff Name], you are now clocked out.',
+  voice_staff_duplicate: 'You are already clocked in.',
+  voice_staff_expired: 'Your session has expired. Please scan the current QR code.',
+  voice_auto_trigger_patient_called: true,
+  voice_auto_trigger_checkin: true,
+  voice_auto_trigger_queue_updates: true,
+  voice_auto_trigger_staff_events: false,
+  
   qr_check_in_enabled: true,
   qr_expiry_hours: 24,
   qr_staff_scanning_enabled: true
@@ -96,11 +146,25 @@ export default function AppointmentSettings() {
   const [settings, setSettings] = useState<AppointmentSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const { profile } = useAuth();
 
   useEffect(() => {
     loadSettings();
+    loadVoices();
   }, []);
+
+  const loadVoices = () => {
+    const voices = speechSynthesis.getVoices();
+    setAvailableVoices(voices);
+    
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = () => {
+        const voices = speechSynthesis.getVoices();
+        setAvailableVoices(voices);
+      };
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -173,6 +237,63 @@ export default function AppointmentSettings() {
     { value: 'shimmer', label: 'Shimmer (Soft Female)' }
   ];
 
+  const handleVoicePreview = (message: string) => {
+    const previewMessage = message
+      .replace(/\[First Name\]/g, "Maria")
+      .replace(/\[Last Initial\]/g, "S")
+      .replace(/\[Room #\]/g, "3")
+      .replace(/\[Staff Name\]/g, "Dr. Rodriguez");
+
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      
+      const ensureVoicesLoaded = () => {
+        return new Promise<void>((resolve) => {
+          const voices = speechSynthesis.getVoices();
+          if (voices.length > 0) {
+            resolve();
+          } else {
+            speechSynthesis.onvoiceschanged = () => {
+              resolve();
+            };
+          }
+        });
+      };
+
+      ensureVoicesLoaded().then(() => {
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(`. ${previewMessage}`);
+          
+          let selectedVoice = null;
+          const voices = speechSynthesis.getVoices();
+          
+          if (settings.voice_selected_voice !== 'default') {
+            selectedVoice = voices.find(voice => 
+              voice.name === settings.voice_selected_voice
+            );
+          }
+          
+          if (!selectedVoice) {
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female') || 
+              voice.name.toLowerCase().includes('samantha') ||
+              voice.name.toLowerCase().includes('victoria')
+            ) || voices[0];
+          }
+          
+          utterance.voice = selectedVoice;
+          utterance.rate = settings.voice_rate;
+          utterance.pitch = settings.voice_pitch;
+          utterance.volume = settings.voice_volume;
+          
+          speechSynthesis.speak(utterance);
+        }, 1300);
+      });
+    }
+
+    toast.success(`Playing: "${previewMessage}"`);
+  };
+
   if (loading) {
     return (
       <div className="p-6 space-y-6">
@@ -209,7 +330,7 @@ export default function AppointmentSettings() {
       </div>
 
       <Tabs defaultValue="appointments" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="appointments" className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Appointments
@@ -221,6 +342,10 @@ export default function AppointmentSettings() {
           <TabsTrigger value="reminders" className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
             Reminders
+          </TabsTrigger>
+          <TabsTrigger value="voice" className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4" />
+            Voice
           </TabsTrigger>
           <TabsTrigger value="monitor" className="flex items-center gap-2">
             <Tv className="w-4 h-4" />
@@ -485,6 +610,463 @@ export default function AppointmentSettings() {
                       Use {'{date}'} and {'{time}'} placeholders for dynamic content
                     </p>
                   </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Voice Announcements */}
+        <TabsContent value="voice" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Volume2 className="w-5 h-5 text-primary" />
+                Voice Announcements Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium">Enable Voice Announcements</Label>
+                  <p className="text-xs text-muted-foreground">Enable automated voice announcements system-wide</p>
+                </div>
+                <Switch
+                  checked={settings.voice_announcements_enabled}
+                  onCheckedChange={(checked) => updateSetting('voice_announcements_enabled', checked)}
+                />
+              </div>
+
+              {settings.voice_announcements_enabled && (
+                <>
+                  <Separator />
+
+                  {/* Voice Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Voice Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="voice_selection">Voice Selection</Label>
+                        <Select
+                          value={settings.voice_selected_voice}
+                          onValueChange={(value) => updateSetting('voice_selected_voice', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="default">
+                              <div className="flex items-center gap-2">
+                                <Volume2 className="w-3 h-3" />
+                                System Default
+                              </div>
+                            </SelectItem>
+                            {availableVoices.map((voice) => (
+                              <SelectItem key={voice.name} value={voice.name}>
+                                <div className="flex items-center gap-2">
+                                  <Volume2 className="w-3 h-3" />
+                                  {voice.name} ({voice.lang})
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="voice_rate">Speech Rate</Label>
+                          <Input
+                            id="voice_rate"
+                            type="number"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            value={settings.voice_rate}
+                            onChange={(e) => updateSetting('voice_rate', parseFloat(e.target.value))}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">0.1 (slow) to 2.0 (fast)</p>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="voice_pitch">Voice Pitch</Label>
+                          <Input
+                            id="voice_pitch"
+                            type="number"
+                            min="0"
+                            max="2"
+                            step="0.1"
+                            value={settings.voice_pitch}
+                            onChange={(e) => updateSetting('voice_pitch', parseFloat(e.target.value))}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">0.0 (low) to 2.0 (high)</p>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="voice_volume">Volume</Label>
+                          <Input
+                            id="voice_volume"
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={settings.voice_volume}
+                            onChange={(e) => updateSetting('voice_volume', parseFloat(e.target.value))}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">0.0 (silent) to 1.0 (full)</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Patient Call Messages */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Patient Call Messages</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="voice_patient_callout">Patient Callout Message</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_patient_callout"
+                            value={settings.voice_patient_callout}
+                            onChange={(e) => updateSetting('voice_patient_callout', e.target.value)}
+                            placeholder="Now serving [First Name] [Last Initial], please proceed to Room [Room #]."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_patient_callout)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Use [First Name], [Last Initial], [Room #] as placeholders
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_family_callout">Family Callout Message</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_family_callout"
+                            value={settings.voice_family_callout}
+                            onChange={(e) => updateSetting('voice_family_callout', e.target.value)}
+                            placeholder="Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #]."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_family_callout)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Queue Status Messages */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Queue Status Messages</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="voice_queue_open">Queue Open Message</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_queue_open"
+                            value={settings.voice_queue_open}
+                            onChange={(e) => updateSetting('voice_queue_open', e.target.value)}
+                            placeholder="The queue is now open. Please check in using the QR code."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_queue_open)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_queue_reminder">Queue Reminder Message</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_queue_reminder"
+                            value={settings.voice_queue_reminder}
+                            onChange={(e) => updateSetting('voice_queue_reminder', e.target.value)}
+                            placeholder="Please ensure you have checked in. If you need assistance, please speak to reception."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_queue_reminder)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_queue_empty">Queue Empty Message</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_queue_empty"
+                            value={settings.voice_queue_empty}
+                            onChange={(e) => updateSetting('voice_queue_empty', e.target.value)}
+                            placeholder="No patients currently waiting. Walk-ins are welcome."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_queue_empty)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_error_message">System Error Message</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_error_message"
+                            value={settings.voice_error_message}
+                            onChange={(e) => updateSetting('voice_error_message', e.target.value)}
+                            placeholder="System temporarily unavailable. Please speak to reception for assistance."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_error_message)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Check-in Messages */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Check-in Messages</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="voice_checkin_success">Check-in Success</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_checkin_success"
+                            value={settings.voice_checkin_success}
+                            onChange={(e) => updateSetting('voice_checkin_success', e.target.value)}
+                            placeholder="Thank you [First Name], you have been successfully checked in."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_checkin_success)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_checkin_duplicate">Already Checked In</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_checkin_duplicate"
+                            value={settings.voice_checkin_duplicate}
+                            onChange={(e) => updateSetting('voice_checkin_duplicate', e.target.value)}
+                            placeholder="You are already checked in. Please wait to be called."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_checkin_duplicate)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_checkin_invalid">Invalid Check-in</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_checkin_invalid"
+                            value={settings.voice_checkin_invalid}
+                            onChange={(e) => updateSetting('voice_checkin_invalid', e.target.value)}
+                            placeholder="Invalid QR code or appointment not found. Please speak to reception."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_checkin_invalid)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Staff Messages */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Staff Messages</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="voice_staff_time_in">Staff Clock In</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_staff_time_in"
+                            value={settings.voice_staff_time_in}
+                            onChange={(e) => updateSetting('voice_staff_time_in', e.target.value)}
+                            placeholder="Welcome [Staff Name], you are now clocked in."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_staff_time_in)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_staff_time_out">Staff Clock Out</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_staff_time_out"
+                            value={settings.voice_staff_time_out}
+                            onChange={(e) => updateSetting('voice_staff_time_out', e.target.value)}
+                            placeholder="Thank you [Staff Name], you are now clocked out."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_staff_time_out)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_staff_duplicate">Staff Already Clocked In</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_staff_duplicate"
+                            value={settings.voice_staff_duplicate}
+                            onChange={(e) => updateSetting('voice_staff_duplicate', e.target.value)}
+                            placeholder="You are already clocked in."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_staff_duplicate)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="voice_staff_expired">Staff Session Expired</Label>
+                        <div className="flex gap-2">
+                          <Textarea
+                            id="voice_staff_expired"
+                            value={settings.voice_staff_expired}
+                            onChange={(e) => updateSetting('voice_staff_expired', e.target.value)}
+                            placeholder="Your session has expired. Please scan the current QR code."
+                            className="min-h-[60px]"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVoicePreview(settings.voice_staff_expired)}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Auto Triggers */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Automatic Triggers</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Patient Called Announcements</Label>
+                          <p className="text-xs text-muted-foreground">Automatically announce when patients are called</p>
+                        </div>
+                        <Switch
+                          checked={settings.voice_auto_trigger_patient_called}
+                          onCheckedChange={(checked) => updateSetting('voice_auto_trigger_patient_called', checked)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Check-in Confirmations</Label>
+                          <p className="text-xs text-muted-foreground">Announce check-in success/failure messages</p>
+                        </div>
+                        <Switch
+                          checked={settings.voice_auto_trigger_checkin}
+                          onCheckedChange={(checked) => updateSetting('voice_auto_trigger_checkin', checked)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Queue Status Updates</Label>
+                          <p className="text-xs text-muted-foreground">Announce queue opening, reminders, and empty states</p>
+                        </div>
+                        <Switch
+                          checked={settings.voice_auto_trigger_queue_updates}
+                          onCheckedChange={(checked) => updateSetting('voice_auto_trigger_queue_updates', checked)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Staff Time Events</Label>
+                          <p className="text-xs text-muted-foreground">Announce staff clock in/out events</p>
+                        </div>
+                        <Switch
+                          checked={settings.voice_auto_trigger_staff_events}
+                          onCheckedChange={(checked) => updateSetting('voice_auto_trigger_staff_events', checked)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </>
               )}
             </CardContent>
