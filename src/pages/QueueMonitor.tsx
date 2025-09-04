@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, User, AlertTriangle, CheckCircle, Volume2, VolumeX, Maximize, QrCode } from 'lucide-react';
+import { useQRCodeManager } from '@/hooks/useQRCodeManager';
 
 interface QueueItem {
   id: string;
@@ -23,11 +24,16 @@ export default function QueueMonitor() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [dailyQRCode, setDailyQRCode] = useState('');
+  const { dailyQR, generateDailyQR } = useQRCodeManager();
+  const [monitorSettings, setMonitorSettings] = useState({
+    voice: 'alloy',
+    welcomeMessage: 'Welcome to our dental clinic',
+    tickerText: 'Please maintain social distancing • Masks required • Hand sanitizer available'
+  });
 
   useEffect(() => {
     fetchQueueData();
-    generateDailyQR();
+    loadMonitorSettings();
     
     const interval = setInterval(() => {
       fetchQueueData();
@@ -38,16 +44,33 @@ export default function QueueMonitor() {
       setCurrentTime(new Date());
     }, 1000); // Update time every second
 
-    const qrInterval = setInterval(() => {
-      generateDailyQR();
-    }, 3600000); // Regenerate QR every hour
-
     return () => {
       clearInterval(interval);
       clearInterval(timeInterval);
-      clearInterval(qrInterval);
     };
   }, []);
+
+  const loadMonitorSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clinic_feature_toggles')
+        .select('description')
+        .eq('feature_name', 'appointment_settings')
+        .single();
+
+      if (data?.description) {
+        const settings = JSON.parse(data.description);
+        setMonitorSettings({
+          voice: settings.monitor_announcement_voice || 'alloy',
+          welcomeMessage: settings.monitor_welcome_message || 'Welcome to our dental clinic',
+          tickerText: settings.monitor_ticker_text || 'Please maintain social distancing • Masks required • Hand sanitizer available'
+        });
+        setAudioEnabled(settings.monitor_auto_announcements !== false);
+      }
+    } catch (error) {
+      console.error('Error loading monitor settings:', error);
+    }
+  };
 
   const fetchQueueData = async () => {
     try {
@@ -114,12 +137,6 @@ export default function QueueMonitor() {
     }
   };
 
-  const generateDailyQR = () => {
-    // Generate a unique QR code that expires at midnight
-    const today = new Date().toDateString();
-    const qrData = `SWIFTCARE-CHECKIN-${today}-${Math.random().toString(36).substr(2, 9)}`;
-    setDailyQRCode(qrData);
-  };
 
   const playAnnouncement = (message: string) => {
     if (!audioEnabled || !('speechSynthesis' in window)) return;
@@ -132,12 +149,9 @@ export default function QueueMonitor() {
       const utterance = new SpeechSynthesisUtterance(`. ${message}`);
       const voices = speechSynthesis.getVoices();
       utterance.voice = voices.find(voice => 
-        voice.name.toLowerCase().includes('female') || 
-        voice.name.toLowerCase().includes('samantha') ||
-        voice.name.toLowerCase().includes('victoria') ||
-        voice.name.toLowerCase().includes('zira') ||
-        voice.name.toLowerCase().includes('karen') ||
-        voice.name.toLowerCase().includes('susan')
+        voice.name.toLowerCase().includes(monitorSettings.voice.toLowerCase())
+      ) || voices.find(voice => 
+        voice.name.toLowerCase().includes('female')
       ) || voices[0];
       utterance.rate = 0.75;
       utterance.pitch = 1;
@@ -204,7 +218,7 @@ export default function QueueMonitor() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-bold text-gray-800">Queue Monitor</h1>
-              <p className="text-lg text-gray-600">Real-time patient queue status</p>
+              <p className="text-lg text-gray-600">{monitorSettings.welcomeMessage}</p>
             </div>
             <div className="flex items-center space-x-4">
               {/* Controls */}
@@ -404,9 +418,15 @@ export default function QueueMonitor() {
               <h3 className="font-medium">Daily Check-in QR</h3>
             </div>
             <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 mb-2">
-              <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center">
-                <QrCode className="w-12 h-12 text-gray-400" />
-              </div>
+              {dailyQR ? (
+                <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center text-xs font-mono text-center p-1">
+                  QR-{dailyQR.id.slice(-4)}
+                </div>
+              ) : (
+                <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center">
+                  <QrCode className="w-12 h-12 text-gray-400" />
+                </div>
+              )}
             </div>
             <p className="text-xs text-gray-600">
               Scan for patient check-in

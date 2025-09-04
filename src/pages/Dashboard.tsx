@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import type { Appointment } from '@/lib/types';
+import { AutomatedSystemStatus } from '@/components/AutomatedSystemStatus';
 
 const Dashboard = () => {
   const [isNewApptOpen, setIsNewApptOpen] = useState(false);
@@ -551,6 +552,9 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
+            
+            {/* Automated Systems Status */}
+            <AutomatedSystemStatus />
           </div>
         </div>
     </div>

@@ -81,7 +81,7 @@ const moduleNavigation: NavItem[] = [
   },
   {
     title: "Walk-ins",
-    url: "/checkin",
+    url: "/walk-ins",
     icon: UserCheck,
     roles: ["staff", "clinic_admin", "super_admin"],
     module: "appointments"
@@ -91,6 +91,13 @@ const moduleNavigation: NavItem[] = [
     url: "/queue-monitor",
     icon: Tv,
     roles: ["staff", "clinic_admin", "super_admin"],
+    module: "appointments"
+  },
+  {
+    title: "Appointment Settings",
+    url: "/appointment-settings",
+    icon: Settings,
+    roles: ["clinic_admin", "super_admin"],
     module: "appointments"
   },
 

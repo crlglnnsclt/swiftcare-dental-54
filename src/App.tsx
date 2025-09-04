@@ -57,6 +57,7 @@ import ClinicBranding from "./pages/ClinicBranding";
 import FeatureToggles from "./pages/FeatureToggles";
 import UserRoles from "./pages/UserRoles";
 import MyBilling from "./pages/MyBilling";
+import AppointmentSettings from "./pages/AppointmentSettings";
 
 const queryClient = new QueryClient();
 
@@ -205,6 +206,11 @@ function AppRoutes() {
         <Route path="walk-ins" element={
           <ProtectedRoute requiredRole={['staff', 'clinic_admin', 'super_admin']}>
             <WalkIns />
+          </ProtectedRoute>
+        } />
+        <Route path="appointment-settings" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <AppointmentSettings />
           </ProtectedRoute>
         } />
         <Route path="family-management" element={
