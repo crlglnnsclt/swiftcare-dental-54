@@ -22,7 +22,10 @@ export function useDashboardStats() {
   const { user, profile } = useAuth();
 
   const fetchStats = async () => {
-    if (!user || !profile) return;
+    if (!user || !profile) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const today = new Date().toISOString().split('T')[0];
