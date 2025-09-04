@@ -31,19 +31,19 @@ export const DatabaseHealthStats: React.FC = () => {
         { data: patients, error: patientsError },
         { data: appointments, error: appointmentsError },
         { data: clinics, error: clinicsError },
-        { data: invoices, error: invoicesError },
+        { data: billing, error: billingError },
         { data: features, error: featuresError }
       ] = await Promise.all([
         supabase.from('users').select('id, role'),
         supabase.from('patients').select('id'),
         supabase.from('appointments').select('id, scheduled_time'),
         supabase.from('clinics').select('id'),
-        supabase.from('invoices').select('id, payment_status'),
+        supabase.from('clinic_billing').select('id, status'),
         supabase.from('clinic_feature_toggles').select('id, is_enabled')
       ]);
 
       // Check for errors
-      const errors = [usersError, patientsError, appointmentsError, clinicsError, invoicesError, featuresError]
+      const errors = [usersError, patientsError, appointmentsError, clinicsError, billingError, featuresError]
         .filter(Boolean);
       
       if (errors.length > 0) {
@@ -56,9 +56,9 @@ export const DatabaseHealthStats: React.FC = () => {
         apt.scheduled_time?.startsWith(today)
       ).length || 0;
 
-      // Calculate pending payments
-      const pendingPayments = invoices?.filter(inv => 
-        inv.payment_status === 'pending'
+      // Calculate pending billing
+      const pendingPayments = billing?.filter(bill => 
+        bill.status === 'pending'
       ).length || 0;
 
       // Calculate active features
@@ -69,7 +69,7 @@ export const DatabaseHealthStats: React.FC = () => {
         totalPatients: patients?.length || 0,
         totalAppointments: appointments?.length || 0,
         totalClinics: clinics?.length || 0,
-        totalInvoices: invoices?.length || 0,
+        totalInvoices: billing?.length || 0,
         pendingPayments,
         activeFeatures,
         todayAppointments
@@ -156,7 +156,7 @@ export const DatabaseHealthStats: React.FC = () => {
       color: 'text-indigo-600'
     },
     {
-      label: 'Total Invoices',
+      label: 'Billing Records',
       value: stats.totalInvoices,
       icon: CreditCard,
       color: 'text-emerald-600'
