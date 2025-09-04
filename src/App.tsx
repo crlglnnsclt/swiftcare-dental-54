@@ -68,6 +68,8 @@ import DocumentsUploads from "./pages/DocumentsUploads";
 import SystemHealth from "./pages/SystemHealth";
 import EnhancedAnalytics from "./pages/EnhancedAnalytics";
 import PatientRegistration from "./pages/PatientRegistration";
+import AppointmentsHub from "./pages/AppointmentsHub";
+import { PatientCheckIn } from "./pages/PatientCheckIn";
 
 const queryClient = new QueryClient();
 
@@ -127,18 +129,18 @@ function AppRoutes() {
             <BranchManagementMerged />
           </ProtectedRoute>
         } />
-        <Route path="appointments" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist', 'super_admin']}>
-            <AppointmentScheduling />
-          </ProtectedRoute>
-        } />
+        <Route path="appointments" element={<AppointmentsHub />} />
         <Route path="analytics" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <Analytics />
           </ProtectedRoute>
         } />
         <Route path="queue" element={<QueueManagement />} />
-        <Route path="checkin" element={<SmartCheckIn />} />
+        <Route path="checkin" element={
+          <ProtectedRoute requiredRole={['patient']}>
+            <PatientCheckIn />
+          </ProtectedRoute>
+        } />
         <Route path="staff-checkin" element={<SmartCheckIn />} />
         <Route path="paperless" element={<PaperlessSystem />} />
         <Route path="digital-forms" element={
@@ -183,7 +185,7 @@ function AppRoutes() {
         {/* Patient-specific routes */}
         <Route path="my-appointments" element={
           <ProtectedRoute requiredRole={['patient']}>
-            <PatientAppointments />
+            <AppointmentsHub />
           </ProtectedRoute>
         } />
         <Route path="my-profile" element={
