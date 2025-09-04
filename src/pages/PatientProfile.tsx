@@ -197,53 +197,53 @@ export default function PatientProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 relative overflow-hidden">
-      {/* Glassmorphism Background Effects */}
+      {/* Mobile-Optimized Glassmorphism Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-60 animate-float"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-40 animate-float-gentle"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/5 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute top-10 left-5 w-48 h-48 sm:w-96 sm:h-96 sm:top-20 sm:left-20 bg-primary/10 rounded-full blur-3xl opacity-60 animate-float"></div>
+        <div className="absolute bottom-10 right-5 w-40 h-40 sm:w-80 sm:h-80 sm:bottom-20 sm:right-20 bg-secondary/10 rounded-full blur-3xl opacity-40 animate-float-gentle"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-[600px] sm:h-[400px] bg-accent/5 rounded-full blur-3xl opacity-30"></div>
       </div>
 
-      <div className="container mx-auto p-6 space-y-8 relative z-10 animate-fade-in">
-        {/* Header with Glass Card */}
-        <div className="glass-card-3d p-8 rounded-2xl backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant hover-scale">
-          <div className="flex items-center justify-between">
+      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8 relative z-10 animate-fade-in max-w-sm sm:max-w-4xl">
+        {/* Mobile-First Header with Glass Card */}
+        <div className="glass-card-3d p-4 sm:p-8 rounded-2xl backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant hover-scale">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-fade-in">
+              <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-fade-in">
                 My Profile
               </h1>
-              <p className="text-muted-foreground/80 text-lg">Manage your personal and medical information</p>
+              <p className="text-muted-foreground/80 text-sm sm:text-lg">Manage your personal and medical information</p>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
               {isEditing ? (
                 <>
                   <Button 
                     variant="outline" 
-                    className="glass-button-3d bg-background/40 backdrop-blur-sm border-white/30 hover:bg-background/60 transition-all duration-300"
+                    className="glass-button-3d bg-background/40 backdrop-blur-sm border-white/30 hover:bg-background/60 transition-all duration-300 flex-1 sm:flex-none"
                     onClick={() => {
                       setIsEditing(false);
                       fetchPatientDetails();
                     }}
                     disabled={saving}
                   >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
+                    <X className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Cancel</span>
                   </Button>
                   <Button 
                     onClick={savePatientDetails}
                     disabled={saving}
-                    className="glass-button-3d bg-gradient-to-r from-primary to-secondary text-white shadow-glow hover:shadow-xl transition-all duration-300"
+                    className="glass-button-3d bg-gradient-to-r from-primary to-secondary text-white shadow-glow hover:shadow-xl transition-all duration-300 flex-1 sm:flex-none"
                   >
                     {saving ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
+                        <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                        <span className="hidden sm:inline">Saving...</span>
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save Changes
+                        <Save className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Save Changes</span>
                       </>
                     )}
                   </Button>
@@ -251,57 +251,61 @@ export default function PatientProfile() {
               ) : (
                 <Button 
                   onClick={() => setIsEditing(true)}
-                  className="glass-button-3d bg-gradient-to-r from-primary to-secondary text-white shadow-glow hover:shadow-xl transition-all duration-300"
+                  className="glass-button-3d bg-gradient-to-r from-primary to-secondary text-white shadow-glow hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Profile
+                  <Edit className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Edit Profile</span>
                 </Button>
               )}
             </div>
           </div>
         </div>
 
-        <Tabs defaultValue="personal" className="space-y-8">
-          <TabsList className="glass-card-3d grid w-full grid-cols-4 bg-background/30 backdrop-blur-xl border border-white/20 p-2 rounded-xl h-14">
+        <Tabs defaultValue="personal" className="space-y-4 sm:space-y-8">
+          <TabsList className="glass-card-3d grid w-full grid-cols-2 sm:grid-cols-4 bg-background/30 backdrop-blur-xl border border-white/20 p-1 sm:p-2 rounded-xl h-12 sm:h-14">
             <TabsTrigger 
               value="personal" 
-              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300 text-xs sm:text-sm px-1 sm:px-3"
             >
-              Personal Info
+              <span className="sm:hidden">Personal</span>
+              <span className="hidden sm:inline">Personal Info</span>
             </TabsTrigger>
             <TabsTrigger 
               value="contact"
-              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300 text-xs sm:text-sm px-1 sm:px-3"
             >
-              Contact & Emergency
+              <span className="sm:hidden">Contact</span>
+              <span className="hidden sm:inline">Contact & Emergency</span>
             </TabsTrigger>
             <TabsTrigger 
               value="medical"
-              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300 text-xs sm:text-sm px-1 sm:px-3"
             >
-              Medical History
+              <span className="sm:hidden">Medical</span>
+              <span className="hidden sm:inline">Medical History</span>
             </TabsTrigger>
             <TabsTrigger 
               value="dental"
-              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300 text-xs sm:text-sm px-1 sm:px-3"
             >
-              Dental History
+              <span className="sm:hidden">Dental</span>
+              <span className="hidden sm:inline">Dental History</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Personal Information */}
-          <TabsContent value="personal" className="space-y-8 animate-fade-in">
+          <TabsContent value="personal" className="space-y-4 sm:space-y-8 animate-fade-in">
             <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
-                <CardTitle className="flex items-center gap-3 text-xl">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
                   <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
-                    <User className="w-6 h-6 text-primary animate-float-gentle" />
+                    <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-float-gentle" />
                   </div>
                   Personal Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-8">
-                <div className="grid md:grid-cols-3 gap-6">
+              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="first_name" className="text-sm font-medium text-foreground/80">First Name *</Label>
                     <Input
@@ -336,7 +340,7 @@ export default function PatientProfile() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="date_of_birth" className="text-sm font-medium text-foreground/80">Date of Birth</Label>
                     <Input
@@ -399,18 +403,18 @@ export default function PatientProfile() {
           </TabsContent>
 
           {/* Contact & Emergency */}
-          <TabsContent value="contact" className="space-y-8 animate-fade-in">
+          <TabsContent value="contact" className="space-y-4 sm:space-y-8 animate-fade-in">
             <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
-                <CardTitle className="flex items-center gap-3 text-xl">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
                   <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
-                    <Phone className="w-6 h-6 text-primary animate-float-gentle" />
+                    <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-float-gentle" />
                   </div>
                   Contact Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-8">
-                <div className="grid md:grid-cols-2 gap-6">
+              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm font-medium text-foreground/80">Email Address</Label>
                     <Input
@@ -446,7 +450,7 @@ export default function PatientProfile() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="emergency_contact_name" className="text-sm font-medium text-foreground/80">Emergency Contact Name</Label>
                     <Input
@@ -469,7 +473,7 @@ export default function PatientProfile() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="preferred_time" className="text-sm font-medium text-foreground/80">Preferred Appointment Time</Label>
                     <Select 
@@ -510,16 +514,16 @@ export default function PatientProfile() {
 
             {/* Insurance Information */}
             <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
-                <CardTitle className="flex items-center gap-3 text-xl">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
                   <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
-                    <MapPin className="w-6 h-6 text-primary animate-float-gentle" />
+                    <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-float-gentle" />
                   </div>
                   Insurance Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-8">
-                <div className="grid md:grid-cols-2 gap-6">
+              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="insurance_provider" className="text-sm font-medium text-foreground/80">Insurance Provider</Label>
                     <Input
@@ -546,17 +550,17 @@ export default function PatientProfile() {
           </TabsContent>
 
           {/* Medical History */}
-          <TabsContent value="medical" className="space-y-8 animate-fade-in">
+          <TabsContent value="medical" className="space-y-4 sm:space-y-8 animate-fade-in">
             <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
-                <CardTitle className="flex items-center gap-3 text-xl">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
                   <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
-                    <Heart className="w-6 h-6 text-primary animate-float-gentle" />
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-float-gentle" />
                   </div>
                   Medical History
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-8">
+              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-8">
                 <div className="space-y-2">
                   <Label htmlFor="allergies" className="flex items-center gap-2 text-sm font-medium text-foreground/80">
                     <AlertTriangle className="w-4 h-4" />
@@ -622,17 +626,17 @@ export default function PatientProfile() {
           </TabsContent>
 
           {/* Dental History */}
-          <TabsContent value="dental" className="space-y-8 animate-fade-in">
+          <TabsContent value="dental" className="space-y-4 sm:space-y-8 animate-fade-in">
             <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
-                <CardTitle className="flex items-center gap-3 text-xl">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
                   <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
-                    <Calendar className="w-6 h-6 text-primary animate-float-gentle" />
+                    <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-float-gentle" />
                   </div>
                   Dental History
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-8">
+              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-8">
                 <div className="space-y-2">
                   <Label htmlFor="last_dental_visit" className="text-sm font-medium text-foreground/80">Last Dental Visit</Label>
                   <Input
