@@ -95,7 +95,7 @@ const SystemHealth: React.FC = () => {
     { id: 'staff-management', name: 'Staff Management', url: '/staff-management', module: 'administration', roles: ['clinic_admin'] },
     { id: 'user-roles', name: 'Role Management', url: '/user-roles', module: 'administration', roles: ['clinic_admin'] },
     { id: 'clinic-branding', name: 'Clinic Customization', url: '/clinic-branding', module: 'administration', roles: ['clinic_admin'] },
-    { id: 'feature-toggles', name: 'Feature Toggles', url: '/feature-toggles', module: 'administration', roles: ['clinic_admin'] },
+    { id: 'feature-toggles', name: 'Feature Toggles', url: '/feature-toggles', module: 'super_admin', roles: ['super_admin'] },
     { id: 'audit-logs', name: 'Audit Logs', url: '/audit-logs', module: 'administration', roles: ['clinic_admin'] },
     
     // Super Admin

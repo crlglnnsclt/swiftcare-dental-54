@@ -254,8 +254,8 @@ const moduleNavigation: NavItem[] = [
     title: "Feature Toggles",
     url: "/feature-toggles",
     icon: Layers,
-    roles: ["clinic_admin", "super_admin"],
-    module: "administration"
+    roles: ["super_admin"],
+    module: "super_admin"
   },
   {
     title: "Audit Logs",

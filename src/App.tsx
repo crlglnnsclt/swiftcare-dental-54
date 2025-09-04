@@ -278,7 +278,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="feature-toggles" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+          <ProtectedRoute requiredRole={['super_admin']}>
             <FeatureToggles />
           </ProtectedRoute>
         } />
