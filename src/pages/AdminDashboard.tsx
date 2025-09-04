@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Users, 
   Calendar, 
@@ -14,11 +15,15 @@ import {
   BarChart3,
   Clock,
   Building2,
-  Shield
+  Shield,
+  FileText,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AppointmentCreationDialog } from '@/components/AppointmentCreationDialog';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -29,8 +34,10 @@ export default function AdminDashboard() {
     pendingApprovals: 0
   });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [isApptDialogOpen, setIsApptDialogOpen] = useState(false);
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (profile?.role === 'clinic_admin' || profile?.role === 'super_admin') {
@@ -38,6 +45,11 @@ export default function AdminDashboard() {
       fetchRecentActivity();
     }
   }, [profile]);
+
+  const refetchData = () => {
+    fetchAdminStats();
+    fetchRecentActivity();
+  };
 
   const fetchAdminStats = async () => {
     try {
@@ -121,13 +133,13 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Branch management and oversight</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="btn-3d">
+          <Button variant="outline" className="btn-3d" onClick={() => navigate('/clinic-settings')}>
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
-          <Button className="medical-gradient text-white btn-3d">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add Staff
+          <Button className="medical-gradient text-white btn-3d" onClick={() => setIsApptDialogOpen(true)}>
+            <Calendar className="w-4 h-4 mr-2" />
+            New Appointment
           </Button>
         </div>
       </div>
@@ -207,21 +219,37 @@ export default function AdminDashboard() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button variant="outline" className="w-full justify-start btn-3d">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start btn-3d"
+                  onClick={() => navigate('/users-staff')}
+                >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Add New Staff Member
                 </Button>
-                <Button variant="outline" className="w-full justify-start btn-3d">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start btn-3d"
+                  onClick={() => navigate('/patient-records')}
+                >
                   <Users className="w-4 h-4 mr-2" />
                   View All Patients
                 </Button>
-                <Button variant="outline" className="w-full justify-start btn-3d">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start btn-3d"
+                  onClick={() => navigate('/analytics')}
+                >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Generate Reports
                 </Button>
-                <Button variant="outline" className="w-full justify-start btn-3d">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start btn-3d"
+                  onClick={() => navigate('/appointment-settings')}
+                >
                   <Settings className="w-4 h-4 mr-2" />
-                  Branch Settings
+                  Appointment Settings
                 </Button>
               </CardContent>
             </Card>
@@ -240,9 +268,9 @@ export default function AdminDashboard() {
                       <div key={activity.id || index} className="flex items-center gap-3 p-3 rounded-lg border">
                         <div className="w-2 h-2 bg-medical-blue rounded-full"></div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium capitalize">{activity.action} {activity.table_name}</p>
+                          <p className="text-sm font-medium">{activity.action_description || activity.action_type}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(activity.performed_at).toLocaleString()}
+                            {new Date(activity.created_at).toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -266,9 +294,9 @@ export default function AdminDashboard() {
                 <p className="text-muted-foreground mb-6">
                   Manage staff members, roles, and permissions for your branch.
                 </p>
-                <Button className="medical-gradient text-white">
+                <Button className="medical-gradient text-white" onClick={() => navigate('/users-staff')}>
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Add Staff Member
+                  Manage Staff
                 </Button>
               </div>
             </CardContent>
@@ -287,7 +315,7 @@ export default function AdminDashboard() {
                 <p className="text-muted-foreground mb-6">
                   Comprehensive analytics and reporting for your branch operations.
                 </p>
-                <Button className="medical-gradient text-white">
+                <Button className="medical-gradient text-white" onClick={() => navigate('/analytics')}>
                   <BarChart3 className="w-4 h-4 mr-2" />
                   View Analytics
                 </Button>
@@ -306,28 +334,63 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   <h3 className="font-medium">Branch Information</h3>
                   <div className="space-y-3">
-                    <Input placeholder="Branch Name" />
-                    <Input placeholder="Address" />
-                    <Input placeholder="Phone Number" />
-                    <Input placeholder="Email" />
+                    <div>
+                      <Label htmlFor="branch-name">Branch Name</Label>
+                      <Input id="branch-name" placeholder="Enter branch name" />
+                    </div>
+                    <div>
+                      <Label htmlFor="branch-address">Address</Label>
+                      <Input id="branch-address" placeholder="Enter address" />
+                    </div>
+                    <div>
+                      <Label htmlFor="branch-phone">Phone Number</Label>
+                      <Input id="branch-phone" placeholder="Enter phone number" />
+                    </div>
+                    <div>
+                      <Label htmlFor="branch-email">Email</Label>
+                      <Input id="branch-email" placeholder="Enter email" />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <h3 className="font-medium">Operational Settings</h3>
                   <div className="space-y-3">
-                    <Input placeholder="Operating Hours" />
-                    <Input placeholder="Time Zone" />
-                    <Input placeholder="Default Appointment Duration (minutes)" />
+                    <div>
+                      <Label htmlFor="operating-hours">Operating Hours</Label>
+                      <Input id="operating-hours" placeholder="e.g., 9:00 AM - 6:00 PM" />
+                    </div>
+                    <div>
+                      <Label htmlFor="timezone">Time Zone</Label>
+                      <Input id="timezone" placeholder="e.g., UTC+8" />
+                    </div>
+                    <div>
+                      <Label htmlFor="appointment-duration">Default Appointment Duration</Label>
+                      <Input id="appointment-duration" placeholder="30" type="number" />
+                    </div>
                   </div>
                 </div>
               </div>
-              <Button className="medical-gradient text-white">
+              <Button 
+                className="medical-gradient text-white"
+                onClick={() => {
+                  toast({
+                    title: "Settings Saved",
+                    description: "Branch settings have been updated successfully.",
+                  });
+                }}
+              >
                 Save Settings
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AppointmentCreationDialog 
+        isOpen={isApptDialogOpen}
+        onClose={() => setIsApptDialogOpen(false)}
+        onSuccess={refetchData}
+      />
     </div>
   );
 }

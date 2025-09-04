@@ -31,7 +31,7 @@ export function useAppointments() {
         .from('appointments')
         .select(`
           *,
-          patients(full_name)
+          patients(id, full_name, contact_number)
         `)
         .order('scheduled_time', { ascending: true });
 
@@ -40,8 +40,9 @@ export function useAppointments() {
         query = query.eq('patient_id', profile.id);
       } else if (profile.role === 'dentist') {
         query = query.eq('dentist_id', profile.id);
+      } else if (profile.clinic_id) {
+        query = query.eq('clinic_id', profile.clinic_id);
       }
-      // Admin and staff can see all appointments
 
       const { data, error } = await query;
 
