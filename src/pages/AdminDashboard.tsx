@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+    if (profile?.role === 'clinic_admin' || profile?.role === 'super_admin') {
       fetchAdminStats();
       fetchRecentActivity();
     }
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
+  if (!profile || !['clinic_admin', 'super_admin'].includes(profile.role)) {
     return (
       <div className="p-8">
         <Card>
