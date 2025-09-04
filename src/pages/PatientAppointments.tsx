@@ -370,10 +370,10 @@ export default function PatientAppointments() {
               <div>
                 <Label htmlFor="service">Service *</Label>
                 <Select value={selectedService} onValueChange={setSelectedService}>
-                  <SelectTrigger className="bg-background border-border z-10">
+                    <SelectTrigger className="bg-background border border-border z-10">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border-border shadow-lg z-50">
+                   <SelectContent className="bg-background border border-border shadow-lg z-50 backdrop-blur-sm">
                     {services.map((service) => (
                       <SelectItem 
                         key={service.id} 
@@ -396,7 +396,7 @@ export default function PatientAppointments() {
               <div>
                 <Label htmlFor="dentist">Preferred Dentist (Optional)</Label>
                 <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                  <SelectTrigger className="bg-background border-border z-10">
+                   <SelectTrigger className="bg-background border border-border z-10">
                     <SelectValue placeholder="Any available dentist" />
                   </SelectTrigger>
                    <SelectContent className="bg-background border-border shadow-lg z-[9999]">
@@ -432,10 +432,10 @@ export default function PatientAppointments() {
               <div>
                 <Label htmlFor="time">Appointment Time *</Label>
                 <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger className="bg-background border-border z-10">
+                  <SelectTrigger className="bg-background border border-border z-10">
                     <SelectValue placeholder="Select time slot" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border-border shadow-lg z-50">
+                  <SelectContent className="bg-background border border-border shadow-lg z-50 backdrop-blur-sm">
                     {timeSlots.map((time) => (
                       <SelectItem 
                         key={time} 
