@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Plus, Edit, Trash2, DollarSign, Clock, Stethoscope, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Treatment {
@@ -24,6 +25,7 @@ interface Treatment {
 
 export default function ServicesManagement() {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,10 +47,17 @@ export default function ServicesManagement() {
     try {
       setLoading(true);
       
-      const { data: treatmentsData, error: treatmentsError } = await supabase
+      let treatmentsQuery = supabase
         .from('treatments')
         .select('*')
         .order('name');
+
+      // Filter by clinic for non-super-admin users
+      if (profile?.role !== 'super_admin' && profile?.clinic_id) {
+        treatmentsQuery = treatmentsQuery.eq('clinic_id', profile.clinic_id);
+      }
+
+      const { data: treatmentsData, error: treatmentsError } = await treatmentsQuery;
 
       if (treatmentsError) throw treatmentsError;
       setTreatments(treatmentsData || []);
@@ -75,14 +84,25 @@ export default function ServicesManagement() {
       return;
     }
 
+    if (!profile?.clinic_id) {
+      toast({
+        title: "Error",
+        description: "Unable to determine clinic. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('treatments')
         .insert([{
           name: formData.name.trim(),
+          description: formData.description.trim() || null,
           default_price: formData.default_price ? parseFloat(formData.default_price) : null,
           default_duration_minutes: formData.default_duration_minutes ? parseInt(formData.default_duration_minutes) : null,
-          clinic_id: 'default-clinic' // This would come from user context in real app
+          clinic_id: profile.clinic_id,
+          is_active: true
         }])
         .select()
         .single();
