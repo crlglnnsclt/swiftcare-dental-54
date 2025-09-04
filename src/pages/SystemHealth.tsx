@@ -473,20 +473,20 @@ const SystemHealth: React.FC = () => {
           break;
 
         case 'treatment':
-          // Test billing and inventory functionality
+          // Test treatment and billing functionality
           try {
-            // Test clinic billing system
-            const { data: billingData, error: billingError } = await supabase
-              .from('clinic_billing')
-              .select('id, status')
+            // Test invoices table
+            const { data: invoiceData, error: invoiceError } = await supabase
+              .from('invoices')
+              .select('id, payment_status')
               .limit(1);
             
-            if (billingError) {
+            if (invoiceError) {
               status = 'broken';
-              error = `Treatment/Billing module error: ${billingError.message}`;
+              error = `Treatment/Billing module error: ${invoiceError.message}`;
               
               // Auto-fix: Check inventory and other treatment tables
-              if (billingError.message.includes('permission') || billingError.message.includes('RLS')) {
+              if (invoiceError.message.includes('permission') || invoiceError.message.includes('RLS')) {
                 try {
                   // Try checking inventory items
                   const { data: inventoryData, error: inventoryError } = await supabase
@@ -497,14 +497,14 @@ const SystemHealth: React.FC = () => {
                   if (!inventoryError) {
                     // Test treatment records functionality
                     const { data: treatmentData, error: treatmentError } = await supabase
-                      .from('appointment_treatments')
+                      .from('treatment_records')
                       .select('id')
                       .limit(1);
                     
                     if (!treatmentError) {
                       status = 'working';
                       autoFixed = true;
-                      error = 'Treatment system verified via inventory and appointments';
+                      error = 'Treatment system verified via inventory and records';
                     }
                   }
                 } catch (fixError) {
@@ -513,21 +513,21 @@ const SystemHealth: React.FC = () => {
               }
             }
             
-            // Test financial settings
+            // Test payments functionality
             try {
-              const { data: financialData, error: financialError } = await supabase
-                .from('financial_settings')
-                .select('id, currency_code')
+              const { data: paymentData, error: paymentError } = await supabase
+                .from('payments')
+                .select('id, payment_method')
                 .limit(1);
               
-              if (financialError && status === 'working') {
+              if (paymentError && status === 'working') {
                 status = 'broken';
-                error = `Financial settings error: ${financialError.message}`;
+                error = `Payment processing error: ${paymentError.message}`;
               }
-            } catch (settingsError) {
+            } catch (paymentTestError) {
               if (status === 'working') {
                 status = 'broken';
-                error = `Financial settings check failed: ${settingsError instanceof Error ? settingsError.message : 'Unknown error'}`;
+                error = `Payment system check failed: ${paymentTestError instanceof Error ? paymentTestError.message : 'Unknown error'}`;
               }
             }
             
