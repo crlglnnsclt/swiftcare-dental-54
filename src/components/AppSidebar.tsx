@@ -135,14 +135,14 @@ const moduleNavigation: NavItem[] = [
   // 📝 Module 3: Paperless Records
   {
     title: "E-Sign Forms",
-    url: "/digital-forms",
+    url: "/esign-forms",
     icon: FileEdit,
     roles: ["clinic_admin", "staff", "dentist", "super_admin"],
     module: "paperless"
   },
   {
     title: "Documents & Uploads",
-    url: "/paperless",
+    url: "/documents-uploads",
     icon: FileText,
     roles: ["clinic_admin", "staff", "dentist", "patient", "super_admin"],
     module: "paperless"
@@ -156,7 +156,7 @@ const moduleNavigation: NavItem[] = [
   },
   {
     title: "Dentist/Staff Signatures",
-    url: "/form-responses",
+    url: "/dentist-signatures",
     icon: FileCheck,
     roles: ["dentist", "clinic_admin", "staff", "super_admin"],
     module: "paperless"
