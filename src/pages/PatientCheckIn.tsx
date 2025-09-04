@@ -4,8 +4,9 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle, AlertCircle, Loader2, QrCode } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface Appointment {
   id: string;
@@ -24,6 +25,7 @@ export function PatientCheckIn() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showQR, setShowQR] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && profile) {
@@ -221,28 +223,52 @@ export function PatientCheckIn() {
                       <Badge variant="outline">{appointment.booking_type}</Badge>
                     )}
                   </div>
-                  {appointment.status !== 'checked_in' && (
-                    <Button 
-                      onClick={() => handleCheckIn(appointment.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Check In
-                    </Button>
-                  )}
+                   {appointment.status !== 'checked_in' && (
+                     <div className="flex gap-2">
+                       <Button 
+                         onClick={() => handleCheckIn(appointment.id)}
+                         className="flex items-center gap-2"
+                       >
+                         <CheckCircle className="w-4 h-4" />
+                         Check In
+                       </Button>
+                       <Button 
+                         onClick={() => setShowQR(showQR === appointment.id ? null : appointment.id)}
+                         variant="outline"
+                         className="flex items-center gap-2"
+                       >
+                         <QrCode className="w-4 h-4" />
+                         {showQR === appointment.id ? 'Hide QR' : 'Show QR'}
+                       </Button>
+                     </div>
+                   )}
                 </div>
-                {appointment.notes && (
-                  <div className="mt-3 p-3 bg-muted rounded-md">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Notes:</strong> {appointment.notes}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+                 {appointment.notes && (
+                   <div className="mt-3 p-3 bg-muted rounded-md">
+                     <p className="text-sm text-muted-foreground">
+                       <strong>Notes:</strong> {appointment.notes}
+                     </p>
+                   </div>
+                 )}
+                 {showQR === appointment.id && (
+                   <div className="mt-4 flex flex-col items-center p-4 bg-background border rounded-md">
+                     <h3 className="text-sm font-medium mb-3">Scan QR Code to Check In</h3>
+                     <QRCodeSVG 
+                       value={`checkin:${appointment.id}`} 
+                       size={200} 
+                       includeMargin={true}
+                       className="border border-border rounded"
+                     />
+                     <p className="text-xs text-muted-foreground mt-2 text-center">
+                       Show this QR code to clinic staff for quick check-in
+                     </p>
+                   </div>
+                 )}
+               </CardContent>
+             </Card>
+           ))}
+         </div>
+       )}
+     </div>
+   );
+ }
