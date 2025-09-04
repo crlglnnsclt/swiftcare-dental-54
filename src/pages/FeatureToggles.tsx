@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,13 +8,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3 } from "lucide-react";
+import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3, Loader2, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ClinicFeature {
+  id: string;
+  clinic_id: string;
+  feature_name: string;
+  is_enabled: boolean;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  modified_by?: string;
+  clinic_name?: string;
+}
+
+interface FeatureCategory {
+  id: string;
+  name: string;
+  icon: any;
+  color: string;
+  features: string[];
+}
 
 export default function FeatureToggles() {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [features, setFeatures] = useState<ClinicFeature[]>([]);
   const [newFeature, setNewFeature] = useState({
     name: "",
     description: "",
@@ -22,199 +47,219 @@ export default function FeatureToggles() {
     defaultEnabled: false
   });
 
-  // Demo feature toggle data organized by categories
-  const [features, setFeatures] = useState([
-    // Core Features
-    {
-      id: 1,
-      name: "Queue Management",
-      description: "Patient queue system with priority handling and real-time updates",
-      category: "core",
-      enabled: true,
-      tier: "all",
-      dependencies: [],
-      affectedUsers: 156,
-      lastModified: "2025-01-02",
-      modifiedBy: "Admin"
+  // Feature categories with their associated features
+  const categories: FeatureCategory[] = [
+    { 
+      id: "core", 
+      name: "Core Features", 
+      icon: Settings, 
+      color: "blue",
+      features: [
+        "queue_management",
+        "appointment_reminders", 
+        "digital_forms",
+        "billing_integration",
+        "inventory_management",
+        "patient_portal"
+      ]
     },
-    {
-      id: 2,
-      name: "Digital Forms",
-      description: "Electronic signature and digital form collection",
-      category: "core",
-      enabled: true,
-      tier: "all",
-      dependencies: [],
-      affectedUsers: 89,
-      lastModified: "2025-01-01",
-      modifiedBy: "Super Admin"
+    { 
+      id: "premium", 
+      name: "Premium Features", 
+      icon: Star, 
+      color: "purple",
+      features: [
+        "ai_queueing",
+        "teledentistry",
+        "analytics_reporting",
+        "multi_language"
+      ]
     },
-    {
-      id: 3,
-      name: "Appointment Scheduling",
-      description: "Online appointment booking and management system",
-      category: "core",
-      enabled: true,
-      tier: "all",
-      dependencies: [],
-      affectedUsers: 234,
-      lastModified: "2024-12-30",
-      modifiedBy: "Admin"
+    { 
+      id: "integration", 
+      name: "Integrations", 
+      icon: Zap, 
+      color: "green",
+      features: [
+        "insurance_integration",
+        "family_accounts",
+        "payment_gateway",
+        "sms_notifications"
+      ]
     },
-
-    // Premium Features
-    {
-      id: 4,
-      name: "AI Queue Optimization",
-      description: "AI-powered queue management with predictive analytics",
-      category: "premium",
-      enabled: false,
-      tier: "premium",
-      dependencies: ["Queue Management"],
-      affectedUsers: 0,
-      lastModified: "2025-01-01",
-      modifiedBy: "Super Admin"
-    },
-    {
-      id: 5,
-      name: "Advanced Analytics",
-      description: "Comprehensive business intelligence and reporting tools",
-      category: "premium",
-      enabled: true,
-      tier: "premium",
-      dependencies: [],
-      affectedUsers: 45,
-      lastModified: "2025-01-02",
-      modifiedBy: "Super Admin"
-    },
-    {
-      id: 6,
-      name: "Teledentistry",
-      description: "Virtual consultations and remote patient care",
-      category: "premium",
-      enabled: false,
-      tier: "premium",
-      dependencies: ["Appointment Scheduling"],
-      affectedUsers: 0,
-      lastModified: "2024-12-28",
-      modifiedBy: "Super Admin"
-    },
-
-    // Integration Features
-    {
-      id: 7,
-      name: "Insurance Integration",
-      description: "Automated insurance claim processing and verification",
-      category: "integration",
-      enabled: true,
-      tier: "core",
-      dependencies: ["Digital Forms"],
-      affectedUsers: 67,
-      lastModified: "2025-01-01",
-      modifiedBy: "Admin"
-    },
-    {
-      id: 8,
-      name: "Payment Gateway",
-      description: "Secure online payment processing for bills and appointments",
-      category: "integration",
-      enabled: true,
-      tier: "core",
-      dependencies: [],
-      affectedUsers: 123,
-      lastModified: "2024-12-31",
-      modifiedBy: "Admin"
-    },
-    {
-      id: 9,
-      name: "SMS Notifications",
-      description: "Automated SMS reminders and notifications",
-      category: "integration",
-      enabled: false,
-      tier: "premium",
-      dependencies: [],
-      affectedUsers: 0,
-      lastModified: "2024-12-29",
-      modifiedBy: "Super Admin"
-    },
-
-    // Experimental Features
-    {
-      id: 10,
-      name: "Voice Commands",
-      description: "Voice-activated navigation and commands",
-      category: "experimental",
-      enabled: false,
-      tier: "experimental",
-      dependencies: [],
-      affectedUsers: 0,
-      lastModified: "2024-12-25",
-      modifiedBy: "Developer"
-    },
-    {
-      id: 11,
-      name: "AR Dental Visualization",
-      description: "Augmented reality for treatment visualization",
-      category: "experimental",
-      enabled: false,
-      tier: "experimental",
-      dependencies: [],
-      affectedUsers: 0,
-      lastModified: "2024-12-20",
-      modifiedBy: "Developer"
+    { 
+      id: "experimental", 
+      name: "Experimental", 
+      icon: BarChart3, 
+      color: "orange",
+      features: [
+        "voice_commands",
+        "ar_visualization",
+        "automated_scheduling"
+      ]
     }
-  ]);
-
-  const categories = [
-    { id: "core", name: "Core Features", icon: Settings, color: "blue" },
-    { id: "premium", name: "Premium Features", icon: Star, color: "purple" },
-    { id: "integration", name: "Integrations", icon: Zap, color: "green" },
-    { id: "experimental", name: "Experimental", icon: BarChart3, color: "orange" }
   ];
 
-  const filteredFeatures = features.filter(feature =>
-    feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    feature.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleToggleFeature = (featureId: number) => {
-    setFeatures(features.map(feature => {
-      if (feature.id === featureId) {
-        const newEnabled = !feature.enabled;
-        
-        // Check dependencies
-        if (newEnabled) {
-          const missingDeps = feature.dependencies.filter(dep => 
-            !features.find(f => f.name === dep && f.enabled)
-          );
-          
-          if (missingDeps.length > 0) {
-            toast({
-              title: "Dependency Required",
-              description: `Please enable ${missingDeps.join(", ")} first.`,
-              variant: "destructive",
-            });
-            return feature;
-          }
-        }
-        
-        toast({
-          title: `Feature ${newEnabled ? 'Enabled' : 'Disabled'}`,
-          description: `${feature.name} has been ${newEnabled ? 'enabled' : 'disabled'}.`,
-        });
-        
-        return {
-          ...feature,
-          enabled: newEnabled,
-          lastModified: new Date().toISOString().split('T')[0],
-          modifiedBy: "Current User"
-        };
-      }
-      return feature;
-    }));
+  // Feature display names and descriptions
+  const featureDefinitions: Record<string, { name: string; description: string; tier: string }> = {
+    queue_management: {
+      name: "Queue Management",
+      description: "Patient queue system with priority handling and real-time updates",
+      tier: "core"
+    },
+    ai_queueing: {
+      name: "AI Queue Optimization",
+      description: "AI-powered queue management with predictive analytics",
+      tier: "premium"
+    },
+    teledentistry: {
+      name: "Teledentistry",
+      description: "Remote consultation and tele-dentistry features",
+      tier: "premium"
+    },
+    billing_integration: {
+      name: "Billing Integration",
+      description: "Integrated billing and payment processing",
+      tier: "core"
+    },
+    inventory_management: {
+      name: "Inventory Management",
+      description: "Track and manage clinic inventory",
+      tier: "core"
+    },
+    patient_portal: {
+      name: "Patient Portal",
+      description: "Patient self-service portal",
+      tier: "core"
+    },
+    appointment_reminders: {
+      name: "Appointment Reminders",
+      description: "Automated appointment reminders via email and SMS",
+      tier: "core"
+    },
+    digital_forms: {
+      name: "Digital Forms",
+      description: "Electronic signature and digital forms",
+      tier: "core"
+    },
+    analytics_reporting: {
+      name: "Advanced Analytics",
+      description: "Comprehensive business intelligence and reporting tools",
+      tier: "premium"
+    },
+    multi_language: {
+      name: "Multi-Language Support",
+      description: "Support for multiple languages in patient interfaces",
+      tier: "premium"
+    },
+    insurance_integration: {
+      name: "Insurance Integration",
+      description: "Insurance claim processing and verification",
+      tier: "integration"
+    },
+    family_accounts: {
+      name: "Family Account Management",
+      description: "Manage family relationships and group appointments",
+      tier: "core"
+    }
   };
 
-  const handleCreateFeature = () => {
+  const fetchFeatures = async () => {
+    try {
+      setLoading(true);
+      
+      if (profile?.role === 'super_admin') {
+        // Super admin sees all clinics' features
+        const { data, error } = await supabase
+          .from('clinic_feature_toggles')
+          .select(`
+            *,
+            clinics!inner(clinic_name)
+          `);
+          
+        if (error) throw error;
+        
+        const featuresWithClinicNames = data?.map(feature => ({
+          ...feature,
+          clinic_name: feature.clinics?.clinic_name || 'Unknown Clinic'
+        })) || [];
+        
+        setFeatures(featuresWithClinicNames);
+      } else {
+        // Clinic admins see only their clinic's features
+        const { data, error } = await supabase
+          .from('clinic_feature_toggles')
+          .select('*')
+          .eq('clinic_id', profile?.clinic_id);
+          
+        if (error) throw error;
+        setFeatures(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching features:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load feature toggles.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (profile?.clinic_id || profile?.role === 'super_admin') {
+      fetchFeatures();
+    }
+  }, [profile]);
+
+  const filteredFeatures = features.filter(feature =>
+    feature.feature_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    feature.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (featureDefinitions[feature.feature_name]?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+  );
+
+  const handleToggleFeature = async (featureId: string) => {
+    const feature = features.find(f => f.id === featureId);
+    if (!feature) return;
+
+    try {
+      const newEnabled = !feature.is_enabled;
+      
+      const { error } = await supabase
+        .from('clinic_feature_toggles')
+        .update({
+          is_enabled: newEnabled,
+          modified_by: profile?.user_id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', featureId);
+
+      if (error) throw error;
+      
+      toast({
+        title: `Feature ${newEnabled ? 'Enabled' : 'Disabled'}`,
+        description: `${getFeatureName(feature.feature_name)} has been ${newEnabled ? 'enabled' : 'disabled'}.`,
+      });
+      
+      // Update local state
+      setFeatures(features.map(f => 
+        f.id === featureId 
+          ? { ...f, is_enabled: newEnabled, updated_at: new Date().toISOString() }
+          : f
+      ));
+      
+    } catch (error) {
+      console.error('Error toggling feature:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update feature toggle.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateFeature = async () => {
     if (!newFeature.name || !newFeature.description) {
       toast({
         title: "Missing Information",
@@ -224,50 +269,99 @@ export default function FeatureToggles() {
       return;
     }
 
-    const feature = {
-      id: features.length + 1,
-      name: newFeature.name,
-      description: newFeature.description,
-      category: newFeature.category,
-      enabled: newFeature.defaultEnabled,
-      tier: newFeature.category === 'experimental' ? 'experimental' : 'core',
-      dependencies: [],
-      affectedUsers: 0,
-      lastModified: new Date().toISOString().split('T')[0],
-      modifiedBy: "Current User"
-    };
+    if (!profile?.clinic_id) {
+      toast({
+        title: "Error",
+        description: "Unable to determine clinic ID.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setFeatures([...features, feature]);
-    setNewFeature({
-      name: "",
-      description: "",
-      category: "core",
-      defaultEnabled: false
-    });
-    setShowCreateDialog(false);
+    try {
+      const { error } = await supabase
+        .from('clinic_feature_toggles')
+        .insert({
+          clinic_id: profile.clinic_id,
+          feature_name: newFeature.name.toLowerCase().replace(/\s+/g, '_'),
+          description: newFeature.description,
+          is_enabled: newFeature.defaultEnabled,
+          modified_by: profile.user_id
+        });
 
-    toast({
-      title: "Feature Created",
-      description: "New feature toggle has been created successfully.",
-    });
+      if (error) throw error;
+
+      toast({
+        title: "Feature Created",
+        description: "New feature toggle has been created successfully.",
+      });
+
+      setNewFeature({
+        name: "",
+        description: "",
+        category: "core",
+        defaultEnabled: false
+      });
+      setShowCreateDialog(false);
+      
+      // Refresh features
+      fetchFeatures();
+      
+    } catch (error) {
+      console.error('Error creating feature:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create feature toggle.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const getCategoryIcon = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.icon : Settings;
+  const getFeatureName = (featureName: string) => {
+    return featureDefinitions[featureName]?.name || featureName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const getCategoryColor = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.color : "blue";
+  const getFeatureDescription = (featureName: string, dbDescription?: string) => {
+    return dbDescription || featureDefinitions[featureName]?.description || 'No description available';
   };
+
+  const getFeatureCategory = (featureName: string) => {
+    for (const category of categories) {
+      if (category.features.includes(featureName)) {
+        return category;
+      }
+    }
+    return categories[0]; // Default to core
+  };
+
+  const getCategoryStats = (categoryId: string) => {
+    const categoryFeatures = filteredFeatures.filter(f => 
+      getFeatureCategory(f.feature_name).id === categoryId
+    );
+    const enabledCount = categoryFeatures.filter(f => f.is_enabled).length;
+    return { total: categoryFeatures.length, enabled: enabledCount };
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-medical-blue" />
+          <span className="ml-2">Loading feature toggles...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Feature Toggles</h1>
-          <p className="text-muted-foreground">Manage feature availability and access control</p>
+          <p className="text-muted-foreground">
+            Manage feature availability and access control
+            {profile?.role === 'super_admin' ? ' across all clinics' : ' for your clinic'}
+          </p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
@@ -306,20 +400,6 @@ export default function FeatureToggles() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="featureCategory">Category</Label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  value={newFeature.category}
-                  onChange={(e) => setNewFeature({ ...newFeature, category: e.target.value })}
-                >
-                  <option value="core">Core Features</option>
-                  <option value="premium">Premium Features</option>
-                  <option value="integration">Integrations</option>
-                  <option value="experimental">Experimental</option>
-                </select>
-              </div>
-
               <div className="flex items-center space-x-2">
                 <Switch
                   id="defaultEnabled"
@@ -356,8 +436,7 @@ export default function FeatureToggles() {
       {/* Category Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {categories.map((category) => {
-          const categoryFeatures = features.filter(f => f.category === category.id);
-          const enabledCount = categoryFeatures.filter(f => f.enabled).length;
+          const stats = getCategoryStats(category.id);
           const Icon = category.icon;
           
           return (
@@ -367,9 +446,9 @@ export default function FeatureToggles() {
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{enabledCount}/{categoryFeatures.length}</div>
+                <div className="text-2xl font-bold">{stats.enabled}/{stats.total}</div>
                 <p className="text-xs text-muted-foreground">
-                  {enabledCount} enabled features
+                  {stats.enabled} enabled features
                 </p>
               </CardContent>
             </Card>
@@ -380,65 +459,65 @@ export default function FeatureToggles() {
       {/* Feature Toggles by Category */}
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">All Features</TabsTrigger>
-          {categories.map((category) => (
-            <TabsTrigger key={category.id} value={category.id}>
-              {category.name}
-            </TabsTrigger>
-          ))}
+          <TabsTrigger value="all">All Features ({filteredFeatures.length})</TabsTrigger>
+          {categories.map((category) => {
+            const stats = getCategoryStats(category.id);
+            return (
+              <TabsTrigger key={category.id} value={category.id}>
+                {category.name} ({stats.total})
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
           <div className="space-y-4">
             {filteredFeatures.map((feature) => {
-              const Icon = getCategoryIcon(feature.category);
-              const colorClass = getCategoryColor(feature.category);
+              const category = getFeatureCategory(feature.feature_name);
+              const Icon = category.icon;
+              const featureDef = featureDefinitions[feature.feature_name];
               
               return (
                 <Card key={feature.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4 flex-1">
-                        <Icon className={`w-8 h-8 text-${colorClass}-500`} />
+                        <Icon className={`w-8 h-8 text-${category.color}-500`} />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold">{feature.name}</h3>
-                            <Badge variant={feature.tier === 'premium' ? 'default' : 'secondary'}>
-                              {feature.tier}
+                            <h3 className="font-semibold">{getFeatureName(feature.feature_name)}</h3>
+                            <Badge variant={featureDef?.tier === 'premium' ? 'default' : 'secondary'}>
+                              {featureDef?.tier || 'core'}
                             </Badge>
-                            {feature.dependencies.length > 0 && (
+                            {profile?.role === 'super_admin' && feature.clinic_name && (
                               <Badge variant="outline">
-                                <Shield className="w-3 h-3 mr-1" />
-                                Requires dependencies
+                                <Building2 className="w-3 h-3 mr-1" />
+                                {feature.clinic_name}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {getFeatureDescription(feature.feature_name, feature.description)}
+                          </p>
                           <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                            <span className="flex items-center space-x-1">
-                              <Users className="w-3 h-3" />
-                              <span>{feature.affectedUsers} users</span>
-                            </span>
-                            <span>Modified {feature.lastModified} by {feature.modifiedBy}</span>
+                            <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
+                            {feature.modified_by && (
+                              <span>by {feature.modified_by}</span>
+                            )}
                           </div>
-                          {feature.dependencies.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-xs text-muted-foreground">Dependencies: {feature.dependencies.join(", ")}</p>
-                            </div>
-                          )}
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
                           <p className="text-sm font-medium">
-                            {feature.enabled ? 'Enabled' : 'Disabled'}
+                            {feature.is_enabled ? 'Enabled' : 'Disabled'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {feature.enabled ? 'Active for users' : 'Hidden from users'}
+                            {feature.is_enabled ? 'Active for users' : 'Hidden from users'}
                           </p>
                         </div>
                         <Switch
-                          checked={feature.enabled}
+                          checked={feature.is_enabled}
                           onCheckedChange={() => handleToggleFeature(feature.id)}
                         />
                       </div>
@@ -454,9 +533,10 @@ export default function FeatureToggles() {
           <TabsContent key={category.id} value={category.id} className="space-y-4">
             <div className="space-y-4">
               {filteredFeatures
-                .filter(feature => feature.category === category.id)
+                .filter(feature => getFeatureCategory(feature.feature_name).id === category.id)
                 .map((feature) => {
                   const Icon = category.icon;
+                  const featureDef = featureDefinitions[feature.feature_name];
                   
                   return (
                     <Card key={feature.id} className="hover:shadow-md transition-shadow">
@@ -466,23 +546,27 @@ export default function FeatureToggles() {
                             <Icon className={`w-8 h-8 text-${category.color}-500`} />
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
-                                <h3 className="font-semibold">{feature.name}</h3>
-                                <Badge variant={feature.tier === 'premium' ? 'default' : 'secondary'}>
-                                  {feature.tier}
+                                <h3 className="font-semibold">{getFeatureName(feature.feature_name)}</h3>
+                                <Badge variant={featureDef?.tier === 'premium' ? 'default' : 'secondary'}>
+                                  {featureDef?.tier || 'core'}
                                 </Badge>
+                                {profile?.role === 'super_admin' && feature.clinic_name && (
+                                  <Badge variant="outline">
+                                    <Building2 className="w-3 h-3 mr-1" />
+                                    {feature.clinic_name}
+                                  </Badge>
+                                )}
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {getFeatureDescription(feature.feature_name, feature.description)}
+                              </p>
                               <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                                <span className="flex items-center space-x-1">
-                                  <Users className="w-3 h-3" />
-                                  <span>{feature.affectedUsers} users</span>
-                                </span>
-                                <span>Modified {feature.lastModified}</span>
+                                <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
                               </div>
                             </div>
                           </div>
                           <Switch
-                            checked={feature.enabled}
+                            checked={feature.is_enabled}
                             onCheckedChange={() => handleToggleFeature(feature.id)}
                           />
                         </div>
@@ -495,7 +579,7 @@ export default function FeatureToggles() {
         ))}
       </Tabs>
 
-      {filteredFeatures.length === 0 && (
+      {filteredFeatures.length === 0 && !loading && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Settings className="w-12 h-12 text-muted-foreground mb-4" />
