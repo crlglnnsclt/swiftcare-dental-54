@@ -85,7 +85,7 @@ export default function AdminDashboard() {
       setStats({
         totalPatients: patientCount || 0,
         totalStaff: staffCount || 0,
-        monthlyRevenue: 12450, // TODO: Calculate from payments
+        monthlyRevenue: 12450, // Static value - will be calculated from actual payments data
         todayAppointments: todayAppts || 0,
         pendingApprovals: pendingApprovals || 0
       });

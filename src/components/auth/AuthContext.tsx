@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        // Auth state changed
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .single();
               setProfile(profile);
             } catch (error) {
-              console.log('Profile fetch error:', error);
+              // Profile fetch error
             }
             setLoading(false);
           }, 0);
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting sign in with:', email);
+      // Attempting sign in
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           variant: "destructive",
         });
       } else {
-        console.log('Sign in successful');
+        // Sign in successful
         toast({
           title: "Success",
           description: "Welcome back!",
