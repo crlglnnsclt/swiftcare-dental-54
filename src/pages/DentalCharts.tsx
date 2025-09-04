@@ -13,6 +13,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { OdontogramRenderer } from '@/components/OdontogramRenderer';
 import { useOdontogramPreference } from '@/hooks/useOdontogramPreference';
 import { DrawingCanvas } from '@/components/DrawingCanvas';
+import { DrawableSwiftChart } from '@/components/DrawableSwiftChart';
 import { toast } from 'sonner';
 import swiftCareLogo from '@/assets/swift-care-logo-correct.png';
 import { 
@@ -751,32 +752,14 @@ export default function DentalCharts() {
       </TabsContent>
 
       <TabsContent value="swift-template">
-        <div className="space-y-6">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Stethoscope className="w-5 h-5" />
-                Swift Care Dental Clinic Template
-                {currentPatientData && (
-                  <span className="text-lg font-normal text-primary">
-                    - {currentPatientData.full_name}
-                  </span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {renderSwiftCareChart()}
-            </CardContent>
-          </Card>
-          
-          {/* Drawing Canvas for Swift Care Template */}
-          <DrawingCanvas 
-            patientName={currentPatientData?.full_name}
-            onSave={(imageData) => {
-              toast.success('Chart drawing saved successfully!');
-            }}
-          />
-        </div>
+        <DrawableSwiftChart 
+          patientName={currentPatientData?.full_name}
+          teethConditions={teethConditions}
+          onToothClick={setSelectedTooth}
+          onSave={(imageData) => {
+            toast.success('Swift Care chart with drawings saved successfully!');
+          }}
+        />
       </TabsContent>
 
       <TabsContent value="drawing">
