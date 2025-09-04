@@ -49,6 +49,14 @@ import QueueMonitor from "./pages/QueueMonitor";
 import WalkIns from "./pages/WalkIns";
 import FamilyManagement from "./pages/FamilyManagement";
 import InsuranceHMO from "./pages/InsuranceHMO";
+import QueueReports from "./pages/QueueReports";
+import RevenueReports from "./pages/RevenueReports";
+import WorkloadReports from "./pages/WorkloadReports";
+import TreatmentNotes from "./pages/TreatmentNotes";
+import ClinicBranding from "./pages/ClinicBranding";
+import FeatureToggles from "./pages/FeatureToggles";
+import UserRoles from "./pages/UserRoles";
+import MyBilling from "./pages/MyBilling";
 
 const queryClient = new QueryClient();
 
@@ -207,6 +215,48 @@ function AppRoutes() {
         <Route path="insurance" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
             <InsuranceHMO />
+          </ProtectedRoute>
+        } />
+        
+        {/* Additional Pages */}
+        <Route path="queue-reports" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <QueueReports />
+          </ProtectedRoute>
+        } />
+        <Route path="revenue-reports" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <RevenueReports />
+          </ProtectedRoute>
+        } />
+        <Route path="workload-reports" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <WorkloadReports />
+          </ProtectedRoute>
+        } />
+        <Route path="treatment-notes" element={
+          <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'super_admin']}>
+            <TreatmentNotes />
+          </ProtectedRoute>
+        } />
+        <Route path="clinic-branding" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <ClinicBranding />
+          </ProtectedRoute>
+        } />
+        <Route path="feature-toggles" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <FeatureToggles />
+          </ProtectedRoute>
+        } />
+        <Route path="user-roles" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <UserRoles />
+          </ProtectedRoute>
+        } />
+        <Route path="my-billing" element={
+          <ProtectedRoute requiredRole={['patient']}>
+            <MyBilling />
           </ProtectedRoute>
         } />
       </Route>
