@@ -84,11 +84,25 @@ export default function PatientAppointments() {
   const fetchAppointments = async () => {
     try {
       console.log('User ID for patient lookup:', user?.id);
-      // First, get the patient record for this user
+      // First, get the patient record for this user - patients table uses users.id, not users.user_id
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, clinic_id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      console.log('User lookup result:', { userData, userError });
+
+      if (userError || !userData) {
+        console.error('User lookup failed:', userError);
+        setLoading(false);
+        return;
+      }
+
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', userData.id)
         .maybeSingle();
 
       console.log('Patient lookup result:', { patientData, patientError });
@@ -146,14 +160,25 @@ export default function PatientAppointments() {
 
   const fetchServices = async () => {
     try {
-      // Mock services data since we're having issues with complex joins
-      const mockServices = [
-        { id: '1', name: 'General Consultation', default_duration_minutes: 30, default_price: 100 },
-        { id: '2', name: 'Dental Cleaning', default_duration_minutes: 45, default_price: 150 },
-        { id: '3', name: 'Tooth Extraction', default_duration_minutes: 60, default_price: 200 }
-      ];
+      console.log('Fetching services from treatments table...');
+      const { data, error } = await supabase
+        .from('treatments')
+        .select('id, name, default_duration_minutes, default_price, service_code');
 
-      setServices(mockServices);
+      if (error) {
+        console.error('Error fetching services:', error);
+        // Fallback to mock data if database query fails
+        const mockServices = [
+          { id: '1', name: 'General Consultation', default_duration_minutes: 30, default_price: 100 },
+          { id: '2', name: 'Dental Cleaning', default_duration_minutes: 45, default_price: 150 },
+          { id: '3', name: 'Tooth Extraction', default_duration_minutes: 60, default_price: 200 }
+        ];
+        setServices(mockServices);
+        return;
+      }
+
+      console.log('Services fetched:', data);
+      setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
     }
@@ -185,11 +210,23 @@ export default function PatientAppointments() {
       return;
     }
 
-    // First, get the patient record for this user
+    // First, get the user record, then the patient record - patients table uses users.id
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id, clinic_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (userError || !userData) {
+      toast.error('User record not found. Please contact support.');
+      console.error('User lookup error:', userError);
+      return;
+    }
+
     const { data: patientData, error: patientError } = await supabase
       .from('patients')
       .select('id, clinic_id')
-      .eq('user_id', user.id)
+      .eq('user_id', userData.id)
       .maybeSingle();
 
     if (patientError || !patientData) {
@@ -197,6 +234,8 @@ export default function PatientAppointments() {
       console.error('Patient lookup error:', patientError);
       return;
     }
+
+    console.log('Found patient record:', patientData);
 
     setBookingLoading(true);
     try {
@@ -343,7 +382,9 @@ export default function PatientAppointments() {
                       >
                         <div className="flex justify-between w-full">
                           <span>{service.name}</span>
-                          <span className="text-muted-foreground ml-4">${service.default_price}</span>
+                          <span className="text-muted-foreground ml-4">
+                            ${service.default_price} • {service.default_duration_minutes}min
+                          </span>
                         </div>
                       </SelectItem>
                     ))}
