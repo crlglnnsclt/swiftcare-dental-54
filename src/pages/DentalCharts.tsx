@@ -13,6 +13,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { OdontogramRenderer } from '@/components/OdontogramRenderer';
 import { useOdontogramPreference } from '@/hooks/useOdontogramPreference';
 import { toast } from 'sonner';
+import swiftCareLogo from '@/assets/swift-care-logo.png';
 import { 
   Plus, 
   Edit, 
@@ -29,7 +30,8 @@ import {
   Activity,
   CheckCircle,
   Clock,
-  Eye
+  Eye,
+  Stethoscope
 } from 'lucide-react';
 
 interface ToothCondition {
@@ -51,14 +53,30 @@ interface TreatmentPlan {
   notes: string;
 }
 
+interface ProgressNote {
+  id: string;
+  date: string;
+  note: string;
+  writtenBy: string;
+}
+
+// Swift Care Dental Clinic Chart Legend
 const TOOTH_CONDITIONS = [
-  { value: 'healthy', label: 'Healthy', color: 'bg-green-500' },
-  { value: 'cavity', label: 'Cavity', color: 'bg-red-500' },
-  { value: 'filled', label: 'Filled', color: 'bg-blue-500' },
-  { value: 'crown', label: 'Crown', color: 'bg-yellow-500' },
-  { value: 'missing', label: 'Missing', color: 'bg-gray-400' },
-  { value: 'root_canal', label: 'Root Canal', color: 'bg-purple-500' },
-  { value: 'implant', label: 'Implant', color: 'bg-indigo-500' }
+  { value: 'healthy', label: 'Healthy', color: 'bg-green-500', code: '' },
+  { value: 'cavity', label: 'Caries', color: 'bg-red-500', code: 'C' },
+  { value: 'extraction', label: 'Extraction', color: 'bg-gray-700', code: 'Ex' },
+  { value: 'root_fragment', label: 'Root Fragment', color: 'bg-gray-500', code: 'RF' },
+  { value: 'missing', label: 'Missing', color: 'bg-gray-400', code: 'M' },
+  { value: 'unerupted', label: 'Unerupted Tooth', color: 'bg-blue-400', code: 'Un' },
+  { value: 'impacted', label: 'Impacted Tooth', color: 'bg-purple-400', code: 'Im' },
+  { value: 'jacket', label: 'Jacket', color: 'bg-yellow-500', code: 'J' },
+  { value: 'amalgam', label: 'Amalgam', color: 'bg-gray-600', code: 'Am' },
+  { value: 'abutment', label: 'Abutment', color: 'bg-orange-500', code: 'Ab' },
+  { value: 'pontic', label: 'Pontic', color: 'bg-pink-500', code: 'P' },
+  { value: 'inlay', label: 'Inlay', color: 'bg-indigo-500', code: 'I' },
+  { value: 'fixed_bridge', label: 'Fixed Bridge', color: 'bg-teal-500', code: 'Fx' },
+  { value: 'sealant', label: 'Sealant', color: 'bg-green-600', code: 'S' },
+  { value: 'removable_denture', label: 'Removable Denture', color: 'bg-rose-500', code: 'Rm' }
 ];
 
 export default function DentalCharts() {
@@ -100,6 +118,16 @@ export default function DentalCharts() {
 
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [isAddingTreatment, setIsAddingTreatment] = useState(false);
+  const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([
+    {
+      id: '1',
+      date: '2024-01-15',
+      note: 'Patient reported sensitivity in upper left molars. Recommended fluoride treatment.',
+      writtenBy: 'Dr. Smith'
+    }
+  ]);
+  const [newNote, setNewNote] = useState('');
+  const [showSwiftTemplate, setShowSwiftTemplate] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -153,6 +181,153 @@ export default function DentalCharts() {
     setOdontogramKey(prev => prev + 1); // Force re-render
     setShowDesignSelector(false);
     toast.success(`Switched to ${newDesign} design`);
+  };
+
+  const addProgressNote = () => {
+    if (!newNote.trim()) return;
+    
+    const note: ProgressNote = {
+      id: Date.now().toString(),
+      date: new Date().toISOString().split('T')[0],
+      note: newNote,
+      writtenBy: profile?.full_name || 'Current User'
+    };
+    
+    setProgressNotes([note, ...progressNotes]);
+    setNewNote('');
+    toast.success('Progress note added');
+  };
+
+  // Swift Care Dental Chart Template
+  const renderSwiftCareChart = () => {
+    return (
+      <div className="bg-white p-6 border rounded-lg">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 border-b pb-4">
+          <div className="flex items-center gap-4">
+            <img 
+              src={swiftCareLogo} 
+              alt="Swift Care Dental Clinic" 
+              className="h-12 w-auto"
+            />
+            <div>
+              <h2 className="text-xl font-bold text-amber-800">Swift Care</h2>
+              <p className="text-sm text-amber-700">DENTAL CLINIC</p>
+            </div>
+          </div>
+          <div className="text-right text-sm">
+            <p className="font-semibold">Sicangco Building, San Rafael, Mac Arthur Hi-way,</p>
+            <p>Tarlac City, Tarlac, Philippines 2300</p>
+            <p className="text-blue-600">www.facebook.com/swiftcaredentalclinic</p>
+          </div>
+        </div>
+
+        {/* Chart Info */}
+        <div className="flex justify-between mb-4">
+          <div>
+            <span className="font-semibold">Chart #: ________</span>
+          </div>
+          <div>
+            <span className="font-semibold">Date: ________</span>
+          </div>
+        </div>
+
+        <h3 className="text-center text-xl font-bold mb-6">PATIENT'S CHART</h3>
+
+        {/* Dental Chart */}
+        <div className="space-y-4">
+          {/* Upper Teeth */}
+          <div className="text-center">
+            <div className="flex justify-between text-xs mb-2">
+              <span>Maxillary right</span>
+              <span>Maxillary left</span>
+              <span>Primary maxillary right</span>
+              <span>Primary maxillary left</span>
+            </div>
+            <div className="flex justify-center gap-1 mb-4">
+              {Array.from({ length: 16 }, (_, i) => i + 1).map((toothNumber) => {
+                const condition = teethConditions.find(t => t.toothNumber === toothNumber);
+                const conditionConfig = TOOTH_CONDITIONS.find(c => c.value === condition?.condition);
+                
+                return (
+                  <div
+                    key={toothNumber}
+                    onClick={() => setSelectedTooth(toothNumber)}
+                    className="w-8 h-12 border border-gray-400 cursor-pointer hover:bg-blue-100 flex flex-col items-center justify-center relative"
+                  >
+                    <div className="w-6 h-8 border border-gray-300 bg-white flex items-center justify-center">
+                      {conditionConfig?.code && (
+                        <span className="text-xs font-bold">{conditionConfig.code}</span>
+                      )}
+                    </div>
+                    <span className="text-xs mt-1">{toothNumber}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Lower Teeth */}
+          <div className="text-center">
+            <div className="flex justify-center gap-1 mb-2">
+              {Array.from({ length: 16 }, (_, i) => i + 17).map((toothNumber) => {
+                const condition = teethConditions.find(t => t.toothNumber === toothNumber);
+                const conditionConfig = TOOTH_CONDITIONS.find(c => c.value === condition?.condition);
+                
+                return (
+                  <div
+                    key={toothNumber}
+                    onClick={() => setSelectedTooth(toothNumber)}
+                    className="w-8 h-12 border border-gray-400 cursor-pointer hover:bg-blue-100 flex flex-col items-center justify-center relative"
+                  >
+                    <span className="text-xs mb-1">{toothNumber}</span>
+                    <div className="w-6 h-8 border border-gray-300 bg-white flex items-center justify-center">
+                      {conditionConfig?.code && (
+                        <span className="text-xs font-bold">{conditionConfig.code}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between text-xs">
+              <span>Mandibular right</span>
+              <span>Mandibular left</span>
+              <span>Primary mandibular right</span>
+              <span>Primary mandibular left</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="mt-6 grid grid-cols-3 gap-4 text-xs">
+          <div className="space-y-1">
+            <div><strong>C – Caries</strong></div>
+            <div><strong>Ex – Extraction</strong></div>
+            <div><strong>RF – Root Fragment</strong></div>
+          </div>
+          <div className="space-y-1">
+            <div><strong>M – Missing</strong></div>
+            <div><strong>Un – Unerupted Tooth</strong></div>
+            <div><strong>Im – Impacted Tooth</strong></div>
+          </div>
+          <div className="space-y-1">
+            <div><strong>J – Jacket</strong></div>
+            <div><strong>Am – Amalgam</strong></div>
+            <div><strong>Ab – Abutment</strong></div>
+          </div>
+          <div className="space-y-1">
+            <div><strong>P – Pontic</strong></div>
+            <div><strong>I – Inlay</strong></div>
+            <div><strong>Fx – Fixed Bridge</strong></div>
+          </div>
+          <div className="space-y-1">
+            <div><strong>S – Sealant</strong></div>
+            <div><strong>Rm – Removable Denture</strong></div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Create odontogram (simplified version - 32 adult teeth)
@@ -258,6 +433,14 @@ export default function DentalCharts() {
             <Palette className="w-4 h-4" />
             Design: {selectedDesign}
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowSwiftTemplate(!showSwiftTemplate)}
+            className="flex items-center gap-2"
+          >
+            <Stethoscope className="w-4 h-4" />
+            Swift Care Template
+          </Button>
           <Button className="medical-gradient text-white">
             <Save className="w-4 h-4 mr-2" />
             Save Chart
@@ -310,28 +493,36 @@ export default function DentalCharts() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Odontogram */}
-        <Card className="glass-card xl:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5" />
-                Digital Odontogram
-                {currentPatientData && (
-                  <span className="text-lg font-normal text-primary">
-                    - {currentPatientData.full_name}
-                  </span>
-                )}
-              </CardTitle>
-              <Badge variant="outline" className="text-xs">
-                {selectedDesign} layout
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Render the selected odontogram design with key for force re-render */}
-            <OdontogramRenderer key={odontogramKey} />
+      <Tabs defaultValue="chart" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="chart">Digital Chart</TabsTrigger>
+          <TabsTrigger value="swift-template">Swift Care Template</TabsTrigger>
+          <TabsTrigger value="notes">Progress Notes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="chart">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Odontogram */}
+            <Card className="glass-card xl:col-span-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5" />
+                    Digital Odontogram
+                    {currentPatientData && (
+                      <span className="text-lg font-normal text-primary">
+                        - {currentPatientData.full_name}
+                      </span>
+                    )}
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {selectedDesign} layout
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Render the selected odontogram design with key for force re-render */}
+                <OdontogramRenderer key={odontogramKey} />
             
             {/* Legend */}
             <div className="border-t pt-4">
@@ -395,122 +586,217 @@ export default function DentalCharts() {
                   })()}
                 </CardContent>
               </Card>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Treatment Plans */}
+          {/* Treatment Plans */}
+          <Card className="glass-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Treatment Plans
+                </CardTitle>
+                <Dialog open={isAddingTreatment} onOpenChange={setIsAddingTreatment}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>New Treatment Plan</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="procedure">Procedure</Label>
+                        <Input id="procedure" placeholder="e.g., Composite filling" />
+                      </div>
+                      <div>
+                        <Label htmlFor="priority">Priority</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="cost">Estimated Cost</Label>
+                        <Input id="cost" type="number" placeholder="0" />
+                      </div>
+                      <div>
+                        <Label htmlFor="treatment-notes">Notes</Label>
+                        <Textarea id="treatment-notes" rows={3} />
+                      </div>
+                      <Button className="w-full medical-gradient text-white">
+                        Add Treatment Plan
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {treatmentPlans.map((plan) => (
+                <Card key={plan.id} className="border">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(plan.status)}
+                        <span className="font-medium text-sm">{plan.procedure}</span>
+                      </div>
+                      <Badge variant={getPriorityColor(plan.priority)}>
+                        {plan.priority}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Patient:</span>
+                        <span>{plan.patientName}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Cost:</span>
+                        <span className="font-medium">${plan.estimatedCost}</span>
+                      </div>
+                      {plan.scheduledDate && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Scheduled:</span>
+                          <span>{plan.scheduledDate}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {plan.notes && (
+                      <p className="text-sm text-muted-foreground bg-muted/30 p-2 rounded">
+                        {plan.notes}
+                      </p>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button size="sm" variant="outline" className="flex-1">
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Schedule
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {treatmentPlans.length === 0 && (
+                <div className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No treatment plans yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="swift-template">
         <Card className="glass-card">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Treatment Plans
-              </CardTitle>
-              <Dialog open={isAddingTreatment} onOpenChange={setIsAddingTreatment}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>New Treatment Plan</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="procedure">Procedure</Label>
-                      <Input id="procedure" placeholder="e.g., Composite filling" />
-                    </div>
-                    <div>
-                      <Label htmlFor="priority">Priority</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="cost">Estimated Cost</Label>
-                      <Input id="cost" type="number" placeholder="0" />
-                    </div>
-                    <div>
-                      <Label htmlFor="treatment-notes">Notes</Label>
-                      <Textarea id="treatment-notes" rows={3} />
-                    </div>
-                    <Button className="w-full medical-gradient text-white">
-                      Add Treatment Plan
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Stethoscope className="w-5 h-5" />
+              Swift Care Dental Clinic Template
+              {currentPatientData && (
+                <span className="text-lg font-normal text-primary">
+                  - {currentPatientData.full_name}
+                </span>
+              )}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {treatmentPlans.map((plan) => (
-              <Card key={plan.id} className="border">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(plan.status)}
-                      <span className="font-medium text-sm">{plan.procedure}</span>
-                    </div>
-                    <Badge variant={getPriorityColor(plan.priority)}>
-                      {plan.priority}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Patient:</span>
-                      <span>{plan.patientName}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Cost:</span>
-                      <span className="font-medium">${plan.estimatedCost}</span>
-                    </div>
-                    {plan.scheduledDate && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Scheduled:</span>
-                        <span>{plan.scheduledDate}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {plan.notes && (
-                    <p className="text-sm text-muted-foreground bg-muted/30 p-2 rounded">
-                      {plan.notes}
-                    </p>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      Schedule
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {treatmentPlans.length === 0 && (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">No treatment plans yet</p>
-              </div>
-            )}
+          <CardContent>
+            {renderSwiftCareChart()}
           </CardContent>
         </Card>
-      </div>
-    </div>
-  );
+      </TabsContent>
+
+      <TabsContent value="notes">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Add Progress Note */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Add Progress Note
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="progress-note">Note</Label>
+                <Textarea
+                  id="progress-note"
+                  placeholder="Enter progress note..."
+                  rows={4}
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">
+                  Written by: {profile?.full_name || 'Current User'}
+                </p>
+                <Button onClick={addProgressNote} disabled={!newNote.trim()}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Note
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Progress Notes List */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Progress Notes
+                {currentPatientData && (
+                  <span className="text-lg font-normal text-primary">
+                    - {currentPatientData.full_name}
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+              {progressNotes.map((note) => (
+                <Card key={note.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm text-muted-foreground">
+                        {note.writtenBy}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {note.date}
+                      </div>
+                    </div>
+                    <p className="text-sm">{note.note}</p>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {progressNotes.length === 0 && (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No progress notes yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
+    </Tabs>
+  </div>
+);
 }
