@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start btn-3d"
-                  onClick={() => navigate('/users-staff')}
+                  onClick={() => navigate('/users')}
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Add New Staff Member
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
                 <p className="text-muted-foreground mb-6">
                   Manage staff members, roles, and permissions for your branch.
                 </p>
-                <Button className="medical-gradient text-white" onClick={() => navigate('/users-staff')}>
+                <Button className="medical-gradient text-white" onClick={() => navigate('/users')}>
                   <UserPlus className="w-4 h-4 mr-2" />
                   Manage Staff
                 </Button>
