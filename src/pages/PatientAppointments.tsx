@@ -74,22 +74,44 @@ export default function PatientAppointments() {
   const [appointmentNotes, setAppointmentNotes] = useState('');
 
   useEffect(() => {
-    if (profile?.id) {
+    if (user?.id) {
       fetchAppointments();
       fetchServices();
       fetchDentists();
     }
-  }, [profile]);
+  }, [user]);
 
   const fetchAppointments = async () => {
     try {
+      console.log('User ID for patient lookup:', user?.id);
+      // First, get the patient record for this user
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      console.log('Patient lookup result:', { patientData, patientError });
+
+      if (patientError) {
+        console.error('Error fetching patient data:', patientError);
+        return;
+      }
+
+      if (!patientData) {
+        console.log('No patient record found for this user');
+        setAppointments([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('appointments')
         .select(`
           *,
           patients!inner(full_name)
         `)
-        .eq('patient_id', profile?.id)
+        .eq('patient_id', patientData.id)
         .order('scheduled_time', { ascending: true });
 
       if (error) throw error;
@@ -158,8 +180,21 @@ export default function PatientAppointments() {
   };
 
   const bookAppointment = async () => {
-    if (!selectedDate || !selectedTime || !selectedService || !profile?.id) {
+    if (!selectedDate || !selectedTime || !selectedService || !user?.id) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // First, get the patient record for this user
+    const { data: patientData, error: patientError } = await supabase
+      .from('patients')
+      .select('id, clinic_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (patientError || !patientData) {
+      toast.error('Patient record not found. Please contact support.');
+      console.error('Patient lookup error:', patientError);
       return;
     }
 
@@ -174,12 +209,12 @@ export default function PatientAppointments() {
       const { error } = await supabase
         .from('appointments')
         .insert({
-          patient_id: profile.id,
+          patient_id: patientData.id,
           scheduled_time: appointmentDateTime.toISOString(),
           dentist_id: selectedDentist === 'any' ? null : selectedDentist || null,
           duration_minutes: selectedServiceData?.default_duration_minutes || 30,
           notes: appointmentNotes,
-          clinic_id: profile.clinic_id,
+          clinic_id: patientData.clinic_id,
           status: 'booked'
         });
 
@@ -203,7 +238,7 @@ export default function PatientAppointments() {
         .from('appointments')
         .update({ 
           status: 'cancelled',
-          cancelled_by: profile?.id,
+          cancelled_by: user?.id,
           cancelled_at: new Date().toISOString(),
           cancellation_reason: 'Cancelled by patient'
         })

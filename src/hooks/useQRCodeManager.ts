@@ -33,11 +33,17 @@ export function useQRCodeManager() {
 
   const loadQRCodes = async () => {
     try {
+      if (!profile?.clinic_id) {
+        console.log('No clinic_id available, skipping QR code load');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('clinic_feature_toggles')
         .select('*')
         .eq('feature_name', 'qr_codes')
-        .eq('clinic_id', profile?.clinic_id);
+        .eq('clinic_id', profile.clinic_id);
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -78,6 +84,11 @@ export function useQRCodeManager() {
 
   const generateDailyQR = async () => {
     try {
+      if (!profile?.clinic_id) {
+        console.log('No clinic_id available, skipping QR generation');
+        return;
+      }
+
       const now = new Date();
       const endOfDay = new Date();
       endOfDay.setHours(23, 59, 59, 999);
