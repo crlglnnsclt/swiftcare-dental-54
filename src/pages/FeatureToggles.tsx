@@ -580,9 +580,6 @@ export default function FeatureToggles() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {getFeatureDescription(feature.feature_name, feature.description)}
-                          </p>
                           <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                             <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
                             {feature.modified_by && (
@@ -641,9 +638,6 @@ export default function FeatureToggles() {
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {getFeatureDescription(feature.feature_name, feature.description)}
-                              </p>
                               <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                                 <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
                               </div>
