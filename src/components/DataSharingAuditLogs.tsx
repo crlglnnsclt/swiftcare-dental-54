@@ -53,8 +53,8 @@ export function DataSharingAuditLogs() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    dataType: '',
-    actionType: '',
+    dataType: 'all',
+    actionType: 'all',
     dateFrom: '',
     dateTo: '',
     searchUser: ''
@@ -79,10 +79,10 @@ export function DataSharingAuditLogs() {
         .limit(100);
 
       // Apply filters
-      if (filters.dataType) {
+      if (filters.dataType && filters.dataType !== 'all') {
         query = query.eq('data_type', filters.dataType);
       }
-      if (filters.actionType) {
+      if (filters.actionType && filters.actionType !== 'all') {
         query = query.eq('action_type', filters.actionType);
       }
       if (filters.dateFrom) {
@@ -224,7 +224,7 @@ export function DataSharingAuditLogs() {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="patient">Patient</SelectItem>
                   <SelectItem value="appointment">Appointment</SelectItem>
                   <SelectItem value="invoice">Invoice</SelectItem>
@@ -240,7 +240,7 @@ export function DataSharingAuditLogs() {
                   <SelectValue placeholder="All actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All actions</SelectItem>
+                  <SelectItem value="all">All actions</SelectItem>
                   <SelectItem value="view">View</SelectItem>
                   <SelectItem value="create">Create</SelectItem>
                   <SelectItem value="update">Update</SelectItem>
