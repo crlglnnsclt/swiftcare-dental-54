@@ -139,12 +139,18 @@ export default function PatientAppointments() {
 
   const fetchDentists = async () => {
     try {
+      console.log('Fetching dentists...');
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('role', 'dentist');
 
-      if (error) throw error;
+      console.log('Dentists query result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching dentists:', error);
+        throw error;
+      }
       setDentists(data || []);
     } catch (error) {
       console.error('Error fetching dentists:', error);
@@ -170,7 +176,7 @@ export default function PatientAppointments() {
         .insert({
           patient_id: profile.id,
           scheduled_time: appointmentDateTime.toISOString(),
-          dentist_id: selectedDentist || null,
+          dentist_id: selectedDentist === 'any' ? null : selectedDentist || null,
           duration_minutes: selectedServiceData?.default_duration_minutes || 30,
           notes: appointmentNotes,
           clinic_id: profile.clinic_id,
