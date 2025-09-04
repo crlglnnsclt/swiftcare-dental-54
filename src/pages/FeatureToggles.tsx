@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3, Loader2, Building2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3, Loader2, Building2, Filter, ToggleLeft, ToggleRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +38,8 @@ export default function FeatureToggles() {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [tierFilter, setTierFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [features, setFeatures] = useState<ClinicFeature[]>([]);
@@ -213,11 +216,22 @@ export default function FeatureToggles() {
     }
   }, [profile]);
 
-  const filteredFeatures = features.filter(feature =>
-    feature.feature_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    feature.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (featureDefinitions[feature.feature_name]?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false)
-  );
+  const filteredFeatures = features.filter(feature => {
+    const matchesSearch = 
+      feature.feature_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      feature.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (featureDefinitions[feature.feature_name]?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    
+    const matchesStatus = 
+      statusFilter === "all" || 
+      (statusFilter === "enabled" && feature.is_enabled) ||
+      (statusFilter === "disabled" && !feature.is_enabled);
+      
+    const featureTier = featureDefinitions[feature.feature_name]?.tier || 'core';
+    const matchesTier = tierFilter === "all" || tierFilter === featureTier;
+    
+    return matchesSearch && matchesStatus && matchesTier;
+  });
 
   const handleToggleFeature = async (featureId: string) => {
     const feature = features.find(f => f.id === featureId);
@@ -225,15 +239,6 @@ export default function FeatureToggles() {
 
     try {
       const newEnabled = !feature.is_enabled;
-      
-      console.log('Updating feature:', {
-        featureId,
-        featureName: feature.feature_name,
-        newEnabled,
-        clinic_id: feature.clinic_id,
-        user_id: profile?.user_id,
-        role: profile?.role
-      });
       
       const { data, error } = await supabase
         .from('clinic_feature_toggles')
@@ -245,12 +250,7 @@ export default function FeatureToggles() {
         .eq('id', featureId)
         .select();
 
-      console.log('Update result:', { data, error });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       toast({
         title: `Feature ${newEnabled ? 'Enabled' : 'Disabled'}`,
@@ -437,15 +437,53 @@ export default function FeatureToggles() {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search features..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search features..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="enabled">
+                <div className="flex items-center">
+                  <ToggleRight className="w-4 h-4 mr-2 text-green-600" />
+                  Enabled
+                </div>
+              </SelectItem>
+              <SelectItem value="disabled">
+                <div className="flex items-center">
+                  <ToggleLeft className="w-4 h-4 mr-2 text-muted-foreground" />
+                  Disabled
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={tierFilter} onValueChange={setTierFilter}>
+            <SelectTrigger className="w-[130px]">
+              <Star className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Tier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tiers</SelectItem>
+              <SelectItem value="core">Core</SelectItem>
+              <SelectItem value="premium">Premium</SelectItem>
+              <SelectItem value="integration">Integration</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Category Overview */}
