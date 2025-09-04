@@ -1985,6 +1985,60 @@ export type Database = {
           },
         ]
       }
+      payment_proofs: {
+        Row: {
+          amount: number
+          clinic_id: string
+          created_at: string
+          id: string
+          invoice_id: string
+          notes: string | null
+          patient_id: string
+          payment_method: string
+          proof_file_url: string
+          status: string
+          submitted_at: string
+          updated_at: string
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount: number
+          clinic_id: string
+          created_at?: string
+          id?: string
+          invoice_id: string
+          notes?: string | null
+          patient_id: string
+          payment_method: string
+          proof_file_url: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          notes?: string | null
+          patient_id?: string
+          payment_method?: string
+          proof_file_url?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

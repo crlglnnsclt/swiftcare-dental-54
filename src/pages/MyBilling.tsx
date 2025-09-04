@@ -1,17 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { CreditCard, Receipt, Download, Search, Calendar, DollarSign, AlertCircle, Plus } from "lucide-react";
+import { CreditCard, Receipt, Download, Search, Calendar, DollarSign, AlertCircle, Plus, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import PaymentProofUpload from "@/components/PaymentProofUpload";
+import PaymentVerificationManager from "@/components/PaymentVerificationManager";
 
 export default function MyBilling() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const getCurrentUserRole = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('user_id', user.id)
+            .single();
+          
+          setUserRole(userData?.role || 'patient');
+        }
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        setUserRole('patient');
+      }
+    };
+
+    getCurrentUserRole();
+  }, []);
+
+  const handlePaymentProofSuccess = () => {
+    setRefreshKey(prev => prev + 1);
+    toast({
+      title: "Payment Proof Submitted",
+      description: "Your payment proof has been submitted and is pending verification.",
+    });
+  };
 
   // Demo patient billing data
   const billingData = {
@@ -217,6 +252,9 @@ export default function MyBilling() {
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="insurance">Insurance Info</TabsTrigger>
           <TabsTrigger value="payments">Payment Methods</TabsTrigger>
+          {(userRole === 'clinic_admin' || userRole === 'dentist' || userRole === 'staff' || userRole === 'receptionist') && (
+            <TabsTrigger value="verification">Payment Verification</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="invoices" className="space-y-4">
@@ -304,10 +342,22 @@ export default function MyBilling() {
                         <Download className="w-4 h-4 mr-2" />
                         Download PDF
                       </Button>
-                      {invoice.status === "pending" && (
+                      {invoice.status === "pending" && userRole === 'patient' && (
+                        <>
+                          <PaymentProofUpload 
+                            invoice={invoice} 
+                            onSuccess={handlePaymentProofSuccess}
+                          />
+                          <Button size="sm" onClick={() => handlePayInvoice(invoice.id)}>
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Pay Online
+                          </Button>
+                        </>
+                      )}
+                      {invoice.status === "pending" && userRole !== 'patient' && (
                         <Button size="sm" onClick={() => handlePayInvoice(invoice.id)}>
                           <CreditCard className="w-4 h-4 mr-2" />
-                          Pay Now
+                          Process Payment
                         </Button>
                       )}
                     </div>
@@ -466,6 +516,10 @@ export default function MyBilling() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="verification" className="space-y-4">
+          <PaymentVerificationManager key={refreshKey} />
         </TabsContent>
       </Tabs>
     </div>
