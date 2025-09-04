@@ -287,6 +287,20 @@ const moduleNavigation: NavItem[] = [
     roles: ["super_admin"],
     module: "super_admin"
   },
+  {
+    title: "System Health Check",
+    url: "/system-health",
+    icon: Activity,
+    roles: ["super_admin"],
+    module: "super_admin"
+  },
+  {
+    title: "Enhanced Analytics",
+    url: "/enhanced-analytics",
+    icon: BarChart3,
+    roles: ["clinic_admin", "super_admin"],
+    module: "reports"
+  },
 
   // 👨‍⚕️ Patient Portal
   {

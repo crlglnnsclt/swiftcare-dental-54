@@ -63,6 +63,8 @@ import AppointmentSettings from "./pages/AppointmentSettings";
 import DentistStaffSignatures from "./pages/DentistStaffSignatures";
 import ESignForms from "./pages/ESignForms";
 import DocumentsUploads from "./pages/DocumentsUploads";
+import SystemHealth from "./pages/SystemHealth";
+import EnhancedAnalytics from "./pages/EnhancedAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +101,16 @@ function AppRoutes() {
         <Route path="system-analytics" element={
           <ProtectedRoute requiredRole={['super_admin']}>
             <SystemAnalytics />
+          </ProtectedRoute>
+        } />
+        <Route path="system-health" element={
+          <ProtectedRoute requiredRole={['super_admin']}>
+            <SystemHealth />
+          </ProtectedRoute>
+        } />
+        <Route path="enhanced-analytics" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <EnhancedAnalytics />
           </ProtectedRoute>
         } />
         <Route path="users" element={
