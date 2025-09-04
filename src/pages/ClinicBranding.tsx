@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function ClinicBranding() {
   const { toast } = useToast();
   const [previewMode, setPreviewMode] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [brandingData, setBrandingData] = useState({
     clinicName: "SwiftCare Dental Center",
     logo: "",
@@ -29,6 +30,7 @@ export default function ClinicBranding() {
     animations: true,
     fontStyle: "sans-serif",
     voiceAnnouncements: {
+      selectedVoice: "default",
       patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
       familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
       queueMessages: {
@@ -75,6 +77,21 @@ export default function ClinicBranding() {
       preview: "🚀 High-tech interface with 3D animations and neon accents"
     }
   ];
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = speechSynthesis.getVoices();
+      setAvailableVoices(voices);
+    };
+
+    loadVoices();
+    
+    // Voices may load asynchronously
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   const handleColorChange = (colorType: string, value: string) => {
     setBrandingData({
@@ -127,6 +144,7 @@ export default function ClinicBranding() {
       animations: true,
       fontStyle: "sans-serif",
       voiceAnnouncements: {
+        selectedVoice: "default",
         patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
         familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
         queueMessages: {
@@ -180,13 +198,37 @@ export default function ClinicBranding() {
 
     // Use Web Speech API for preview
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(previewMessage);
-      utterance.voice = speechSynthesis.getVoices().find(voice => 
-        voice.name.includes('female') || voice.name.includes('Female')
-      ) || speechSynthesis.getVoices()[0];
-      utterance.rate = 0.8;
-      utterance.pitch = 1;
-      speechSynthesis.speak(utterance);
+      // Stop any currently playing speech
+      speechSynthesis.cancel();
+      
+      // Add a small delay to ensure the speech synthesis is ready
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(previewMessage);
+        
+        // Find the selected voice or default to a female voice
+        let selectedVoice = null;
+        if (brandingData.voiceAnnouncements.selectedVoice !== 'default') {
+          selectedVoice = availableVoices.find(voice => 
+            voice.name === brandingData.voiceAnnouncements.selectedVoice
+          );
+        }
+        
+        if (!selectedVoice) {
+          selectedVoice = availableVoices.find(voice => 
+            voice.name.toLowerCase().includes('female') || 
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('victoria') ||
+            voice.name.toLowerCase().includes('zira')
+          ) || availableVoices[0];
+        }
+        
+        utterance.voice = selectedVoice;
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        
+        speechSynthesis.speak(utterance);
+      }, 100);
     }
 
     toast({
@@ -451,6 +493,41 @@ export default function ClinicBranding() {
                   <CardDescription>Customize audio announcements for queue and check-in systems</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Voice Selection */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-lg">Voice Settings</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="voiceSelect">Select Voice</Label>
+                      <div className="flex space-x-2">
+                        <select 
+                          id="voiceSelect"
+                          className="flex-1 p-2 border rounded-md"
+                          value={brandingData.voiceAnnouncements.selectedVoice}
+                          onChange={(e) => handleVoiceAnnouncementChange('selectedVoice', '', e.target.value)}
+                        >
+                          <option value="default">Default (Auto-select Female)</option>
+                          {availableVoices
+                            .filter(voice => voice.lang.startsWith('en'))
+                            .map((voice, index) => (
+                              <option key={index} value={voice.name}>
+                                {voice.name} ({voice.lang})
+                              </option>
+                            ))}
+                        </select>
+                        <Button 
+                          variant="outline"
+                          onClick={() => handleVoicePreview("This is a voice preview test.")}
+                        >
+                          <Volume2 className="w-4 h-4 mr-2" />
+                          Test
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Choose the voice that will be used for all announcements
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Patient Callouts */}
                   <div className="space-y-4">
                     <h4 className="font-medium text-lg">Patient Callouts</h4>
@@ -673,25 +750,26 @@ export default function ClinicBranding() {
                       onClick={() => {
                         setBrandingData({
                           ...brandingData,
-                          voiceAnnouncements: {
-                            patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
-                            familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
-                            queueMessages: {
-                              queueOpen: "The queue is now open. Please check in using the QR code.",
-                              queueReminder: "Please ensure you have checked in. If you need assistance, please speak to reception.",
-                              queueEmpty: "No patients currently waiting. Walk-ins are welcome.",
-                              errorMessage: "System temporarily unavailable. Please speak to reception for assistance."
-                            },
-                            checkinMessages: {
-                              success: "Thank you [First Name], you have been successfully checked in.",
-                              duplicate: "You are already checked in. Please wait to be called.",
-                              invalid: "Invalid QR code or appointment not found. Please speak to reception.",
-                              staffTimeIn: "Welcome [Staff Name], you are now clocked in.",
-                              staffTimeOut: "Thank you [Staff Name], you are now clocked out.",
-                              staffDuplicate: "You are already clocked in.",
-                              staffExpired: "Your session has expired. Please scan the current QR code."
-                            }
-                          }
+                           voiceAnnouncements: {
+                             selectedVoice: "default",
+                             patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
+                             familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
+                             queueMessages: {
+                               queueOpen: "The queue is now open. Please check in using the QR code.",
+                               queueReminder: "Please ensure you have checked in. If you need assistance, please speak to reception.",
+                               queueEmpty: "No patients currently waiting. Walk-ins are welcome.",
+                               errorMessage: "System temporarily unavailable. Please speak to reception for assistance."
+                             },
+                             checkinMessages: {
+                               success: "Thank you [First Name], you have been successfully checked in.",
+                               duplicate: "You are already checked in. Please wait to be called.",
+                               invalid: "Invalid QR code or appointment not found. Please speak to reception.",
+                               staffTimeIn: "Welcome [Staff Name], you are now clocked in.",
+                               staffTimeOut: "Thank you [Staff Name], you are now clocked out.",
+                               staffDuplicate: "You are already clocked in.",
+                               staffExpired: "Your session has expired. Please scan the current QR code."
+                             }
+                           }
                         });
                         toast({
                           title: "Voice Settings Reset",
