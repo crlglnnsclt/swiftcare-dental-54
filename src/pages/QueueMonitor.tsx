@@ -1,170 +1,108 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { Progress } from '@/components/ui/progress';
 import { Clock, User, AlertTriangle, CheckCircle, Volume2, VolumeX, Maximize, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useQRCodeManager } from '@/hooks/useQRCodeManager';
+import { supabase } from '@/integrations/supabase/client';
 
-interface QueueItem {
+interface QueueDisplayItem {
   id: string;
+  position: number;
   patient_name: string;
   appointment_time: string;
   estimated_wait_minutes: number;
   priority: 'emergency' | 'scheduled' | 'walk_in';
-  status: 'waiting' | 'in_treatment' | 'completed';
+  status: 'waiting' | 'called' | 'in_treatment' | 'completed';
   dentist_name?: string;
-  position: number;
 }
 
 export default function QueueMonitor() {
-  const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
+  const [queueItems, setQueueItems] = useState<QueueDisplayItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const { dailyQR, generateDailyQR } = useQRCodeManager();
-  const [monitorSettings, setMonitorSettings] = useState({
-    voice: 'alloy',
-    welcomeMessage: 'Welcome to our dental clinic',
-    tickerText: 'Please maintain social distancing • Masks required • Hand sanitizer available'
-  });
 
   useEffect(() => {
     fetchQueueData();
-    loadMonitorSettings();
     
     const interval = setInterval(() => {
       fetchQueueData();
       setCurrentTime(new Date());
-    }, 10000); // Refresh every 10 seconds for real-time feel
+    }, 30000); // Refresh every 30 seconds
 
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000); // Update time every second
 
+    // Real-time subscription
+    const channel = supabase
+      .channel('queue-monitor')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'queue'
+        },
+        () => {
+          fetchQueueData();
+        }
+      )
+      .subscribe();
+
     return () => {
       clearInterval(interval);
       clearInterval(timeInterval);
+      supabase.removeChannel(channel);
     };
   }, []);
 
-  const loadMonitorSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('clinic_feature_toggles')
-        .select('description')
-        .eq('feature_name', 'appointment_settings')
-        .single();
-
-      if (data?.description) {
-        const settings = JSON.parse(data.description);
-        setMonitorSettings({
-          voice: settings.monitor_announcement_voice || 'alloy',
-          welcomeMessage: settings.monitor_welcome_message || 'Welcome to our dental clinic',
-          tickerText: settings.monitor_ticker_text || 'Please maintain social distancing • Masks required • Hand sanitizer available'
-        });
-        setAudioEnabled(settings.monitor_auto_announcements !== false);
-      }
-    } catch (error) {
-      console.error('Error loading monitor settings:', error);
-    }
-  };
-
   const fetchQueueData = async () => {
     try {
-      // Generate dynamic queue data with timestamps for more realistic feel
-      const now = new Date();
-      const mockQueueData: QueueItem[] = [
-        {
-          id: '1',
-          patient_name: 'Maria Santos',
-          appointment_time: '10:00 AM',
-          estimated_wait_minutes: Math.max(0, 5 - Math.floor(Math.random() * 3)),
-          priority: 'scheduled',
-          status: 'in_treatment',
-          dentist_name: 'Dr. Rodriguez',
-          position: 1
-        },
-        {
-          id: '2',
-          patient_name: 'Carlos Mendoza',
-          appointment_time: '10:30 AM',
-          estimated_wait_minutes: Math.max(5, 15 - Math.floor(Math.random() * 5)),
-          priority: 'scheduled',
-          status: 'waiting',
-          position: 2
-        },
-        {
-          id: '3',
-          patient_name: 'Ana Lopez',
-          appointment_time: 'Walk-in',
-          estimated_wait_minutes: Math.max(10, 25 - Math.floor(Math.random() * 8)),
-          priority: 'walk_in',
-          status: 'waiting',
-          position: 3
-        },
-        {
-          id: '4',
-          patient_name: 'Emergency Patient',
-          appointment_time: 'Emergency',
-          estimated_wait_minutes: 0,
-          priority: 'emergency',
-          status: 'waiting',
-          position: 1
-        }
-      ];
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data, error } = await supabase
+        .from('queue')
+        .select(`
+          *,
+          appointment:appointments!inner(
+            scheduled_time,
+            duration_minutes,
+            patient:patients!inner(
+              full_name
+            ),
+            dentist:users!appointments_dentist_id_fkey(
+              full_name
+            )
+          )
+        `)
+        .gte('appointment.scheduled_time', today + 'T00:00:00')
+        .lte('appointment.scheduled_time', today + 'T23:59:59')
+        .in('status', ['waiting', 'called'])
+        .order('position', { ascending: true });
 
-      // Simulate occasional status changes
-      if (Math.random() > 0.8) {
-        mockQueueData[0].status = 'completed';
-        mockQueueData[1].status = 'in_treatment';
-        
-        if (audioEnabled) {
-          playAnnouncement("Now serving Carlos M, please proceed to Room 3.");
-        }
-      }
+      if (error) throw error;
 
-      setQueueItems(mockQueueData);
+      const mappedData: QueueDisplayItem[] = (data || []).map(item => ({
+        id: item.id,
+        position: item.manual_order || item.position,
+        patient_name: item.appointment.patient.full_name,
+        appointment_time: new Date(item.appointment.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        estimated_wait_minutes: item.estimated_wait_minutes || 0,
+        priority: item.priority as QueueDisplayItem['priority'],
+        status: item.status as QueueDisplayItem['status'],
+        dentist_name: item.appointment.dentist?.full_name
+      }));
+
+      setQueueItems(mappedData);
     } catch (error) {
       console.error('Error fetching queue data:', error);
-      if (audioEnabled) {
-        playAnnouncement("System temporarily unavailable. Please speak to reception for assistance.");
-      }
     } finally {
       setLoading(false);
     }
-  };
-
-
-  const playAnnouncement = (message: string) => {
-    if (!audioEnabled || !('speechSynthesis' in window)) return;
-
-    // Stop any currently playing speech
-    speechSynthesis.cancel();
-
-    // Ensure voices are loaded and add delay to prevent cutoff
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(`. ${message}`);
-      const voices = speechSynthesis.getVoices();
-      utterance.voice = voices.find(voice => 
-        voice.name.toLowerCase().includes(monitorSettings.voice.toLowerCase())
-      ) || voices.find(voice => 
-        voice.name.toLowerCase().includes('female')
-      ) || voices[0];
-      utterance.rate = 0.75;
-      utterance.pitch = 1;
-      utterance.volume = 0.9;
-      
-      // Add event listeners for debugging
-      utterance.onstart = () => console.log('Queue announcement started');
-      utterance.onend = () => console.log('Queue announcement ended');
-      utterance.onerror = (error) => console.error('Queue announcement error:', error);
-      
-      speechSynthesis.speak(utterance);
-    }, 1300);
   };
 
   const toggleFullscreen = () => {
@@ -219,7 +157,7 @@ export default function QueueMonitor() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-bold text-gray-800">Queue Monitor</h1>
-              <p className="text-lg text-gray-600">{monitorSettings.welcomeMessage}</p>
+              <p className="text-lg text-gray-600">Real-time patient queue display</p>
             </div>
             <div className="flex items-center space-x-4">
               {/* Controls */}
@@ -283,7 +221,7 @@ export default function QueueMonitor() {
                             {patient.patient_name}
                           </h3>
                           <p className="text-green-600">
-                            {patient.dentist_name || 'Treatment Room'}
+                            {patient.dentist_name ? `Dr. ${patient.dentist_name}` : 'Treatment Room'}
                           </p>
                         </div>
                         <Badge className="bg-green-600 text-white">
@@ -311,7 +249,7 @@ export default function QueueMonitor() {
                 <p className="text-lg">No patients waiting</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-96 overflow-y-auto">
                 {waitingPatients
                   .sort((a, b) => {
                     // Emergency first, then by position
@@ -375,70 +313,37 @@ export default function QueueMonitor() {
         </Card>
       </div>
 
-      {/* Status Bar with QR Code */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2">
-          <Card className="shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                    Emergency
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                    Scheduled
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-                    Walk-in
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {audioEnabled ? (
-                      <Volume2 className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <VolumeX className="w-4 h-4 text-gray-400" />
-                    )}
-                    {audioEnabled ? "Audio On" : "Audio Off"}
-                  </span>
-                </div>
-                <div className="text-gray-600">
-                  Last updated: {currentTime.toLocaleTimeString()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Daily QR Code */}
+      {/* Status Bar */}
+      <div className="mt-6">
         <Card className="shadow-lg">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <QrCode className="w-5 h-5 mr-2" />
-              <h3 className="font-medium">Daily Check-in QR</h3>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                  Emergency
+                </span>
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  Scheduled
+                </span>
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
+                  Walk-in
+                </span>
+                <span className="flex items-center gap-2">
+                  {audioEnabled ? (
+                    <Volume2 className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <VolumeX className="w-4 h-4 text-gray-400" />
+                  )}
+                  {audioEnabled ? "Audio On" : "Audio Off"}
+                </span>
+              </div>
+              <div className="text-gray-600">
+                Last updated: {currentTime.toLocaleTimeString()}
+              </div>
             </div>
-            <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 mb-2">
-              {dailyQR ? (
-                <QRCodeSVG 
-                  value={JSON.parse(dailyQR.data).checkInUrl}
-                  size={96}
-                  level="M"
-                  includeMargin={false}
-                  className="mx-auto"
-                />
-              ) : (
-                <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center">
-                  <QrCode className="w-12 h-12 text-gray-400" />
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-gray-600">
-              Scan for patient check-in
-            </p>
-            <p className="text-xs text-gray-500">
-              Expires at midnight
-            </p>
           </CardContent>
         </Card>
       </div>
