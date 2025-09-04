@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Palette, Eye, Save, RotateCcw, Download } from "lucide-react";
+import { Upload, Palette, Eye, Save, RotateCcw, Download, Volume2, RotateCcw as Reset } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ClinicBranding() {
@@ -27,7 +27,26 @@ export default function ClinicBranding() {
     },
     template: "modern", // modern, classic, minimal, futuristic
     animations: true,
-    fontStyle: "sans-serif"
+    fontStyle: "sans-serif",
+    voiceAnnouncements: {
+      patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
+      familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
+      queueMessages: {
+        queueOpen: "The queue is now open. Please check in using the QR code.",
+        queueReminder: "Please ensure you have checked in. If you need assistance, please speak to reception.",
+        queueEmpty: "No patients currently waiting. Walk-ins are welcome.",
+        errorMessage: "System temporarily unavailable. Please speak to reception for assistance."
+      },
+      checkinMessages: {
+        success: "Thank you [First Name], you have been successfully checked in.",
+        duplicate: "You are already checked in. Please wait to be called.",
+        invalid: "Invalid QR code or appointment not found. Please speak to reception.",
+        staffTimeIn: "Welcome [Staff Name], you are now clocked in.",
+        staffTimeOut: "Thank you [Staff Name], you are now clocked out.",
+        staffDuplicate: "You are already clocked in.",
+        staffExpired: "Your session has expired. Please scan the current QR code."
+      }
+    }
   });
 
   const templates = [
@@ -106,7 +125,26 @@ export default function ClinicBranding() {
       },
       template: "modern",
       animations: true,
-      fontStyle: "sans-serif"
+      fontStyle: "sans-serif",
+      voiceAnnouncements: {
+        patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
+        familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
+        queueMessages: {
+          queueOpen: "The queue is now open. Please check in using the QR code.",
+          queueReminder: "Please ensure you have checked in. If you need assistance, please speak to reception.",
+          queueEmpty: "No patients currently waiting. Walk-ins are welcome.",
+          errorMessage: "System temporarily unavailable. Please speak to reception for assistance."
+        },
+        checkinMessages: {
+          success: "Thank you [First Name], you have been successfully checked in.",
+          duplicate: "You are already checked in. Please wait to be called.",
+          invalid: "Invalid QR code or appointment not found. Please speak to reception.",
+          staffTimeIn: "Welcome [Staff Name], you are now clocked in.",
+          staffTimeOut: "Thank you [Staff Name], you are now clocked out.",
+          staffDuplicate: "You are already clocked in.",
+          staffExpired: "Your session has expired. Please scan the current QR code."
+        }
+      }
     });
     toast({
       title: "Reset Complete",
@@ -128,6 +166,47 @@ export default function ClinicBranding() {
     toast({
       title: "Export Complete",
       description: "Branding configuration exported successfully.",
+    });
+  };
+
+  const handleVoicePreview = (message: string) => {
+    // Replace variables with example data for preview
+    const previewMessage = message
+      .replace(/\[First Name\]/g, "Maria")
+      .replace(/\[Last Initial\]/g, "S")
+      .replace(/\[Room #\]/g, "3")
+      .replace(/\[Staff Name\]/g, "Dr. Rodriguez")
+      .replace(/\[Clinic Name\]/g, brandingData.clinicName);
+
+    // Use Web Speech API for preview
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(previewMessage);
+      utterance.voice = speechSynthesis.getVoices().find(voice => 
+        voice.name.includes('female') || voice.name.includes('Female')
+      ) || speechSynthesis.getVoices()[0];
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      speechSynthesis.speak(utterance);
+    }
+
+    toast({
+      title: "Voice Preview",
+      description: `Playing: "${previewMessage}"`,
+    });
+  };
+
+  const handleVoiceAnnouncementChange = (category: string, field: string, value: string) => {
+    setBrandingData({
+      ...brandingData,
+      voiceAnnouncements: {
+        ...brandingData.voiceAnnouncements,
+        [category]: typeof brandingData.voiceAnnouncements[category] === 'object' 
+          ? {
+              ...brandingData.voiceAnnouncements[category],
+              [field]: value
+            }
+          : value
+      }
     });
   };
 
@@ -162,10 +241,11 @@ export default function ClinicBranding() {
         {/* Configuration Panel */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="general" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="colors">Colors</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="voice">Voice</TabsTrigger>
               <TabsTrigger value="templates">Templates</TabsTrigger>
             </TabsList>
 
@@ -356,6 +436,272 @@ export default function ClinicBranding() {
                         />
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="voice" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Volume2 className="w-5 h-5" />
+                    <span>Voice Announcements</span>
+                  </CardTitle>
+                  <CardDescription>Customize audio announcements for queue and check-in systems</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Patient Callouts */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-lg">Patient Callouts</h4>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="patientCallout">Individual Patient</Label>
+                        <div className="flex space-x-2">
+                          <Textarea
+                            id="patientCallout"
+                            value={brandingData.voiceAnnouncements.patientCallout}
+                            onChange={(e) => handleVoiceAnnouncementChange('patientCallout', '', e.target.value)}
+                            rows={2}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.patientCallout)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Variables: [First Name], [Last Initial], [Room #]
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="familyCallout">Family/Group</Label>
+                        <div className="flex space-x-2">
+                          <Textarea
+                            id="familyCallout"
+                            value={brandingData.voiceAnnouncements.familyCallout}
+                            onChange={(e) => handleVoiceAnnouncementChange('familyCallout', '', e.target.value)}
+                            rows={2}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.familyCallout)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Queue Messages */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-lg">Queue/System Messages</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Queue Open</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.queueMessages.queueOpen}
+                            onChange={(e) => handleVoiceAnnouncementChange('queueMessages', 'queueOpen', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.queueMessages.queueOpen)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Queue Reminder</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.queueMessages.queueReminder}
+                            onChange={(e) => handleVoiceAnnouncementChange('queueMessages', 'queueReminder', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.queueMessages.queueReminder)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Queue Empty</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.queueMessages.queueEmpty}
+                            onChange={(e) => handleVoiceAnnouncementChange('queueMessages', 'queueEmpty', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.queueMessages.queueEmpty)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Error Message</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.queueMessages.errorMessage}
+                            onChange={(e) => handleVoiceAnnouncementChange('queueMessages', 'errorMessage', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.queueMessages.errorMessage)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Check-in Messages */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-lg">Check-in & Attendance Messages</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Check-in Success</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.checkinMessages.success}
+                            onChange={(e) => handleVoiceAnnouncementChange('checkinMessages', 'success', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.checkinMessages.success)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Invalid QR</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.checkinMessages.invalid}
+                            onChange={(e) => handleVoiceAnnouncementChange('checkinMessages', 'invalid', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.checkinMessages.invalid)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Staff Time-In</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.checkinMessages.staffTimeIn}
+                            onChange={(e) => handleVoiceAnnouncementChange('checkinMessages', 'staffTimeIn', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.checkinMessages.staffTimeIn)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Staff Time-Out</Label>
+                        <div className="flex space-x-2">
+                          <Input
+                            value={brandingData.voiceAnnouncements.checkinMessages.staffTimeOut}
+                            onChange={(e) => handleVoiceAnnouncementChange('checkinMessages', 'staffTimeOut', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleVoicePreview(brandingData.voiceAnnouncements.checkinMessages.staffTimeOut)}
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Available Variables */}
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <h5 className="font-medium mb-2">Available Variables</h5>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                      <Badge variant="outline">[First Name]</Badge>
+                      <Badge variant="outline">[Last Initial]</Badge>
+                      <Badge variant="outline">[Room #]</Badge>
+                      <Badge variant="outline">[Staff Name]</Badge>
+                      <Badge variant="outline">[Clinic Name]</Badge>
+                    </div>
+                  </div>
+
+                  {/* Reset Voice Settings */}
+                  <div className="flex justify-end">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setBrandingData({
+                          ...brandingData,
+                          voiceAnnouncements: {
+                            patientCallout: "Now serving [First Name] [Last Initial], please proceed to Room [Room #].",
+                            familyCallout: "Now serving [First Name] [Last Initial] and family, please proceed to Room [Room #].",
+                            queueMessages: {
+                              queueOpen: "The queue is now open. Please check in using the QR code.",
+                              queueReminder: "Please ensure you have checked in. If you need assistance, please speak to reception.",
+                              queueEmpty: "No patients currently waiting. Walk-ins are welcome.",
+                              errorMessage: "System temporarily unavailable. Please speak to reception for assistance."
+                            },
+                            checkinMessages: {
+                              success: "Thank you [First Name], you have been successfully checked in.",
+                              duplicate: "You are already checked in. Please wait to be called.",
+                              invalid: "Invalid QR code or appointment not found. Please speak to reception.",
+                              staffTimeIn: "Welcome [Staff Name], you are now clocked in.",
+                              staffTimeOut: "Thank you [Staff Name], you are now clocked out.",
+                              staffDuplicate: "You are already clocked in.",
+                              staffExpired: "Your session has expired. Please scan the current QR code."
+                            }
+                          }
+                        });
+                        toast({
+                          title: "Voice Settings Reset",
+                          description: "All voice announcements have been reset to defaults.",
+                        });
+                      }}
+                    >
+                      <Reset className="w-4 h-4 mr-2" />
+                      Reset Voice Settings
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

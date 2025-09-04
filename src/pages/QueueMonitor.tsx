@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Clock, User, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Clock, User, AlertTriangle, CheckCircle, Volume2, VolumeX, Maximize, QrCode } from 'lucide-react';
 
 interface QueueItem {
   id: string;
@@ -20,33 +21,44 @@ export default function QueueMonitor() {
   const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [dailyQRCode, setDailyQRCode] = useState('');
 
   useEffect(() => {
     fetchQueueData();
+    generateDailyQR();
+    
     const interval = setInterval(() => {
       fetchQueueData();
       setCurrentTime(new Date());
-    }, 30000); // Refresh every 30 seconds
+    }, 10000); // Refresh every 10 seconds for real-time feel
 
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000); // Update time every second
 
+    const qrInterval = setInterval(() => {
+      generateDailyQR();
+    }, 3600000); // Regenerate QR every hour
+
     return () => {
       clearInterval(interval);
       clearInterval(timeInterval);
+      clearInterval(qrInterval);
     };
   }, []);
 
   const fetchQueueData = async () => {
     try {
-      // Simulate queue data since we don't have a complete queue table yet
+      // Generate dynamic queue data with timestamps for more realistic feel
+      const now = new Date();
       const mockQueueData: QueueItem[] = [
         {
           id: '1',
           patient_name: 'Maria Santos',
           appointment_time: '10:00 AM',
-          estimated_wait_minutes: 5,
+          estimated_wait_minutes: Math.max(0, 5 - Math.floor(Math.random() * 3)),
           priority: 'scheduled',
           status: 'in_treatment',
           dentist_name: 'Dr. Rodriguez',
@@ -56,7 +68,7 @@ export default function QueueMonitor() {
           id: '2',
           patient_name: 'Carlos Mendoza',
           appointment_time: '10:30 AM',
-          estimated_wait_minutes: 15,
+          estimated_wait_minutes: Math.max(5, 15 - Math.floor(Math.random() * 5)),
           priority: 'scheduled',
           status: 'waiting',
           position: 2
@@ -65,7 +77,7 @@ export default function QueueMonitor() {
           id: '3',
           patient_name: 'Ana Lopez',
           appointment_time: 'Walk-in',
-          estimated_wait_minutes: 25,
+          estimated_wait_minutes: Math.max(10, 25 - Math.floor(Math.random() * 8)),
           priority: 'walk_in',
           status: 'waiting',
           position: 3
@@ -81,12 +93,57 @@ export default function QueueMonitor() {
         }
       ];
 
+      // Simulate occasional status changes
+      if (Math.random() > 0.8) {
+        mockQueueData[0].status = 'completed';
+        mockQueueData[1].status = 'in_treatment';
+        
+        if (audioEnabled) {
+          playAnnouncement("Now serving Carlos M, please proceed to Room 3.");
+        }
+      }
+
       setQueueItems(mockQueueData);
     } catch (error) {
       console.error('Error fetching queue data:', error);
+      if (audioEnabled) {
+        playAnnouncement("System temporarily unavailable. Please speak to reception for assistance.");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateDailyQR = () => {
+    // Generate a unique QR code that expires at midnight
+    const today = new Date().toDateString();
+    const qrData = `SWIFTCARE-CHECKIN-${today}-${Math.random().toString(36).substr(2, 9)}`;
+    setDailyQRCode(qrData);
+  };
+
+  const playAnnouncement = (message: string) => {
+    if (!audioEnabled || !('speechSynthesis' in window)) return;
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    const voices = speechSynthesis.getVoices();
+    utterance.voice = voices.find(voice => 
+      voice.name.toLowerCase().includes('female') || 
+      voice.name.toLowerCase().includes('samantha') ||
+      voice.name.toLowerCase().includes('victoria')
+    ) || voices[0];
+    utterance.rate = 0.8;
+    utterance.pitch = 1;
+    utterance.volume = 0.7;
+    speechSynthesis.speak(utterance);
+  };
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    setIsFullscreen(!isFullscreen);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -134,17 +191,38 @@ export default function QueueMonitor() {
               <h1 className="text-4xl font-bold text-gray-800">Queue Monitor</h1>
               <p className="text-lg text-gray-600">Real-time patient queue status</p>
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-blue-600">
-                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <div className="flex items-center space-x-4">
+              {/* Controls */}
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAudioEnabled(!audioEnabled)}
+                >
+                  {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleFullscreen}
+                >
+                  <Maximize className="w-4 h-4" />
+                </Button>
               </div>
-              <div className="text-gray-600">
-                {currentTime.toLocaleDateString([], { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+              
+              {/* Time */}
+              <div className="text-right">
+                <div className="text-3xl font-bold text-blue-600">
+                  {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div className="text-gray-600">
+                  {currentTime.toLocaleDateString([], { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -267,30 +345,63 @@ export default function QueueMonitor() {
         </Card>
       </div>
 
-      {/* Status Bar */}
-      <Card className="mt-6 shadow-lg">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                Emergency
-              </span>
-              <span className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                Scheduled
-              </span>
-              <span className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-                Walk-in
-              </span>
+      {/* Status Bar with QR Code */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2">
+          <Card className="shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                    Emergency
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                    Scheduled
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
+                    Walk-in
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {audioEnabled ? (
+                      <Volume2 className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <VolumeX className="w-4 h-4 text-gray-400" />
+                    )}
+                    {audioEnabled ? "Audio On" : "Audio Off"}
+                  </span>
+                </div>
+                <div className="text-gray-600">
+                  Last updated: {currentTime.toLocaleTimeString()}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Daily QR Code */}
+        <Card className="shadow-lg">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <QrCode className="w-5 h-5 mr-2" />
+              <h3 className="font-medium">Daily Check-in QR</h3>
             </div>
-            <div className="text-gray-600">
-              Last updated: {currentTime.toLocaleTimeString()}
+            <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 mb-2">
+              <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center">
+                <QrCode className="w-12 h-12 text-gray-400" />
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <p className="text-xs text-gray-600">
+              Scan for patient check-in
+            </p>
+            <p className="text-xs text-gray-500">
+              Expires at midnight
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
