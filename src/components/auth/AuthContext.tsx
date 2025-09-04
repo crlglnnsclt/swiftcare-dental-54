@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .from('users')
                 .select('*')
                 .eq('user_id', session.user.id)
-                .single();
+                .maybeSingle(); // Use maybeSingle instead of single
               setProfile(profile);
             } catch (error) {
-              // Profile fetch error
+              console.error('Profile fetch error:', error);
             }
             setLoading(false);
           }, 0);

@@ -140,11 +140,23 @@ export default function PatientRegistration() {
     
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
     
+    const additionalData = {
+      phone: formData.phone,
+      clinic_id: formData.clinicId,
+      branch_id: formData.branchId || formData.clinicId, // Use branch if selected, otherwise main clinic
+      date_of_birth: formData.dateOfBirth,
+      emergency_contact_name: formData.emergencyContactName,
+      emergency_contact_phone: formData.emergencyContactPhone,
+      insurance_provider: formData.insuranceProvider,
+      insurance_policy_number: formData.insurancePolicyNumber
+    };
+
     const { error } = await signUp(
       formData.email, 
       formData.password, 
       fullName,
-      'patient'
+      'patient',
+      additionalData
     );
     
     if (!error) {

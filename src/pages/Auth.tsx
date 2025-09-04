@@ -37,17 +37,14 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signInData.email || !signInData.password) {
-      console.log('Missing email or password');
       return;
     }
     
-    console.log('Form submitted for sign in');
     setIsLoading(true);
     
     const { error } = await signIn(signInData.email, signInData.password);
     
     if (!error) {
-      console.log('Sign in successful, navigating to dashboard');
       navigate(from, { replace: true });
     }
     
@@ -58,16 +55,13 @@ export default function Auth() {
     e.preventDefault();
     
     if (!signUpData.email || !signUpData.password || !signUpData.fullName) {
-      console.log('Missing required fields');
       return;
     }
     
     if (signUpData.password !== signUpData.confirmPassword) {
-      console.log('Passwords do not match');
       return;
     }
     
-    console.log('Form submitted for sign up');
     setIsLoading(true);
     
     const { error } = await signUp(
@@ -78,7 +72,8 @@ export default function Auth() {
     );
     
     if (!error) {
-      console.log('Sign up successful');
+      // Redirect to patient registration for complete signup flow
+      navigate('/register');
     }
     
     setIsLoading(false);
@@ -164,17 +159,23 @@ export default function Auth() {
               
               <TabsContent value="signup" className="mt-6">
                 <div className="text-center space-y-4">
-                  <p className="text-muted-foreground">Staff accounts are created by administrators</p>
-                  <Link 
-                    to="/register" 
-                    className="inline-flex items-center gap-2 px-6 py-3 medical-gradient text-white rounded-lg hover:shadow-glow smooth-transition"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    Register as Patient
-                  </Link>
-                  <p className="text-sm text-muted-foreground">
-                    Need a staff account? Contact your clinic administrator
-                  </p>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                      For new patients, please use our complete registration form to create your account.
+                    </p>
+                    <Link 
+                      to="/register" 
+                      className="inline-flex items-center gap-2 px-6 py-3 medical-gradient text-white rounded-lg hover:shadow-glow smooth-transition btn-3d"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Register as Patient
+                    </Link>
+                  </div>
+                  <div className="pt-2">
+                    <p className="text-sm text-muted-foreground">
+                      Staff accounts are created by clinic administrators
+                    </p>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
