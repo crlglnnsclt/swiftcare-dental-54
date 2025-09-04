@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import UserSettings from "./pages/UserSettings";
 import BranchManagementMerged from "./pages/BranchManagementMerged";
 import QueueManagement from "./pages/QueueManagement";
-import { PatientCheckIn } from "./pages/PatientCheckIn";
+import SmartCheckIn from "./pages/SmartCheckIn";
 import PatientAppointments from "./pages/PatientAppointments";
 import PatientProfile from "./pages/PatientProfile";
 import PatientResults from "./pages/PatientResults";
@@ -80,7 +80,7 @@ function AppRoutes() {
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
       <Route path="/branch-selection" element={user ? <BranchSelection /> : <Navigate to="/auth" replace />} />
       <Route path="/profile-switcher" element={<ProfileSwitcher />} />
-      <Route path="/checkin" element={<PatientCheckIn />} />
+      <Route path="/checkin" element={<SmartCheckIn />} />
       
       {/* Protected routes with layout */}
       <Route path="/" element={
@@ -136,7 +136,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="queue" element={<QueueManagement />} />
-        <Route path="staff-checkin" element={<PatientCheckIn />} />
+        <Route path="staff-checkin" element={<SmartCheckIn />} />
         <Route path="paperless" element={<PaperlessSystem />} />
         <Route path="digital-forms" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
