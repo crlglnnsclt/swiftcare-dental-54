@@ -124,17 +124,32 @@ export default function QueueMonitor() {
   const playAnnouncement = (message: string) => {
     if (!audioEnabled || !('speechSynthesis' in window)) return;
 
-    const utterance = new SpeechSynthesisUtterance(message);
-    const voices = speechSynthesis.getVoices();
-    utterance.voice = voices.find(voice => 
-      voice.name.toLowerCase().includes('female') || 
-      voice.name.toLowerCase().includes('samantha') ||
-      voice.name.toLowerCase().includes('victoria')
-    ) || voices[0];
-    utterance.rate = 0.8;
-    utterance.pitch = 1;
-    utterance.volume = 0.7;
-    speechSynthesis.speak(utterance);
+    // Stop any currently playing speech
+    speechSynthesis.cancel();
+
+    // Ensure voices are loaded and add delay to prevent cutoff
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(`. ${message}`);
+      const voices = speechSynthesis.getVoices();
+      utterance.voice = voices.find(voice => 
+        voice.name.toLowerCase().includes('female') || 
+        voice.name.toLowerCase().includes('samantha') ||
+        voice.name.toLowerCase().includes('victoria') ||
+        voice.name.toLowerCase().includes('zira') ||
+        voice.name.toLowerCase().includes('karen') ||
+        voice.name.toLowerCase().includes('susan')
+      ) || voices[0];
+      utterance.rate = 0.75;
+      utterance.pitch = 1;
+      utterance.volume = 0.9;
+      
+      // Add event listeners for debugging
+      utterance.onstart = () => console.log('Queue announcement started');
+      utterance.onend = () => console.log('Queue announcement ended');
+      utterance.onerror = (error) => console.error('Queue announcement error:', error);
+      
+      speechSynthesis.speak(utterance);
+    }, 300);
   };
 
   const toggleFullscreen = () => {

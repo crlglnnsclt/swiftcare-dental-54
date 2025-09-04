@@ -201,34 +201,59 @@ export default function ClinicBranding() {
       // Stop any currently playing speech
       speechSynthesis.cancel();
       
-      // Add a small delay to ensure the speech synthesis is ready
-      setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(previewMessage);
-        
-        // Find the selected voice or default to a female voice
-        let selectedVoice = null;
-        if (brandingData.voiceAnnouncements.selectedVoice !== 'default') {
-          selectedVoice = availableVoices.find(voice => 
-            voice.name === brandingData.voiceAnnouncements.selectedVoice
-          );
-        }
-        
-        if (!selectedVoice) {
-          selectedVoice = availableVoices.find(voice => 
-            voice.name.toLowerCase().includes('female') || 
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('victoria') ||
-            voice.name.toLowerCase().includes('zira')
-          ) || availableVoices[0];
-        }
-        
-        utterance.voice = selectedVoice;
-        utterance.rate = 0.8;
-        utterance.pitch = 1;
-        utterance.volume = 0.8;
-        
-        speechSynthesis.speak(utterance);
-      }, 100);
+      // Ensure voices are loaded
+      const ensureVoicesLoaded = () => {
+        return new Promise<void>((resolve) => {
+          const voices = speechSynthesis.getVoices();
+          if (voices.length > 0) {
+            resolve();
+          } else {
+            speechSynthesis.onvoiceschanged = () => {
+              resolve();
+            };
+          }
+        });
+      };
+
+      ensureVoicesLoaded().then(() => {
+        // Add a longer delay and prepend a small pause to prevent cutoff
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(`. ${previewMessage}`);
+          
+          // Find the selected voice or default to a female voice
+          let selectedVoice = null;
+          const voices = speechSynthesis.getVoices();
+          
+          if (brandingData.voiceAnnouncements.selectedVoice !== 'default') {
+            selectedVoice = voices.find(voice => 
+              voice.name === brandingData.voiceAnnouncements.selectedVoice
+            );
+          }
+          
+          if (!selectedVoice) {
+            selectedVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female') || 
+              voice.name.toLowerCase().includes('samantha') ||
+              voice.name.toLowerCase().includes('victoria') ||
+              voice.name.toLowerCase().includes('zira') ||
+              voice.name.toLowerCase().includes('karen') ||
+              voice.name.toLowerCase().includes('susan')
+            ) || voices[0];
+          }
+          
+          utterance.voice = selectedVoice;
+          utterance.rate = 0.75;
+          utterance.pitch = 1;
+          utterance.volume = 0.9;
+          
+          // Add event listeners for debugging
+          utterance.onstart = () => console.log('Speech started');
+          utterance.onend = () => console.log('Speech ended');
+          utterance.onerror = (error) => console.error('Speech error:', error);
+          
+          speechSynthesis.speak(utterance);
+        }, 300);
+      });
     }
 
     toast({
