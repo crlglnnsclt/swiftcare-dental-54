@@ -317,7 +317,7 @@ export default function PatientAppointments() {
                   <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Any available dentist" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border-border shadow-lg z-50">
+                   <SelectContent className="bg-background border-border shadow-lg z-[9999]">
                     <SelectItem value="" className="bg-background hover:bg-muted">
                       Any available dentist
                     </SelectItem>

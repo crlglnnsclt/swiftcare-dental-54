@@ -347,7 +347,7 @@ END:VCALENDAR`;
                       <SelectTrigger className="btn-3d h-auto min-h-[50px]">
                         <SelectValue placeholder="Select treatment type" />
                       </SelectTrigger>
-                      <SelectContent className="z-50">
+                       <SelectContent className="z-[9999] bg-background border-border shadow-lg">
                         {demoServices.map((service) => (
                           <SelectItem key={service.id} value={service.id} className="p-3">
                             <div className="flex justify-between items-center w-full">
@@ -392,7 +392,7 @@ END:VCALENDAR`;
                           <SelectTrigger className="btn-3d">
                             <SelectValue placeholder="Choose family member" />
                           </SelectTrigger>
-                          <SelectContent className="z-50">
+                           <SelectContent className="z-[9999] bg-background border-border shadow-lg">
                             {mockPatient.familyMembers.map((member) => (
                               <SelectItem key={member.id} value={member.id}>
                                 <div className="flex items-center gap-2">
@@ -419,7 +419,7 @@ END:VCALENDAR`;
                       <SelectTrigger className="btn-3d h-auto min-h-[50px]">
                         <SelectValue placeholder="Select dentist" />
                       </SelectTrigger>
-                      <SelectContent className="z-50">
+                       <SelectContent className="z-[9999] bg-background border-border shadow-lg">
                         {demoDentists.map((dentist) => (
                           <SelectItem key={dentist.id} value={dentist.id} className="p-3">
                             <div className="flex justify-between items-center w-full">
