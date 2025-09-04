@@ -225,6 +225,83 @@ export type Database = {
           },
         ]
       }
+      branch_group_members: {
+        Row: {
+          branch_id: string
+          group_id: string
+          id: string
+          joined_at: string
+        }
+        Insert: {
+          branch_id: string
+          group_id: string
+          id?: string
+          joined_at?: string
+        }
+        Update: {
+          branch_id?: string
+          group_id?: string
+          id?: string
+          joined_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_group_members_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "branch_sharing_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      branch_sharing_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          group_name: string
+          id: string
+          is_active: boolean | null
+          main_clinic_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_name: string
+          id?: string
+          is_active?: boolean | null
+          main_clinic_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_name?: string
+          id?: string
+          is_active?: boolean | null
+          main_clinic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_sharing_groups_main_clinic_id_fkey"
+            columns: ["main_clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_billing: {
         Row: {
           billing_period_end: string
@@ -428,6 +505,7 @@ export type Database = {
           created_at: string
           custom_button_labels: Json | null
           custom_logo_url: string | null
+          default_sharing_group_id: string | null
           email: string | null
           id: string
           location_type: string | null
@@ -437,6 +515,7 @@ export type Database = {
           phone_number: string | null
           primary_color: string | null
           secondary_color: string | null
+          sharing_enabled: boolean | null
           subscription_package:
             | Database["public"]["Enums"]["subscription_package"]
             | null
@@ -450,6 +529,7 @@ export type Database = {
           created_at?: string
           custom_button_labels?: Json | null
           custom_logo_url?: string | null
+          default_sharing_group_id?: string | null
           email?: string | null
           id?: string
           location_type?: string | null
@@ -459,6 +539,7 @@ export type Database = {
           phone_number?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          sharing_enabled?: boolean | null
           subscription_package?:
             | Database["public"]["Enums"]["subscription_package"]
             | null
@@ -472,6 +553,7 @@ export type Database = {
           created_at?: string
           custom_button_labels?: Json | null
           custom_logo_url?: string | null
+          default_sharing_group_id?: string | null
           email?: string | null
           id?: string
           location_type?: string | null
@@ -481,13 +563,22 @@ export type Database = {
           phone_number?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          sharing_enabled?: boolean | null
           subscription_package?:
             | Database["public"]["Enums"]["subscription_package"]
             | null
           updated_at?: string
           welcome_message?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clinics_default_sharing_group_id_fkey"
+            columns: ["default_sharing_group_id"]
+            isOneToOne: false
+            referencedRelation: "branch_sharing_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       communication_logs: {
         Row: {
@@ -620,6 +711,70 @@ export type Database = {
           {
             foreignKeyName: "cross_clinic_metrics_clinic_id_fkey"
             columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_sharing_audit: {
+        Row: {
+          action_type: string
+          created_at: string
+          data_id: string | null
+          data_type: string
+          id: string
+          ip_address: unknown | null
+          sharing_group_id: string | null
+          source_branch_id: string
+          target_branch_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          data_id?: string | null
+          data_type: string
+          id?: string
+          ip_address?: unknown | null
+          sharing_group_id?: string | null
+          source_branch_id: string
+          target_branch_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          data_id?: string | null
+          data_type?: string
+          id?: string
+          ip_address?: unknown | null
+          sharing_group_id?: string | null
+          source_branch_id?: string
+          target_branch_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_sharing_audit_sharing_group_id_fkey"
+            columns: ["sharing_group_id"]
+            isOneToOne: false
+            referencedRelation: "branch_sharing_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_sharing_audit_source_branch_id_fkey"
+            columns: ["source_branch_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_sharing_audit_target_branch_id_fkey"
+            columns: ["target_branch_id"]
             isOneToOne: false
             referencedRelation: "clinics"
             referencedColumns: ["id"]
@@ -2368,6 +2523,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_branch_data: {
+        Args: { target_branch_id: string }
+        Returns: boolean
+      }
       get_auth_clinic: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2415,6 +2574,12 @@ export type Database = {
       get_user_clinic_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_sharing_group_branches: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          branch_id: string
+        }[]
       }
     }
     Enums: {
