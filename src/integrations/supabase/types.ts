@@ -2357,6 +2357,10 @@ export type Database = {
         Args: { file_path: string }
         Returns: string
       }
+      get_user_clinic_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       appointment_status:
