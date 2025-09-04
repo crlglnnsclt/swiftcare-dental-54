@@ -29,7 +29,8 @@ import {
   Receipt,
   Palette,
   FileCheck,
-  Layers
+  Layers,
+  Share2
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -247,6 +248,20 @@ const moduleNavigation: NavItem[] = [
     title: "Clinic Customization",
     url: "/clinic-branding",
     icon: Palette,
+    roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+  {
+    title: "Branch Data Sharing",
+    url: "/branch-sharing",
+    icon: Share2,
+    roles: ["clinic_admin"],
+    module: "administration"
+  },
+  {
+    title: "Data Sharing Audit",
+    url: "/data-sharing-audit",
+    icon: Shield,
     roles: ["clinic_admin", "super_admin"],
     module: "administration"
   },

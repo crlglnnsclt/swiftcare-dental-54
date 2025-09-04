@@ -58,6 +58,8 @@ import PaymentTracking from "./pages/PaymentTracking";
 import ClinicBranding from "./pages/ClinicBranding";
 import FeatureToggles from "./pages/FeatureToggles";
 import UserRoles from "./pages/UserRoles";
+import { BranchSharingManager } from "./components/BranchSharingManager";
+import { DataSharingAuditLogs } from "./components/DataSharingAuditLogs";
 import MyBilling from "./pages/MyBilling";
 import AppointmentSettings from "./pages/AppointmentSettings";
 import DentistStaffSignatures from "./pages/DentistStaffSignatures";
@@ -285,6 +287,16 @@ function AppRoutes() {
         <Route path="user-roles" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <UserRoles />
+          </ProtectedRoute>
+        } />
+        <Route path="branch-sharing" element={
+          <ProtectedRoute requiredRole={['clinic_admin']}>
+            <BranchSharingManager />
+          </ProtectedRoute>
+        } />
+        <Route path="data-sharing-audit" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <DataSharingAuditLogs />
           </ProtectedRoute>
         } />
         <Route path="my-billing" element={

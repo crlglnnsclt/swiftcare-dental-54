@@ -2581,6 +2581,15 @@ export type Database = {
           branch_id: string
         }[]
       }
+      log_data_sharing_access: {
+        Args: {
+          action_type?: string
+          data_id?: string
+          data_type: string
+          target_branch_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       appointment_status:
