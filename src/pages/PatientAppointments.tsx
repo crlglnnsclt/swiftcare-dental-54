@@ -318,9 +318,9 @@ export default function PatientAppointments() {
                     <SelectValue placeholder="Any available dentist" />
                   </SelectTrigger>
                    <SelectContent className="bg-background border-border shadow-lg z-[9999]">
-                    <SelectItem value="" className="bg-background hover:bg-muted">
-                      Any available dentist
-                    </SelectItem>
+                     <SelectItem value="any" className="bg-background hover:bg-muted">
+                       Any available dentist
+                     </SelectItem>
                     {dentists.map((dentist) => (
                       <SelectItem 
                         key={dentist.id} 
