@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 
 interface Appointment {
@@ -65,6 +65,8 @@ export default function PatientAppointments() {
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const [error, setError] = useState('');
   
   // Booking form state
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -87,7 +89,7 @@ export default function PatientAppointments() {
       // First, get the patient record for this user - patients table uses users.id, not users.user_id
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, clinic_id')
+        .select('id, clinic_id, role')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -99,21 +101,35 @@ export default function PatientAppointments() {
         return;
       }
 
+      // Check if user is actually a patient
+      if (userData.role !== 'patient') {
+        console.log('User is not a patient, role:', userData.role);
+        setError('This page is only accessible to patients. Please contact your clinic to access your appointments.');
+        setLoading(false);
+        return;
+      }
+
+      // Get the first patient record for this user (in case of duplicates)
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('id')
         .eq('user_id', userData.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
 
       console.log('Patient lookup result:', { patientData, patientError });
 
       if (patientError) {
         console.error('Error fetching patient data:', patientError);
+        setError('Error loading patient data. Please try again.');
+        setLoading(false);
         return;
       }
 
       if (!patientData) {
         console.log('No patient record found for this user');
+        setError('No patient record found. Please contact your clinic to set up your patient profile.');
         setAppointments([]);
         setLoading(false);
         return;
@@ -152,7 +168,11 @@ export default function PatientAppointments() {
       setAppointments(appointmentsWithDentist);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      toast.error('Failed to load appointments');
+      toast({
+        title: "Error",
+        description: "Failed to load appointments",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -205,40 +225,51 @@ export default function PatientAppointments() {
   };
 
   const bookAppointment = async () => {
-    if (!selectedDate || !selectedTime || !selectedService || !user?.id) {
-      toast.error('Please fill in all required fields');
+    if (!selectedService || !selectedDentist || !selectedDate || !selectedTime) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
       return;
     }
 
-    // First, get the user record, then the patient record - patients table uses users.id
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id, clinic_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (userError || !userData) {
-      toast.error('User record not found. Please contact support.');
-      console.error('User lookup error:', userError);
-      return;
-    }
-
-    const { data: patientData, error: patientError } = await supabase
-      .from('patients')
-      .select('id, clinic_id')
-      .eq('user_id', userData.id)
-      .maybeSingle();
-
-    if (patientError || !patientData) {
-      toast.error('Patient record not found. Please contact support.');
-      console.error('Patient lookup error:', patientError);
-      return;
-    }
-
-    console.log('Found patient record:', patientData);
-
-    setBookingLoading(true);
     try {
+      setIsBooking(true);
+
+      // Get patient ID
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, role, clinic_id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (!userData) {
+        throw new Error('User not found');
+      }
+
+      if (userData.role !== 'patient') {
+        throw new Error('Only patients can book appointments');
+      }
+
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', userData.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      console.log('Patient lookup error:', patientError);
+
+      if (patientError || !patientData) {
+        throw new Error('Patient record not found');
+      }
+
+      console.log('Found patient record:', patientData);
+
+      setBookingLoading(true);
+      
       const appointmentDateTime = new Date(selectedDate);
       const [hours, minutes] = selectedTime.split(':').map(Number);
       appointmentDateTime.setHours(hours, minutes, 0, 0);
@@ -253,19 +284,26 @@ export default function PatientAppointments() {
           dentist_id: selectedDentist === 'any' ? null : selectedDentist || null,
           duration_minutes: selectedServiceData?.default_duration_minutes || 30,
           notes: appointmentNotes,
-          clinic_id: patientData.clinic_id,
+          clinic_id: userData.clinic_id,
           status: 'booked'
         });
 
       if (error) throw error;
 
-      toast.success('Appointment booked successfully!');
+      toast({
+        title: "Success",
+        description: "Appointment booked successfully!",
+      });
       setIsBookingOpen(false);
       resetBookingForm();
       fetchAppointments();
     } catch (error) {
       console.error('Error booking appointment:', error);
-      toast.error('Failed to book appointment');
+      toast({
+        title: "Error",
+        description: "Failed to book appointment",
+        variant: "destructive",
+      });
     } finally {
       setBookingLoading(false);
     }
@@ -285,11 +323,18 @@ export default function PatientAppointments() {
 
       if (error) throw error;
 
-      toast.success('Appointment cancelled successfully');
+      toast({
+        title: "Success",
+        description: "Appointment cancelled successfully",
+      });
       fetchAppointments();
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      toast.error('Failed to cancel appointment');
+      toast({
+        title: "Error",
+        description: "Failed to cancel appointment",
+        variant: "destructive",
+      });
     }
   };
 
@@ -341,6 +386,21 @@ export default function PatientAppointments() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="text-center p-8">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Access Restricted</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={() => window.history.back()} variant="outline">
+            Go Back
+          </Button>
+        </Card>
       </div>
     );
   }
