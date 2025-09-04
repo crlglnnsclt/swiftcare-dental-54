@@ -61,7 +61,7 @@ const moduleNavigation: NavItem[] = [
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
-    roles: ["clinic_admin", "staff", "dentist", "super_admin"],
+    roles: ["clinic_admin", "staff", "dentist", "super_admin", "patient"],
     module: "dashboard"
   },
 

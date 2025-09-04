@@ -80,7 +80,7 @@ function AppRoutes() {
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
       <Route path="/branch-selection" element={user ? <BranchSelection /> : <Navigate to="/auth" replace />} />
       <Route path="/profile-switcher" element={<ProfileSwitcher />} />
-      <Route path="/checkin" element={<SmartCheckIn />} />
+      
       
       {/* Protected routes with layout */}
       <Route path="/" element={
@@ -136,6 +136,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="queue" element={<QueueManagement />} />
+        <Route path="checkin" element={<SmartCheckIn />} />
         <Route path="staff-checkin" element={<SmartCheckIn />} />
         <Route path="paperless" element={<PaperlessSystem />} />
         <Route path="digital-forms" element={
