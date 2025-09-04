@@ -376,7 +376,7 @@ export default function ServicesManagement() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center space-x-1">
-                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <DollarSign className="w-4 h-4 text-primary" />
                     <span>Price:</span>
                   </div>
                   <span className="font-semibold">
@@ -386,7 +386,7 @@ export default function ServicesManagement() {
                 
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4 text-blue-600" />
+                    <Clock className="w-4 h-4 text-secondary" />
                     <span>Duration:</span>
                   </div>
                   <span>
