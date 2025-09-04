@@ -196,420 +196,485 @@ export default function PatientProfile() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 page-container">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
-          <p className="text-muted-foreground">Manage your personal and medical information</p>
-        </div>
-        
-        <div className="flex gap-2">
-          {isEditing ? (
-            <>
-              <Button 
-                variant="outline" 
-                className="btn-3d"
-                onClick={() => {
-                  setIsEditing(false);
-                  fetchPatientDetails();
-                }}
-                disabled={saving}
-              >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-              <Button 
-                onClick={savePatientDetails}
-                disabled={saving}
-                className="medical-gradient text-white btn-3d"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </>
-          ) : (
-            <Button 
-              onClick={() => setIsEditing(true)}
-              className="medical-gradient text-white btn-3d"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 relative overflow-hidden">
+      {/* Glassmorphism Background Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-60 animate-float"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-40 animate-float-gentle"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/5 rounded-full blur-3xl opacity-30"></div>
       </div>
 
-      <Tabs defaultValue="personal" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="personal">Personal Info</TabsTrigger>
-          <TabsTrigger value="contact">Contact & Emergency</TabsTrigger>
-          <TabsTrigger value="medical">Medical History</TabsTrigger>
-          <TabsTrigger value="dental">Dental History</TabsTrigger>
-        </TabsList>
+      <div className="container mx-auto p-6 space-y-8 relative z-10 animate-fade-in">
+        {/* Header with Glass Card */}
+        <div className="glass-card-3d p-8 rounded-2xl backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant hover-scale">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-fade-in">
+                My Profile
+              </h1>
+              <p className="text-muted-foreground/80 text-lg">Manage your personal and medical information</p>
+            </div>
+            
+            <div className="flex gap-3">
+              {isEditing ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="glass-button-3d bg-background/40 backdrop-blur-sm border-white/30 hover:bg-background/60 transition-all duration-300"
+                    onClick={() => {
+                      setIsEditing(false);
+                      fetchPatientDetails();
+                    }}
+                    disabled={saving}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={savePatientDetails}
+                    disabled={saving}
+                    className="glass-button-3d bg-gradient-to-r from-primary to-secondary text-white shadow-glow hover:shadow-xl transition-all duration-300"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  onClick={() => setIsEditing(true)}
+                  className="glass-button-3d bg-gradient-to-r from-primary to-secondary text-white shadow-glow hover:shadow-xl transition-all duration-300"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
 
-        {/* Personal Information */}
-        <TabsContent value="personal" className="space-y-6">
-          <Card className="card-3d interactive-3d">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5 float-gentle" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="first_name">First Name *</Label>
-                  <Input
-                    id="first_name"
-                    value={patientDetails.first_name}
-                    onChange={(e) => handleInputChange('first_name', e.target.value)}
-                    disabled={!isEditing}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="middle_name">Middle Name</Label>
-                  <Input
-                    id="middle_name"
-                    value={patientDetails.middle_name || ''}
-                    onChange={(e) => handleInputChange('middle_name', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="last_name">Last Name *</Label>
-                  <Input
-                    id="last_name"
-                    value={patientDetails.last_name}
-                    onChange={(e) => handleInputChange('last_name', e.target.value)}
-                    disabled={!isEditing}
-                    required
-                  />
-                </div>
-              </div>
+        <Tabs defaultValue="personal" className="space-y-8">
+          <TabsList className="glass-card-3d grid w-full grid-cols-4 bg-background/30 backdrop-blur-xl border border-white/20 p-2 rounded-xl h-14">
+            <TabsTrigger 
+              value="personal" 
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+            >
+              Personal Info
+            </TabsTrigger>
+            <TabsTrigger 
+              value="contact"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+            >
+              Contact & Emergency
+            </TabsTrigger>
+            <TabsTrigger 
+              value="medical"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+            >
+              Medical History
+            </TabsTrigger>
+            <TabsTrigger 
+              value="dental"
+              className="glass-tab-3d data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-glow rounded-lg transition-all duration-300"
+            >
+              Dental History
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
+          {/* Personal Information */}
+          <TabsContent value="personal" className="space-y-8 animate-fade-in">
+            <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
+                    <User className="w-6 h-6 text-primary animate-float-gentle" />
+                  </div>
+                  Personal Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 p-8">
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name" className="text-sm font-medium text-foreground/80">First Name *</Label>
+                    <Input
+                      id="first_name"
+                      value={patientDetails.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      disabled={!isEditing}
+                      required
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="middle_name" className="text-sm font-medium text-foreground/80">Middle Name</Label>
+                    <Input
+                      id="middle_name"
+                      value={patientDetails.middle_name || ''}
+                      onChange={(e) => handleInputChange('middle_name', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name" className="text-sm font-medium text-foreground/80">Last Name *</Label>
+                    <Input
+                      id="last_name"
+                      value={patientDetails.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      disabled={!isEditing}
+                      required
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="date_of_birth" className="text-sm font-medium text-foreground/80">Date of Birth</Label>
+                    <Input
+                      id="date_of_birth"
+                      type="date"
+                      value={patientDetails.date_of_birth || ''}
+                      onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender" className="text-sm font-medium text-foreground/80">Gender</Label>
+                    <Select 
+                      value={patientDetails.gender || ''} 
+                      onValueChange={(value) => handleInputChange('gender', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card-3d bg-background/90 backdrop-blur-xl border-white/20">
+                        {genderOptions.map(option => (
+                          <SelectItem key={option} value={option} className="hover:bg-primary/10">{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="blood_type" className="text-sm font-medium text-foreground/80">Blood Type</Label>
+                    <Select 
+                      value={patientDetails.blood_type || ''} 
+                      onValueChange={(value) => handleInputChange('blood_type', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300">
+                        <SelectValue placeholder="Select blood type" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card-3d bg-background/90 backdrop-blur-xl border-white/20">
+                        {bloodTypes.map(type => (
+                          <SelectItem key={type} value={type} className="hover:bg-primary/10">{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="occupation" className="text-sm font-medium text-foreground/80">Occupation</Label>
                   <Input
-                    id="date_of_birth"
+                    id="occupation"
+                    value={patientDetails.occupation || ''}
+                    onChange={(e) => handleInputChange('occupation', e.target.value)}
+                    disabled={!isEditing}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Contact & Emergency */}
+          <TabsContent value="contact" className="space-y-8 animate-fade-in">
+            <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
+                    <Phone className="w-6 h-6 text-primary animate-float-gentle" />
+                  </div>
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 p-8">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium text-foreground/80">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={patientDetails.email || ''}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium text-foreground/80">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={patientDetails.phone || ''}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="home_address" className="text-sm font-medium text-foreground/80">Home Address</Label>
+                  <Textarea
+                    id="home_address"
+                    value={patientDetails.home_address || ''}
+                    onChange={(e) => handleInputChange('home_address', e.target.value)}
+                    disabled={!isEditing}
+                    rows={2}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency_contact_name" className="text-sm font-medium text-foreground/80">Emergency Contact Name</Label>
+                    <Input
+                      id="emergency_contact_name"
+                      value={patientDetails.emergency_contact_name || ''}
+                      onChange={(e) => handleInputChange('emergency_contact_name', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency_contact_phone" className="text-sm font-medium text-foreground/80">Emergency Contact Phone</Label>
+                    <Input
+                      id="emergency_contact_phone"
+                      value={patientDetails.emergency_contact_phone || ''}
+                      onChange={(e) => handleInputChange('emergency_contact_phone', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="preferred_time" className="text-sm font-medium text-foreground/80">Preferred Appointment Time</Label>
+                    <Select 
+                      value={patientDetails.preferred_time || ''} 
+                      onValueChange={(value) => handleInputChange('preferred_time', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300">
+                        <SelectValue placeholder="Select preferred time" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card-3d bg-background/90 backdrop-blur-xl border-white/20">
+                        {timePreferences.map(pref => (
+                          <SelectItem key={pref} value={pref} className="hover:bg-primary/10">{pref}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="communication_preference" className="text-sm font-medium text-foreground/80">Communication Preference</Label>
+                    <Select 
+                      value={patientDetails.communication_preference || ''} 
+                      onValueChange={(value) => handleInputChange('communication_preference', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300">
+                        <SelectValue placeholder="Select communication method" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card-3d bg-background/90 backdrop-blur-xl border-white/20">
+                        {communicationPreferences.map(pref => (
+                          <SelectItem key={pref} value={pref} className="hover:bg-primary/10">{pref}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Insurance Information */}
+            <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
+                    <MapPin className="w-6 h-6 text-primary animate-float-gentle" />
+                  </div>
+                  Insurance Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 p-8">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="insurance_provider" className="text-sm font-medium text-foreground/80">Insurance Provider</Label>
+                    <Input
+                      id="insurance_provider"
+                      value={patientDetails.insurance_provider || ''}
+                      onChange={(e) => handleInputChange('insurance_provider', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="policy_number" className="text-sm font-medium text-foreground/80">Policy Number</Label>
+                    <Input
+                      id="policy_number"
+                      value={patientDetails.policy_number || ''}
+                      onChange={(e) => handleInputChange('policy_number', e.target.value)}
+                      disabled={!isEditing}
+                      className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Medical History */}
+          <TabsContent value="medical" className="space-y-8 animate-fade-in">
+            <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
+                    <Heart className="w-6 h-6 text-primary animate-float-gentle" />
+                  </div>
+                  Medical History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 p-8">
+                <div className="space-y-2">
+                  <Label htmlFor="allergies" className="flex items-center gap-2 text-sm font-medium text-foreground/80">
+                    <AlertTriangle className="w-4 h-4" />
+                    Allergies
+                  </Label>
+                  <Textarea
+                    id="allergies"
+                    value={patientDetails.allergies || ''}
+                    onChange={(e) => handleInputChange('allergies', e.target.value)}
+                    disabled={!isEditing}
+                    placeholder="List any known allergies (medications, foods, etc.)"
+                    rows={2}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="existing_medical_conditions" className="text-sm font-medium text-foreground/80">Existing Medical Conditions</Label>
+                  <Textarea
+                    id="existing_medical_conditions"
+                    value={patientDetails.existing_medical_conditions || ''}
+                    onChange={(e) => handleInputChange('existing_medical_conditions', e.target.value)}
+                    disabled={!isEditing}
+                    placeholder="Diabetes, hypertension, heart conditions, etc."
+                    rows={3}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="current_medications" className="flex items-center gap-2 text-sm font-medium text-foreground/80">
+                    <Pill className="w-4 h-4" />
+                    Current Medications
+                  </Label>
+                  <Textarea
+                    id="current_medications"
+                    value={patientDetails.current_medications || ''}
+                    onChange={(e) => handleInputChange('current_medications', e.target.value)}
+                    disabled={!isEditing}
+                    placeholder="List all medications you are currently taking"
+                    rows={3}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="previous_surgeries" className="flex items-center gap-2 text-sm font-medium text-foreground/80">
+                    <Scissors className="w-4 h-4" />
+                    Previous Surgeries
+                  </Label>
+                  <Textarea
+                    id="previous_surgeries"
+                    value={patientDetails.previous_surgeries || ''}
+                    onChange={(e) => handleInputChange('previous_surgeries', e.target.value)}
+                    disabled={!isEditing}
+                    placeholder="Include dates and types of surgeries"
+                    rows={3}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Dental History */}
+          <TabsContent value="dental" className="space-y-8 animate-fade-in">
+            <Card className="glass-card-3d backdrop-blur-xl bg-background/20 border border-white/20 shadow-elegant rounded-2xl overflow-hidden hover-scale transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/10">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 rounded-full bg-primary/20 backdrop-blur-sm">
+                    <Calendar className="w-6 h-6 text-primary animate-float-gentle" />
+                  </div>
+                  Dental History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 p-8">
+                <div className="space-y-2">
+                  <Label htmlFor="last_dental_visit" className="text-sm font-medium text-foreground/80">Last Dental Visit</Label>
+                  <Input
+                    id="last_dental_visit"
                     type="date"
-                    value={patientDetails.date_of_birth || ''}
-                    onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
+                    value={patientDetails.last_dental_visit || ''}
+                    onChange={(e) => handleInputChange('last_dental_visit', e.target.value)}
                     disabled={!isEditing}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select 
-                    value={patientDetails.gender || ''} 
-                    onValueChange={(value) => handleInputChange('gender', value)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {genderOptions.map(option => (
-                        <SelectItem key={option} value={option}>{option}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="blood_type">Blood Type</Label>
-                  <Select 
-                    value={patientDetails.blood_type || ''} 
-                    onValueChange={(value) => handleInputChange('blood_type', value)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select blood type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bloodTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <div>
-                <Label htmlFor="occupation">Occupation</Label>
-                <Input
-                  id="occupation"
-                  value={patientDetails.occupation || ''}
-                  onChange={(e) => handleInputChange('occupation', e.target.value)}
-                  disabled={!isEditing}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Contact & Emergency */}
-        <TabsContent value="contact" className="space-y-6">
-          <Card className="card-3d interactive-3d">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Phone className="w-5 h-5 float-gentle" />
-                Contact Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={patientDetails.email || ''}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                <div className="space-y-2">
+                  <Label htmlFor="dental_history" className="text-sm font-medium text-foreground/80">Previous Dental Treatments</Label>
+                  <Textarea
+                    id="dental_history"
+                    value={patientDetails.dental_history || ''}
+                    onChange={(e) => handleInputChange('dental_history', e.target.value)}
                     disabled={!isEditing}
+                    placeholder="Fillings, crowns, extractions, orthodontics, etc."
+                    rows={4}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={patientDetails.phone || ''}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+
+                <div className="space-y-2">
+                  <Label htmlFor="dental_concerns" className="text-sm font-medium text-foreground/80">Current Dental Concerns</Label>
+                  <Textarea
+                    id="dental_concerns"
+                    value={patientDetails.dental_concerns || ''}
+                    onChange={(e) => handleInputChange('dental_concerns', e.target.value)}
                     disabled={!isEditing}
+                    placeholder="Pain, sensitivity, cosmetic concerns, etc."
+                    rows={3}
+                    className="glass-input-3d bg-background/40 backdrop-blur-sm border-white/30 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="home_address">Home Address</Label>
-                <Textarea
-                  id="home_address"
-                  value={patientDetails.home_address || ''}
-                  onChange={(e) => handleInputChange('home_address', e.target.value)}
-                  disabled={!isEditing}
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="emergency_contact_name">Emergency Contact Name</Label>
-                  <Input
-                    id="emergency_contact_name"
-                    value={patientDetails.emergency_contact_name || ''}
-                    onChange={(e) => handleInputChange('emergency_contact_name', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="emergency_contact_phone">Emergency Contact Phone</Label>
-                  <Input
-                    id="emergency_contact_phone"
-                    value={patientDetails.emergency_contact_phone || ''}
-                    onChange={(e) => handleInputChange('emergency_contact_phone', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="preferred_time">Preferred Appointment Time</Label>
-                  <Select 
-                    value={patientDetails.preferred_time || ''} 
-                    onValueChange={(value) => handleInputChange('preferred_time', value)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select preferred time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timePreferences.map(pref => (
-                        <SelectItem key={pref} value={pref}>{pref}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="communication_preference">Communication Preference</Label>
-                  <Select 
-                    value={patientDetails.communication_preference || ''} 
-                    onValueChange={(value) => handleInputChange('communication_preference', value)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select communication method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {communicationPreferences.map(pref => (
-                        <SelectItem key={pref} value={pref}>{pref}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Insurance Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Insurance Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="insurance_provider">Insurance Provider</Label>
-                  <Input
-                    id="insurance_provider"
-                    value={patientDetails.insurance_provider || ''}
-                    onChange={(e) => handleInputChange('insurance_provider', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="policy_number">Policy Number</Label>
-                  <Input
-                    id="policy_number"
-                    value={patientDetails.policy_number || ''}
-                    onChange={(e) => handleInputChange('policy_number', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Medical History */}
-        <TabsContent value="medical" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="w-5 h-5" />
-                Medical History
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="allergies" className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Allergies
-                </Label>
-                <Textarea
-                  id="allergies"
-                  value={patientDetails.allergies || ''}
-                  onChange={(e) => handleInputChange('allergies', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="List any known allergies (medications, foods, etc.)"
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="existing_medical_conditions">Existing Medical Conditions</Label>
-                <Textarea
-                  id="existing_medical_conditions"
-                  value={patientDetails.existing_medical_conditions || ''}
-                  onChange={(e) => handleInputChange('existing_medical_conditions', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="Diabetes, hypertension, heart conditions, etc."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="current_medications" className="flex items-center gap-2">
-                  <Pill className="w-4 h-4" />
-                  Current Medications
-                </Label>
-                <Textarea
-                  id="current_medications"
-                  value={patientDetails.current_medications || ''}
-                  onChange={(e) => handleInputChange('current_medications', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="List all medications you are currently taking"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="previous_surgeries" className="flex items-center gap-2">
-                  <Scissors className="w-4 h-4" />
-                  Previous Surgeries
-                </Label>
-                <Textarea
-                  id="previous_surgeries"
-                  value={patientDetails.previous_surgeries || ''}
-                  onChange={(e) => handleInputChange('previous_surgeries', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="Include dates and types of surgeries"
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Dental History */}
-        <TabsContent value="dental" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Dental History
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="last_dental_visit">Last Dental Visit</Label>
-                <Input
-                  id="last_dental_visit"
-                  type="date"
-                  value={patientDetails.last_dental_visit || ''}
-                  onChange={(e) => handleInputChange('last_dental_visit', e.target.value)}
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="dental_history">Previous Dental Treatments</Label>
-                <Textarea
-                  id="dental_history"
-                  value={patientDetails.dental_history || ''}
-                  onChange={(e) => handleInputChange('dental_history', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="Fillings, crowns, extractions, orthodontics, etc."
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="dental_concerns">Current Dental Concerns</Label>
-                <Textarea
-                  id="dental_concerns"
-                  value={patientDetails.dental_concerns || ''}
-                  onChange={(e) => handleInputChange('dental_concerns', e.target.value)}
-                  disabled={!isEditing}
-                  placeholder="Pain, sensitivity, cosmetic concerns, etc."
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
