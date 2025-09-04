@@ -2694,6 +2694,10 @@ export type Database = {
           is_enabled: boolean
         }[]
       }
+      get_current_user_clinic_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_details: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2728,6 +2732,10 @@ export type Database = {
         Returns: {
           branch_id: string
         }[]
+      }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       log_data_sharing_access: {
         Args: {
