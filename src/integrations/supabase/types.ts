@@ -2705,6 +2705,10 @@ export type Database = {
           user_role: string
         }[]
       }
+      get_current_user_patient_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
