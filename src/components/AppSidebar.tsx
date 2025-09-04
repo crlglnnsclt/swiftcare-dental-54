@@ -1,27 +1,35 @@
 import { useState } from "react";
 import { 
-  Building2, 
-  Users, 
   Calendar, 
   Clock,
-  Settings,
-  BarChart3,
-  Stethoscope,
+  Users,
   FileText,
-  MessageSquare,
   CreditCard,
-  UserCheck,
-  Shield,
-  Palette,
-  Database,
-  Activity,
-  FileEdit,
-  ClipboardCheck,
   Package,
-  Bell,
+  BarChart3,
+  Settings,
+  Shield,
+  Building2,
   QrCode,
+  UserCheck,
+  Smartphone,
+  FileEdit,
+  Stethoscope,
+  ClipboardCheck,
+  Activity,
+  Database,
+  MessageSquare,
+  Bell,
   User,
-  Smartphone
+  Eye,
+  Tv,
+  HelpCircle,
+  Home,
+  HeartHandshake,
+  Receipt,
+  Palette,
+  FileCheck,
+  Layers
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -42,214 +50,267 @@ interface NavItem {
   url: string;
   icon: any;
   roles: string[];
-  enhancedRoles?: string[];
+  module: string;
 }
 
-const navigationItems: NavItem[] = [
-  // General Settings - Available to all users
+// 📦 Module-Based Navigation (Organized by SwiftCare System Modules)
+const moduleNavigation: NavItem[] = [
+  // 🏠 Dashboard
   {
-    title: "Account Settings",
-    url: "/settings",
-    icon: Settings,
-    roles: ["patient", "dentist", "staff", "admin"],
-    enhancedRoles: ["patient", "dentist", "staff", "admin", "super_admin"]
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: Home,
+    roles: ["clinic_admin", "staff", "dentist", "super_admin"],
+    module: "dashboard"
   },
-  
-  // Super Admin Only
+
+  // 📅 Module 1: Appointments & Queueing
   {
-    title: "System Overview",
-    url: "/super-admin",
+    title: "Appointments",
+    url: "/appointments",
+    icon: Calendar,
+    roles: ["clinic_admin", "staff", "dentist", "super_admin"],
+    module: "appointments"
+  },
+  {
+    title: "Queue Dashboard",
+    url: "/queue",
+    icon: Clock,
+    roles: ["clinic_admin", "staff", "dentist", "super_admin"],
+    module: "appointments"
+  },
+  {
+    title: "Walk-ins",
+    url: "/checkin",
+    icon: UserCheck,
+    roles: ["staff", "clinic_admin", "super_admin"],
+    module: "appointments"
+  },
+  {
+    title: "Queue Monitor",
+    url: "/queue-monitor",
+    icon: Tv,
+    roles: ["staff", "clinic_admin", "super_admin"],
+    module: "appointments"
+  },
+
+  // 👤 Module 2: Patient Management
+  {
+    title: "Patient Profiles",
+    url: "/patient-records",
+    icon: Users,
+    roles: ["dentist", "clinic_admin", "staff", "super_admin"],
+    module: "patients"
+  },
+  {
+    title: "Family Accounts",
+    url: "/family-management",
+    icon: HeartHandshake,
+    roles: ["clinic_admin", "staff", "super_admin"],
+    module: "patients"
+  },
+  {
+    title: "Insurance / HMO",
+    url: "/insurance",
     icon: Shield,
-    roles: ["super_admin"],
-    enhancedRoles: ["super_admin"]
+    roles: ["clinic_admin", "staff", "super_admin"],
+    module: "patients"
   },
   {
-    title: "Branch Management",
-    url: "/branches",
+    title: "Verification Queue",
+    url: "/verification-queue",
+    icon: Eye,
+    roles: ["staff", "clinic_admin", "super_admin"],
+    module: "patients"
+  },
+
+  // 📝 Module 3: Paperless Records
+  {
+    title: "E-Sign Forms",
+    url: "/digital-forms",
+    icon: FileEdit,
+    roles: ["clinic_admin", "staff", "dentist", "super_admin"],
+    module: "paperless"
+  },
+  {
+    title: "Documents & Uploads",
+    url: "/paperless",
+    icon: FileText,
+    roles: ["clinic_admin", "staff", "dentist", "patient", "super_admin"],
+    module: "paperless"
+  },
+  {
+    title: "Dental Charts",
+    url: "/charts",
+    icon: Stethoscope,
+    roles: ["dentist", "clinic_admin", "super_admin"],
+    module: "paperless"
+  },
+  {
+    title: "Dentist/Staff Signatures",
+    url: "/form-responses",
+    icon: FileCheck,
+    roles: ["dentist", "clinic_admin", "staff", "super_admin"],
+    module: "paperless"
+  },
+
+  // 💉 Module 4: Treatment & Billing
+  {
+    title: "Treatment Notes",
+    url: "/treatment-notes",
+    icon: ClipboardCheck,
+    roles: ["dentist", "clinic_admin", "super_admin"],
+    module: "treatment"
+  },
+  {
+    title: "Billing & Invoices",
+    url: "/billing",
+    icon: CreditCard,
+    roles: ["clinic_admin", "staff", "super_admin"],
+    module: "treatment"
+  },
+  {
+    title: "Consumables / Inventory",
+    url: "/inventory",
+    icon: Package,
+    roles: ["clinic_admin", "staff", "super_admin"],
+    module: "treatment"
+  },
+
+  // 📊 Module 5: Reports & Analytics
+  {
+    title: "Queue Reports",
+    url: "/queue-reports",
+    icon: BarChart3,
+    roles: ["clinic_admin", "super_admin"],
+    module: "reports"
+  },
+  {
+    title: "Revenue Reports",
+    url: "/revenue-reports",
+    icon: Receipt,
+    roles: ["clinic_admin", "super_admin"],
+    module: "reports"
+  },
+  {
+    title: "Dentist Workload",
+    url: "/workload-reports",
+    icon: Activity,
+    roles: ["clinic_admin", "super_admin"],
+    module: "reports"
+  },
+  {
+    title: "Export",
+    url: "/analytics",
+    icon: Database,
+    roles: ["clinic_admin", "super_admin"],
+    module: "reports"
+  },
+
+  // ⚙️ Module 6: Administration
+  {
+    title: "Staff Management",
+    url: "/staff-management",
+    icon: Users,
+    roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+  {
+    title: "Role Permissions",
+    url: "/user-roles",
+    icon: Shield,
+    roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+  {
+    title: "Clinic Customization",
+    url: "/clinic-branding",
+    icon: Palette,
+    roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+  {
+    title: "Feature Toggles",
+    url: "/feature-toggles",
+    icon: Layers,
+    roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+  {
+    title: "Audit Logs",
+    url: "/audit-logs",
+    icon: FileText,
+    roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+
+  // 🌍 Super Admin Only
+  {
+    title: "Multi-Clinic Management",
+    url: "/super-admin",
     icon: Building2,
     roles: ["super_admin"],
-    enhancedRoles: ["super_admin"]
+    module: "super_admin"
+  },
+  {
+    title: "User-to-Clinic Assignment",
+    url: "/branches",
+    icon: Users,
+    roles: ["super_admin"],
+    module: "super_admin"
   },
   {
     title: "System Analytics",
     url: "/system-analytics",
     icon: Database,
     roles: ["super_admin"],
-    enhancedRoles: ["super_admin"]
+    module: "super_admin"
   },
-  
-  // Admin & Super Admin
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: BarChart3,
-    roles: ["admin", "staff", "dentist", "super_admin"],
-    enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
-  },
-  {
-    title: "Users & Staff",
-    url: "/users",
-    icon: Users,
-    roles: ["admin", "super_admin"],
-    enhancedRoles: ["admin", "super_admin"]
-  },
-  {
-    title: "Branch Settings",
-    url: "/branch-settings",
-    icon: Settings,
-    roles: ["admin", "super_admin"],
-    enhancedRoles: ["admin", "super_admin"]
-  },
-  
-  // Staff & Admin
-  {
-    title: "Appointments", 
-    url: "/appointments",
-    icon: Calendar,
-    roles: ["admin", "staff", "dentist", "super_admin"],
-    enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
-  },
-  {
-    title: "Queue Management",
-    url: "/queue",
-    icon: Clock,
-    roles: ["admin", "staff", "dentist", "super_admin"],
-    enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
-  },
-  {
-    title: "Patient Check-in",
-    url: "/staff-checkin",
-    icon: UserCheck,
-    roles: ["staff", "admin"],
-    enhancedRoles: ["staff", "admin", "super_admin"]
-  },
-  {
-    title: "Messaging",
-    url: "/messages",
-    icon: MessageSquare,
-    roles: ["admin", "staff", "dentist"],
-    enhancedRoles: ["admin", "super_admin", "staff", "dentist"]
-  },
-  
-  // Dentist Specific
-  {
-    title: "Dental Charts",
-    url: "/charts",
-    icon: Stethoscope,
-    roles: ["dentist", "admin"],
-    enhancedRoles: ["dentist", "admin", "super_admin"]
-  },
-  {
-    title: "Patient Records",
-    url: "/patient-records",
-    icon: FileText,
-    roles: ["dentist", "admin", "staff"],
-    enhancedRoles: ["dentist", "admin", "super_admin", "staff"]
-  },
-  
-  // Digital Forms & Paperless
-  {
-    title: "Paperless System",
-    url: "/paperless",
-    icon: Smartphone,
-    roles: ["admin", "staff", "dentist", "patient"],
-    enhancedRoles: ["admin", "super_admin", "staff", "dentist", "patient"]
-  },
-  {
-    title: "Form Management",
-    url: "/digital-forms",
-    icon: FileEdit,
-    roles: ["admin", "staff"],
-    enhancedRoles: ["admin", "super_admin", "staff"]
-  },
-  {
-    title: "Form Responses",
-    url: "/form-responses",
-    icon: ClipboardCheck,
-    roles: ["admin", "staff"],
-    enhancedRoles: ["admin", "super_admin", "staff"]
-  },
-  
-  // Inventory & Staff
-  {
-    title: "Inventory Management",
-    url: "/inventory",
-    icon: Package,
-    roles: ["admin", "staff"],
-    enhancedRoles: ["admin", "super_admin", "staff"]
-  },
-  {
-    title: "Staff Management",
-    url: "/staff-management",
-    icon: Users,
-    roles: ["admin", "super_admin"],
-    enhancedRoles: ["admin", "super_admin"]
-  },
-  
-  {
-    title: "Billing & Payments",
-    url: "/billing",
-    icon: CreditCard,
-    roles: ["admin", "super_admin"],
-    enhancedRoles: ["admin", "super_admin"]
-  },
-  {
-    title: "Patient Engagement",
-    url: "/patient-engagement", 
-    icon: MessageSquare,
-    roles: ["admin", "staff"],
-    enhancedRoles: ["admin", "super_admin", "staff"]
-  },
-  {
-    title: "Analytics & Reports",
-    url: "/analytics",
-    icon: Activity,
-    roles: ["admin", "super_admin"],
-    enhancedRoles: ["admin", "super_admin"]
-  },
-  
-  // Patient Only
+
+  // 👨‍⚕️ Patient Portal
   {
     title: "My Appointments",
     url: "/my-appointments",
     icon: Calendar,
     roles: ["patient"],
-    enhancedRoles: ["patient"]
+    module: "patient_portal"
   },
   {
-    title: "My Profile", 
+    title: "My Profile",
     url: "/my-profile",
     icon: User,
     roles: ["patient"],
-    enhancedRoles: ["patient"]
+    module: "patient_portal"
   },
   {
-    title: "My Results",
-    url: "/my-results",
+    title: "My Documents",
+    url: "/paperless",
     icon: FileText,
     roles: ["patient"],
-    enhancedRoles: ["patient"]
+    module: "patient_portal"
   },
   {
-    title: "My Notifications",
-    url: "/my-notifications", 
-    icon: Bell,
+    title: "My Billing",
+    url: "/my-billing",
+    icon: CreditCard,
     roles: ["patient"],
-    enhancedRoles: ["patient"]
+    module: "patient_portal"
   },
   {
-    title: "Quick Check-In",
+    title: "QR Check-In",
     url: "/checkin",
     icon: QrCode,
     roles: ["patient"],
-    enhancedRoles: ["patient"]
+    module: "patient_portal"
   },
+
+  // ⚙️ Settings (All Users)
   {
-    title: "Patient Forms",
-    url: "/patient-forms",
-    icon: FileEdit,
-    roles: ["patient"],
-    enhancedRoles: ["patient"]
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+    roles: ["patient", "dentist", "staff", "clinic_admin", "super_admin"],
+    module: "settings"
   }
 ];
 
@@ -261,37 +322,21 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   // Filter navigation items based on user role
-  const allowedItems = navigationItems.filter(item => {
-    const hasRole = profile?.role && item.roles.includes(profile.role);
-    // Since enhanced_role doesn't exist in DB, just use regular role
-    const hasEnhancedRole = profile?.role && 
-      item.enhancedRoles?.includes(profile.role);
-    return hasRole || hasEnhancedRole;
+  const allowedItems = moduleNavigation.filter(item => {
+    return profile?.role && item.roles.includes(profile.role);
   });
 
-  // Group items by category
-  const generalItems = allowedItems.filter(item => 
-    item.title === "Account Settings"
-  );
-  
-  const superAdminItems = allowedItems.filter(item => 
-    (item.enhancedRoles?.includes("super_admin") || item.roles.includes("super_admin")) && 
-    profile?.role === "super_admin"
-  );
-  
-  const managementItems = allowedItems.filter(item => 
-    (item.roles.includes("admin") || item.enhancedRoles?.includes("admin")) &&
-    !superAdminItems.includes(item) && !generalItems.includes(item)
-  );
-  
-  const operationsItems = allowedItems.filter(item => 
-    (item.roles.includes("staff") || item.roles.includes("dentist")) &&
-    !managementItems.includes(item) && !superAdminItems.includes(item) && !generalItems.includes(item)
-  );
-  
-  const patientItems = allowedItems.filter(item => 
-    item.roles.includes("patient") && !generalItems.includes(item)
-  );
+  // Group items by modules
+  const dashboardItems = allowedItems.filter(item => item.module === "dashboard");
+  const appointmentItems = allowedItems.filter(item => item.module === "appointments");
+  const patientItems = allowedItems.filter(item => item.module === "patients");
+  const paperlessItems = allowedItems.filter(item => item.module === "paperless");
+  const treatmentItems = allowedItems.filter(item => item.module === "treatment");
+  const reportsItems = allowedItems.filter(item => item.module === "reports");
+  const adminItems = allowedItems.filter(item => item.module === "administration");
+  const superAdminItems = allowedItems.filter(item => item.module === "super_admin");
+  const patientPortalItems = allowedItems.filter(item => item.module === "patient_portal");
+  const settingsItems = allowedItems.filter(item => item.module === "settings");
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -352,12 +397,17 @@ export function AppSidebar() {
           </div>
         </div>
 
-        {/* Navigation Groups */}
-        {renderNavGroup(generalItems, "Account")}
-        {renderNavGroup(superAdminItems, "System Administration")}
-        {renderNavGroup(managementItems, "Management")}
-        {renderNavGroup(operationsItems, "Operations")}
-        {renderNavGroup(patientItems, "Patient Portal")}
+        {/* Module-Based Navigation Groups */}
+        {renderNavGroup(dashboardItems, "🏠 Dashboard")}
+        {renderNavGroup(appointmentItems, "📅 Appointments & Queueing")}
+        {renderNavGroup(patientItems, "👤 Patient Management")}
+        {renderNavGroup(paperlessItems, "📝 Paperless Records")}
+        {renderNavGroup(treatmentItems, "💉 Treatment & Billing")}
+        {renderNavGroup(reportsItems, "📊 Reports & Analytics")}
+        {renderNavGroup(adminItems, "⚙️ Administration")}
+        {renderNavGroup(superAdminItems, "🌍 Super Admin")}
+        {renderNavGroup(patientPortalItems, "👨‍⚕️ Patient Portal")}
+        {renderNavGroup(settingsItems, "⚙️ Settings")}
       </SidebarContent>
     </Sidebar>
   );
