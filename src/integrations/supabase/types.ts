@@ -626,6 +626,48 @@ export type Database = {
           },
         ]
       }
+      dentist_signatures: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          dentist_id: string
+          document_id: string | null
+          id: string
+          metadata: Json | null
+          patient_id: string | null
+          signature_data: string
+          signature_type: string
+          signed_at: string
+          treatment_record_id: string | null
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          dentist_id: string
+          document_id?: string | null
+          id?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          signature_data: string
+          signature_type: string
+          signed_at?: string
+          treatment_record_id?: string | null
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          dentist_id?: string
+          document_id?: string | null
+          id?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          signature_data?: string
+          signature_type?: string
+          signed_at?: string
+          treatment_record_id?: string | null
+        }
+        Relationships: []
+      }
       digital_forms: {
         Row: {
           category: string
