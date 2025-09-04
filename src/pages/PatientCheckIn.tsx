@@ -40,6 +40,7 @@ export function PatientCheckIn() {
       }
 
       console.log('Fetching appointments for user:', user.id);
+      console.log('User profile role:', profile.role);
 
       // Check if user is a patient
       if (profile.role !== 'patient') {
@@ -54,6 +55,8 @@ export function PatientCheckIn() {
         .select('id, clinic_id, role')
         .eq('user_id', user.id)
         .single();
+
+      console.log('User lookup result:', userData, userError);
 
       if (userError || !userData) {
         console.error('User lookup error:', userError);
@@ -70,6 +73,8 @@ export function PatientCheckIn() {
         .order('created_at', { ascending: true })
         .limit(1);
 
+      console.log('Patient lookup result:', patientData, patientError);
+
       if (patientError || !patientData || patientData.length === 0) {
         console.error('Patient lookup error:', patientError);
         setError('No patient record found');
@@ -81,9 +86,7 @@ export function PatientCheckIn() {
       console.log('Found patient:', patient);
 
       // Get appointments for today and future dates for this specific patient
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
+      // For testing, let's get all appointments regardless of date
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -91,9 +94,10 @@ export function PatientCheckIn() {
           profiles:users!dentist_id(full_name)
         `)
         .eq('patient_id', patient.id)
-        .gte('scheduled_time', today.toISOString())
         .in('status', ['booked', 'checked_in'])
         .order('scheduled_time', { ascending: true });
+
+      console.log('Appointments query result:', data, error);
 
       if (error) throw error;
 
