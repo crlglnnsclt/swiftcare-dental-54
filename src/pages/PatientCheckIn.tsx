@@ -90,11 +90,12 @@ export function PatientCheckIn() {
       const patient = patientData[0];
       console.log('Found patient:', patient);
 
-      // Get appointments for today and future dates for this specific patient
+      // Get appointments for this week and future for this specific patient
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      console.log('Querying appointments for patient:', patient.id, 'from date:', today.toISOString());
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(today.getDate() - 7);
+      
+      console.log('Querying appointments for patient:', patient.id, 'from date:', oneWeekAgo.toISOString());
 
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
@@ -103,7 +104,7 @@ export function PatientCheckIn() {
           profiles:users!dentist_id(full_name)
         `)
         .eq('patient_id', patient.id)
-        .gte('scheduled_time', today.toISOString())
+        .gte('scheduled_time', oneWeekAgo.toISOString())
         .in('status', ['booked', 'checked_in'])
         .order('scheduled_time', { ascending: true });
 
