@@ -43,6 +43,12 @@ import Messaging from "./pages/Messaging";
 import DentalCharts from "./pages/DentalCharts";
 import OdontogramDesigns from "./pages/OdontogramDesigns";
 import Unauthorized from "./pages/Unauthorized";
+import AuditLogs from "./pages/AuditLogs";
+import VerificationQueue from "./pages/VerificationQueue";
+import QueueMonitor from "./pages/QueueMonitor";
+import WalkIns from "./pages/WalkIns";
+import FamilyManagement from "./pages/FamilyManagement";
+import InsuranceHMO from "./pages/InsuranceHMO";
 
 const queryClient = new QueryClient();
 
@@ -177,8 +183,32 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         
-        <Route path="payments" element={<div className="p-8"><h1 className="text-2xl font-bold">Payments</h1><p className="text-muted-foreground">Coming soon...</p></div>} />
-        <Route path="reports" element={<div className="p-8"><h1 className="text-2xl font-bold">Reports</h1><p className="text-muted-foreground">Coming soon...</p></div>} />
+        <Route path="audit-logs" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <AuditLogs />
+          </ProtectedRoute>
+        } />
+        <Route path="verification-queue" element={
+          <ProtectedRoute requiredRole={['staff', 'clinic_admin', 'super_admin']}>
+            <VerificationQueue />
+          </ProtectedRoute>
+        } />
+        <Route path="queue-monitor" element={<QueueMonitor />} />
+        <Route path="walk-ins" element={
+          <ProtectedRoute requiredRole={['staff', 'clinic_admin', 'super_admin']}>
+            <WalkIns />
+          </ProtectedRoute>
+        } />
+        <Route path="family-management" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+            <FamilyManagement />
+          </ProtectedRoute>
+        } />
+        <Route path="insurance" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+            <InsuranceHMO />
+          </ProtectedRoute>
+        } />
       </Route>
       
       {/* Special routes */}
