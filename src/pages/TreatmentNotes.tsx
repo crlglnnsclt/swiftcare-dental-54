@@ -9,96 +9,96 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Plus, Search, Edit, Eye, Calendar, User, Stethoscope } from "lucide-react";
+import { FileText, Plus, Search, Edit, Eye, Calendar, User, Stethoscope, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TreatmentNotes() {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [treatments, setTreatments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState({
     patientId: "",
-    treatmentType: "",
+    treatmentId: "",
     diagnosis: "",
     procedure: "",
     notes: "",
     followUpRequired: false,
     visibleToPatient: false,
     medications: "",
-    nextAppointment: ""
+    nextAppointment: "",
+    cost: "",
+    duration: ""
   });
 
-  // Demo treatment notes data
-  const [treatmentNotes, setTreatmentNotes] = useState([
-    {
-      id: 1,
-      patientName: "Sarah Johnson",
-      patientId: "P001",
-      date: "2025-01-02",
-      treatmentType: "Root Canal",
-      diagnosis: "Severe dental caries in tooth #14",
-      procedure: "Endodontic treatment with temporary filling",
-      notes: "Patient presented with severe pain. Local anesthesia administered. Root canal initiated on tooth #14. Temporary filling placed. Patient advised on post-treatment care.",
-      dentistName: "Dr. Michael Chen",
-      followUpDate: "2025-01-09",
-      medications: "Ibuprofen 600mg TID, Amoxicillin 500mg BID",
-      visibleToPatient: true,
-      status: "completed",
-      duration: 90
-    },
-    {
-      id: 2,
-      patientName: "Robert Davis",
-      patientId: "P002",
-      date: "2025-01-02",
-      treatmentType: "Dental Cleaning",
-      diagnosis: "Mild gingivitis, plaque buildup",
-      procedure: "Professional prophylaxis and fluoride treatment",
-      notes: "Routine cleaning performed. Patient education provided on proper brushing technique. Fluoride treatment applied. No complications noted.",
-      dentistName: "Dr. Sarah Johnson",
-      followUpDate: "2025-07-02",
-      medications: "None",
-      visibleToPatient: true,
-      status: "completed",
-      duration: 45
-    },
-    {
-      id: 3,
-      patientName: "Emily Wilson",
-      patientId: "P003",
-      date: "2025-01-02",
-      treatmentType: "Crown Preparation",
-      diagnosis: "Fractured tooth #11 requiring crown",
-      procedure: "Tooth preparation for porcelain crown",
-      notes: "Tooth prepared for crown placement. Impression taken. Temporary crown placed. Patient tolerating procedure well. Permanent crown to be placed in 2 weeks.",
-      dentistName: "Dr. Lisa Rodriguez",
-      followUpDate: "2025-01-16",
-      medications: "Acetaminophen 500mg PRN",
-      visibleToPatient: false,
-      status: "in_progress",
-      duration: 120
-    },
-    {
-      id: 4,
-      patientName: "David Brown",
-      patientId: "P004",
-      date: "2025-01-01",
-      treatmentType: "Tooth Extraction",
-      diagnosis: "Impacted wisdom tooth #32",
-      procedure: "Surgical extraction of impacted third molar",
-      notes: "Complex extraction due to impaction. Local anesthesia with sedation. Tooth sectioned and removed. Sutures placed. Post-op instructions given.",
-      dentistName: "Dr. Michael Chen",
-      followUpDate: "2025-01-08",
-      medications: "Hydrocodone 5mg/325mg q4-6h PRN, Chlorhexidine rinse BID",
-      visibleToPatient: true,
-      status: "completed",
-      duration: 75
-    }
-  ]);
+  const [treatmentNotes, setTreatmentNotes] = useState<any[]>([]);
 
-  const handleCreateNote = () => {
-    if (!newNote.patientId || !newNote.treatmentType || !newNote.diagnosis) {
+  useEffect(() => {
+    if (profile?.clinic_id) {
+      fetchData();
+    }
+  }, [profile]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch patients
+      const { data: patientsData, error: patientsError } = await supabase
+        .from('patients')
+        .select('id, full_name, contact_number')
+        .eq('clinic_id', profile?.clinic_id)
+        .order('full_name');
+
+      if (patientsError) throw patientsError;
+      setPatients(patientsData || []);
+
+      // Fetch treatments/services
+      const { data: treatmentsData, error: treatmentsError } = await supabase
+        .from('treatments')
+        .select('id, name, default_price, default_duration_minutes')
+        .eq('clinic_id', profile?.clinic_id || '')
+        .eq('is_active', true)
+        .order('name');
+
+      if (treatmentsError) throw treatmentsError;
+      setTreatments(treatmentsData || []);
+
+      // Fetch treatment records
+      const { data: recordsData, error: recordsError } = await supabase
+        .from('treatment_records')
+        .select(`
+          *,
+          patients!treatment_records_patient_id_fkey(full_name),
+          treatments!treatment_records_treatment_id_fkey(name),
+          dentist:users!treatment_records_dentist_id_fkey(full_name)
+        `)
+        .eq('clinic_id', profile?.clinic_id)
+        .order('created_at', { ascending: false });
+
+      if (recordsError) throw recordsError;
+      setTreatmentNotes(recordsData || []);
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load treatment data.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateNote = async () => {
+    if (!newNote.patientId || !newNote.treatmentId || !newNote.diagnosis) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -107,52 +107,111 @@ export default function TreatmentNotes() {
       return;
     }
 
-    const note = {
-      id: treatmentNotes.length + 1,
-      patientName: "New Patient", // In real app, this would be fetched based on patientId
-      patientId: newNote.patientId,
-      date: new Date().toISOString().split('T')[0],
-      treatmentType: newNote.treatmentType,
-      diagnosis: newNote.diagnosis,
-      procedure: newNote.procedure,
-      notes: newNote.notes,
-      dentistName: "Dr. Current User", // Would be from auth context
-      followUpDate: newNote.nextAppointment,
-      medications: newNote.medications,
-      visibleToPatient: newNote.visibleToPatient,
-      status: "completed",
-      duration: 60
-    };
+    try {
+      const selectedTreatment = treatments.find(t => t.id === newNote.treatmentId);
+      const treatmentCost = newNote.cost || selectedTreatment?.default_price || 0;
+      const treatmentDuration = newNote.duration || selectedTreatment?.default_duration_minutes || 60;
 
-    setTreatmentNotes([note, ...treatmentNotes]);
-    setNewNote({
-      patientId: "",
-      treatmentType: "",
-      diagnosis: "",
-      procedure: "",
-      notes: "",
-      followUpRequired: false,
-      visibleToPatient: false,
-      medications: "",
-      nextAppointment: ""
-    });
-    setShowCreateDialog(false);
+      // Create treatment record
+      const { data: record, error: recordError } = await supabase
+        .from('treatment_records')
+        .insert({
+          patient_id: newNote.patientId,
+          dentist_id: profile?.user_id,
+          treatment_id: newNote.treatmentId,
+          clinic_id: profile?.clinic_id,
+          notes: `Diagnosis: ${newNote.diagnosis}\n\nProcedure: ${newNote.procedure}\n\nClinical Notes: ${newNote.notes}\n\nMedications: ${newNote.medications}`,
+          follow_up_required: !!newNote.nextAppointment,
+          follow_up_notes: newNote.nextAppointment ? `Follow-up scheduled for ${newNote.nextAppointment}` : null,
+          status: 'completed',
+          price_charged: treatmentCost,
+          actual_duration_minutes: treatmentDuration,
+          start_time: new Date().toISOString(),
+          end_time: new Date(Date.now() + treatmentDuration * 60000).toISOString()
+        })
+        .select()
+        .single();
 
-    toast({
-      title: "Treatment Note Created",
-      description: "Treatment note has been successfully saved.",
-    });
+      if (recordError) throw recordError;
+
+      // Auto-generate invoice if cost > 0
+      if (treatmentCost > 0) {
+        const { error: invoiceError } = await supabase
+          .from('invoices')
+          .insert({
+            patient_id: newNote.patientId,
+            clinic_id: profile?.clinic_id,
+            invoice_number: `INV-${Date.now()}`,
+            invoice_type: 'treatment',
+            subtotal: treatmentCost,
+            total_amount: treatmentCost,
+            balance_due: treatmentCost,
+            payment_status: 'pending',
+            treatments: JSON.stringify([{
+              treatment_id: newNote.treatmentId,
+              treatment_name: selectedTreatment?.name,
+              cost: treatmentCost,
+              record_id: record.id
+            }]),
+            issued_by: profile?.user_id
+          });
+
+        if (invoiceError) {
+          console.error('Error creating invoice:', invoiceError);
+          // Continue even if invoice creation fails
+        }
+      }
+
+      // Reset form and refresh data
+      setNewNote({
+        patientId: "",
+        treatmentId: "",
+        diagnosis: "",
+        procedure: "",
+        notes: "",
+        followUpRequired: false,
+        visibleToPatient: false,
+        medications: "",
+        nextAppointment: "",
+        cost: "",
+        duration: ""
+      });
+      setShowCreateDialog(false);
+      fetchData();
+
+      toast({
+        title: "Treatment Note Created",
+        description: treatmentCost > 0 ? 
+          "Treatment note saved and invoice generated automatically." :
+          "Treatment note has been successfully saved.",
+      });
+    } catch (error) {
+      console.error('Error creating treatment note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create treatment note. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredNotes = treatmentNotes.filter(note => {
-    const matchesSearch = note.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.treatmentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = note.patients?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         note.treatments?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         note.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = selectedFilter === "all" || note.status === selectedFilter;
     
     return matchesSearch && matchesFilter;
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -178,33 +237,44 @@ export default function TreatmentNotes() {
             
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="patientId">Patient ID *</Label>
-                  <Input
-                    id="patientId"
-                    placeholder="P001"
-                    value={newNote.patientId}
-                    onChange={(e) => setNewNote({ ...newNote, patientId: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="treatmentType">Treatment Type *</Label>
-                  <Select value={newNote.treatmentType} onValueChange={(value) => setNewNote({ ...newNote, treatmentType: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select treatment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cleaning">Dental Cleaning</SelectItem>
-                      <SelectItem value="filling">Tooth Filling</SelectItem>
-                      <SelectItem value="root_canal">Root Canal</SelectItem>
-                      <SelectItem value="crown">Crown Placement</SelectItem>
-                      <SelectItem value="extraction">Tooth Extraction</SelectItem>
-                      <SelectItem value="orthodontics">Orthodontic Treatment</SelectItem>
-                      <SelectItem value="surgery">Oral Surgery</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="patientId">Patient *</Label>
+                <Select value={newNote.patientId} onValueChange={(value) => setNewNote({ ...newNote, patientId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.full_name} {patient.contact_number && `(${patient.contact_number})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="treatmentId">Treatment/Service *</Label>
+                <Select value={newNote.treatmentId} onValueChange={(value) => {
+                  const treatment = treatments.find(t => t.id === value);
+                  setNewNote({ 
+                    ...newNote, 
+                    treatmentId: value,
+                    cost: treatment?.default_price?.toString() || "",
+                    duration: treatment?.default_duration_minutes?.toString() || ""
+                  });
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select treatment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {treatments.map((treatment) => (
+                      <SelectItem key={treatment.id} value={treatment.id}>
+                        {treatment.name} {treatment.default_price && `($${treatment.default_price})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               </div>
 
               <div className="space-y-2">
@@ -249,6 +319,30 @@ export default function TreatmentNotes() {
                   onChange={(e) => setNewNote({ ...newNote, medications: e.target.value })}
                   rows={2}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost ($)</Label>
+                  <Input
+                    id="cost"
+                    type="number"
+                    step="0.01"
+                    placeholder="Auto-filled from service"
+                    value={newNote.cost}
+                    onChange={(e) => setNewNote({ ...newNote, cost: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Duration (minutes)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    placeholder="Auto-filled from service"
+                    value={newNote.duration}
+                    onChange={(e) => setNewNote({ ...newNote, duration: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -315,34 +409,40 @@ export default function TreatmentNotes() {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <CardTitle className="text-lg">{note.patientName}</CardTitle>
-                    <Badge variant="outline">{note.patientId}</Badge>
+                    <CardTitle className="text-lg">{note.patients?.full_name}</CardTitle>
+                    <Badge variant="outline">{note.id.slice(0, 8)}</Badge>
                   </div>
                   <Badge variant={note.status === 'completed' ? 'default' : 'secondary'}>
                     {note.status === 'completed' ? 'Completed' : 'In Progress'}
                   </Badge>
-                  {note.visibleToPatient && (
+                  {note.is_visible_to_patient && (
                     <Badge variant="outline">
                       <Eye className="w-3 h-3 mr-1" />
                       Patient Visible
                     </Badge>
                   )}
+                  {note.price_charged > 0 && (
+                    <Badge variant="outline" className="text-green-600">
+                      <DollarSign className="w-3 h-3 mr-1" />
+                      ${note.price_charged}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
-                  <span>{note.date}</span>
+                  <span>{new Date(note.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <CardDescription className="flex items-center space-x-4">
                   <span className="flex items-center space-x-1">
                     <Stethoscope className="w-4 h-4" />
-                    <span>{note.treatmentType}</span>
+                    <span>{note.treatments?.name}</span>
                   </span>
                   <span>•</span>
-                  <span>{note.dentistName}</span>
+                  <span>{note.dentist?.full_name}</span>
                   <span>•</span>
-                  <span>{note.duration} minutes</span>
+                  <span>{note.actual_duration_minutes} minutes</span>
                 </CardDescription>
               </div>
             </CardHeader>
@@ -357,36 +457,43 @@ export default function TreatmentNotes() {
                 
                 <TabsContent value="diagnosis" className="mt-4">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Primary Diagnosis</h4>
-                    <p className="text-sm text-muted-foreground">{note.diagnosis}</p>
+                    <h4 className="font-medium text-sm">Treatment Notes</h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{note.notes || "No notes available"}</p>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="procedure" className="mt-4">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Procedure Performed</h4>
-                    <p className="text-sm text-muted-foreground">{note.procedure}</p>
+                    <h4 className="font-medium text-sm">Complications</h4>
+                    <p className="text-sm text-muted-foreground">{note.complications || "No complications reported"}</p>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="notes" className="mt-4">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Clinical Observations</h4>
-                    <p className="text-sm text-muted-foreground">{note.notes}</p>
+                    <h4 className="font-medium text-sm">Treatment Details</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Start Time</p>
+                        <p className="text-sm">{note.start_time ? new Date(note.start_time).toLocaleString() : 'Not recorded'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">End Time</p>
+                        <p className="text-sm">{note.end_time ? new Date(note.end_time).toLocaleString() : 'Not recorded'}</p>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="followup" className="mt-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Medications Prescribed</h4>
-                      <p className="text-sm text-muted-foreground">{note.medications || "None prescribed"}</p>
+                      <h4 className="font-medium text-sm">Follow-up Required</h4>
+                      <p className="text-sm text-muted-foreground">{note.follow_up_required ? 'Yes' : 'No'}</p>
                     </div>
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Next Appointment</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {note.followUpDate ? new Date(note.followUpDate).toLocaleDateString() : "No follow-up scheduled"}
-                      </p>
+                      <h4 className="font-medium text-sm">Follow-up Notes</h4>
+                      <p className="text-sm text-muted-foreground">{note.follow_up_notes || "No follow-up notes"}</p>
                     </div>
                   </div>
                 </TabsContent>

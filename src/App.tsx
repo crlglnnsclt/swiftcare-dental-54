@@ -54,6 +54,7 @@ import RevenueReports from "./pages/RevenueReports";
 import WorkloadReports from "./pages/WorkloadReports";
 import TreatmentNotes from "./pages/TreatmentNotes";
 import ServicesManagement from "./pages/ServicesManagement";
+import PaymentTracking from "./pages/PaymentTracking";
 import ClinicBranding from "./pages/ClinicBranding";
 import FeatureToggles from "./pages/FeatureToggles";
 import UserRoles from "./pages/UserRoles";
@@ -188,6 +189,11 @@ function AppRoutes() {
         <Route path="billing" element={
           <ProtectedRoute requiredRole={['admin', 'super_admin']}>
             <Billing />
+          </ProtectedRoute>
+        } />
+        <Route path="payment-tracking" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+            <PaymentTracking />
           </ProtectedRoute>
         } />
         <Route path="patient-engagement" element={

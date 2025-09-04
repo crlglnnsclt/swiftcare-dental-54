@@ -184,6 +184,13 @@ const moduleNavigation: NavItem[] = [
     module: "treatment"
   },
   {
+    title: "Payment Tracking",
+    url: "/payment-tracking",
+    icon: Receipt,
+    roles: ["clinic_admin", "staff", "super_admin"],
+    module: "treatment"
+  },
+  {
     title: "Consumables / Inventory",
     url: "/inventory",
     icon: Package,
