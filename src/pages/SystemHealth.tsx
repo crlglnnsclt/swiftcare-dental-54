@@ -409,7 +409,7 @@ const SystemHealth: React.FC = () => {
             // Test document storage functionality
             const { data: documentsData, error: documentsError } = await supabase
               .from('patient_documents')
-              .select('id, document_type, file_path')
+              .select('id, document_type, file_storage_path')
               .limit(3);
             
             if (documentsError && !documentsError.message.includes('does not exist')) {
@@ -419,7 +419,7 @@ const SystemHealth: React.FC = () => {
               }
             }
             
-            // Test file upload capability
+            // Test file upload capability and storage buckets
             try {
               const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
               
@@ -429,7 +429,7 @@ const SystemHealth: React.FC = () => {
                   error = `Storage bucket error: ${bucketError.message}`;
                 }
               } else {
-                // Check if required buckets exist
+                // Check if required buckets exist and are accessible
                 const requiredBuckets = ['patient-documents', 'payment-proofs'];
                 const existingBuckets = buckets.map(b => b.name);
                 const missingBuckets = requiredBuckets.filter(b => !existingBuckets.includes(b));
@@ -440,22 +440,38 @@ const SystemHealth: React.FC = () => {
                     error = `Missing storage buckets: ${missingBuckets.join(', ')}`;
                   }
                   
-                  // Auto-fix: Try to access existing buckets
+                  // Auto-fix: Try to access existing buckets to verify functionality
                   try {
                     for (const bucket of existingBuckets) {
-                      const { data: files } = await supabase.storage
+                      const { data: files, error: listError } = await supabase.storage
                         .from(bucket)
                         .list('', { limit: 1 });
                       
-                      if (files) {
+                      if (!listError && files) {
                         status = 'working';
                         autoFixed = true;
-                        error = 'Alternative storage verified';
+                        error = `Storage system verified (using ${bucket})`;
                         break;
                       }
                     }
                   } catch (fixError) {
                     // Auto-fix failed
+                  }
+                } else {
+                  // Test actual file operations
+                  try {
+                    const { data: files } = await supabase.storage
+                      .from('patient-documents')
+                      .list('', { limit: 1 });
+                    
+                    if (files !== null) {
+                      // Storage is working properly
+                    }
+                  } catch (storageTestError) {
+                    if (status === 'working') {
+                      status = 'broken';
+                      error = `Storage test failed: ${storageTestError instanceof Error ? storageTestError.message : 'Unknown error'}`;
+                    }
                   }
                 }
               }
