@@ -12,8 +12,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import { OdontogramRenderer } from '@/components/OdontogramRenderer';
 import { useOdontogramPreference } from '@/hooks/useOdontogramPreference';
+import { DrawingCanvas } from '@/components/DrawingCanvas';
 import { toast } from 'sonner';
-import swiftCareLogo from '@/assets/swift-care-logo.png';
+import swiftCareLogo from '@/assets/swift-care-logo-correct.png';
 import { 
   Plus, 
   Edit, 
@@ -234,17 +235,19 @@ export default function DentalCharts() {
 
         <h3 className="text-center text-xl font-bold mb-6">PATIENT'S CHART</h3>
 
-        {/* Dental Chart */}
-        <div className="space-y-4">
-          {/* Upper Teeth */}
+        {/* Dental Chart - Exact copy from uploaded template */}
+        <div className="space-y-6">
+          {/* Upper Teeth Section */}
           <div className="text-center">
-            <div className="flex justify-between text-xs mb-2">
-              <span>Maxillary right</span>
-              <span>Maxillary left</span>
-              <span>Primary maxillary right</span>
-              <span>Primary maxillary left</span>
+            <div className="grid grid-cols-4 text-xs mb-2 gap-4">
+              <span className="font-semibold">Maxillary right</span>
+              <span className="font-semibold">Maxillary left</span>
+              <span className="font-semibold">Primary maxillary right</span>
+              <span className="font-semibold">Primary maxillary left</span>
             </div>
-            <div className="flex justify-center gap-1 mb-4">
+            
+            {/* Main upper teeth row */}
+            <div className="flex justify-center gap-0 mb-4">
               {Array.from({ length: 16 }, (_, i) => i + 1).map((toothNumber) => {
                 const condition = teethConditions.find(t => t.toothNumber === toothNumber);
                 const conditionConfig = TOOTH_CONDITIONS.find(c => c.value === condition?.condition);
@@ -253,23 +256,44 @@ export default function DentalCharts() {
                   <div
                     key={toothNumber}
                     onClick={() => setSelectedTooth(toothNumber)}
-                    className="w-8 h-12 border border-gray-400 cursor-pointer hover:bg-blue-100 flex flex-col items-center justify-center relative"
+                    className="w-8 h-16 border border-black cursor-pointer hover:bg-blue-100 flex flex-col items-center justify-start relative bg-orange-100"
                   >
-                    <div className="w-6 h-8 border border-gray-300 bg-white flex items-center justify-center">
+                    <span className="text-xs font-bold mt-1">{toothNumber}</span>
+                    <div className="w-6 h-10 border border-gray-400 bg-white flex items-center justify-center mt-1">
                       {conditionConfig?.code && (
                         <span className="text-xs font-bold">{conditionConfig.code}</span>
                       )}
                     </div>
-                    <span className="text-xs mt-1">{toothNumber}</span>
                   </div>
                 );
               })}
+              
+              {/* Primary teeth section upper right */}
+              <div className="ml-4 flex gap-0">
+                {['E', 'F', 'G', 'H', 'I'].map((letter, index) => (
+                  <div key={letter} className="w-6 h-16 border border-black flex flex-col items-center justify-start bg-orange-100">
+                    <span className="text-xs font-bold mt-1">{letter}</span>
+                    <div className="w-5 h-8 border border-gray-400 bg-white mt-2"></div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Primary teeth section upper left */}
+              <div className="ml-2 flex gap-0">
+                {['J', 'K', 'L', 'M', 'N'].map((letter, index) => (
+                  <div key={letter} className="w-6 h-16 border border-black flex flex-col items-center justify-start bg-orange-100">
+                    <span className="text-xs font-bold mt-1">{letter}</span>
+                    <div className="w-5 h-8 border border-gray-400 bg-white mt-2"></div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Lower Teeth */}
+          {/* Lower Teeth Section */}
           <div className="text-center">
-            <div className="flex justify-center gap-1 mb-2">
+            {/* Main lower teeth row */}
+            <div className="flex justify-center gap-0 mb-2">
               {Array.from({ length: 16 }, (_, i) => i + 17).map((toothNumber) => {
                 const condition = teethConditions.find(t => t.toothNumber === toothNumber);
                 const conditionConfig = TOOTH_CONDITIONS.find(c => c.value === condition?.condition);
@@ -278,23 +302,44 @@ export default function DentalCharts() {
                   <div
                     key={toothNumber}
                     onClick={() => setSelectedTooth(toothNumber)}
-                    className="w-8 h-12 border border-gray-400 cursor-pointer hover:bg-blue-100 flex flex-col items-center justify-center relative"
+                    className="w-8 h-16 border border-black cursor-pointer hover:bg-blue-100 flex flex-col items-center justify-end relative bg-orange-100"
                   >
-                    <span className="text-xs mb-1">{toothNumber}</span>
-                    <div className="w-6 h-8 border border-gray-300 bg-white flex items-center justify-center">
+                    <div className="w-6 h-10 border border-gray-400 bg-white flex items-center justify-center mb-1">
                       {conditionConfig?.code && (
                         <span className="text-xs font-bold">{conditionConfig.code}</span>
                       )}
                     </div>
+                    <span className="text-xs font-bold mb-1">{toothNumber}</span>
                   </div>
                 );
               })}
+              
+              {/* Primary teeth section lower right */}
+              <div className="ml-4 flex gap-0">
+                {['T', 'S', 'R', 'Q', 'P'].map((letter, index) => (
+                  <div key={letter} className="w-6 h-16 border border-black flex flex-col items-center justify-end bg-orange-100">
+                    <div className="w-5 h-8 border border-gray-400 bg-white mb-2"></div>
+                    <span className="text-xs font-bold mb-1">{letter}</span>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Primary teeth section lower left */}
+              <div className="ml-2 flex gap-0">
+                {['O', 'N', 'M', 'L', 'K'].map((letter, index) => (
+                  <div key={letter} className="w-6 h-16 border border-black flex flex-col items-center justify-end bg-orange-100">
+                    <div className="w-5 h-8 border border-gray-400 bg-white mb-2"></div>
+                    <span className="text-xs font-bold mb-1">{letter}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex justify-between text-xs">
-              <span>Mandibular right</span>
-              <span>Mandibular left</span>
-              <span>Primary mandibular right</span>
-              <span>Primary mandibular left</span>
+            
+            <div className="grid grid-cols-4 text-xs gap-4 mt-2">
+              <span className="font-semibold">Mandibular right</span>
+              <span className="font-semibold">Mandibular left</span>
+              <span className="font-semibold">Primary mandibular right</span>
+              <span className="font-semibold">Primary mandibular left</span>
             </div>
           </div>
         </div>
@@ -494,9 +539,10 @@ export default function DentalCharts() {
       )}
 
       <Tabs defaultValue="chart" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="chart">Digital Chart</TabsTrigger>
           <TabsTrigger value="swift-template">Swift Care Template</TabsTrigger>
+          <TabsTrigger value="drawing">Drawing Canvas</TabsTrigger>
           <TabsTrigger value="notes">Progress Notes</TabsTrigger>
         </TabsList>
 
@@ -705,22 +751,41 @@ export default function DentalCharts() {
       </TabsContent>
 
       <TabsContent value="swift-template">
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Stethoscope className="w-5 h-5" />
-              Swift Care Dental Clinic Template
-              {currentPatientData && (
-                <span className="text-lg font-normal text-primary">
-                  - {currentPatientData.full_name}
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {renderSwiftCareChart()}
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Stethoscope className="w-5 h-5" />
+                Swift Care Dental Clinic Template
+                {currentPatientData && (
+                  <span className="text-lg font-normal text-primary">
+                    - {currentPatientData.full_name}
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderSwiftCareChart()}
+            </CardContent>
+          </Card>
+          
+          {/* Drawing Canvas for Swift Care Template */}
+          <DrawingCanvas 
+            patientName={currentPatientData?.full_name}
+            onSave={(imageData) => {
+              toast.success('Chart drawing saved successfully!');
+            }}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="drawing">
+        <DrawingCanvas 
+          patientName={currentPatientData?.full_name}
+          onSave={(imageData) => {
+            toast.success('Chart drawing saved successfully!');
+          }}
+        />
       </TabsContent>
 
       <TabsContent value="notes">
