@@ -185,7 +185,7 @@ function AppRoutes() {
         {/* Patient-specific routes */}
         <Route path="my-appointments" element={
           <ProtectedRoute requiredRole={['patient']}>
-            <AppointmentsHub />
+            <PatientAppointments />
           </ProtectedRoute>
         } />
         <Route path="my-profile" element={
