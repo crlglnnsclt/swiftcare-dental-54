@@ -35,8 +35,11 @@ export function PatientCheckIn() {
 
   const fetchAppointments = async () => {
     try {
+      setError('');
+      
       if (!user?.id || !profile) {
-        setError('Authentication required');
+        console.log('Authentication check failed:', { userId: user?.id, profile });
+        setError('Authentication required. Please sign in.');
         setLoading(false);
         return;
       }
@@ -58,11 +61,11 @@ export function PatientCheckIn() {
         .eq('user_id', user.id)
         .single();
 
-      console.log('User lookup result:', userData, userError);
+      console.log('User lookup result:', { userData, userError });
 
       if (userError || !userData) {
         console.error('User lookup error:', userError);
-        setError('Failed to load user data');
+        setError('Failed to load user data. Please try signing out and back in.');
         setLoading(false);
         return;
       }
@@ -70,16 +73,16 @@ export function PatientCheckIn() {
       // Get patient record  
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .select('id, clinic_id')
+        .select('id, clinic_id, full_name')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: true })
         .limit(1);
 
-      console.log('Patient lookup result:', patientData, patientError);
+      console.log('Patient lookup result:', { patientData, patientError });
 
       if (patientError || !patientData || patientData.length === 0) {
         console.error('Patient lookup error:', patientError);
-        setError('No patient record found');
+        setError('No patient record found. Please contact the clinic to set up your account.');
         setLoading(false);
         return;
       }
@@ -88,28 +91,38 @@ export function PatientCheckIn() {
       console.log('Found patient:', patient);
 
       // Get appointments for today and future dates for this specific patient
-      // For testing, let's get all appointments regardless of date
-      const { data, error } = await supabase
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      console.log('Querying appointments for patient:', patient.id, 'from date:', today.toISOString());
+
+      const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .select(`
           *,
           profiles:users!dentist_id(full_name)
         `)
         .eq('patient_id', patient.id)
+        .gte('scheduled_time', today.toISOString())
         .in('status', ['booked', 'checked_in'])
         .order('scheduled_time', { ascending: true });
 
-      console.log('Appointments query result:', data, error);
+      console.log('Appointments query result:', { appointmentData, appointmentError });
 
-      if (error) throw error;
+      if (appointmentError) {
+        console.error('Appointments query error:', appointmentError);
+        throw new Error(`Failed to load appointments: ${appointmentError.message}`);
+      }
 
-      console.log('Fetched appointments:', data);
-      setAppointments(data || []);
+      console.log('Setting appointments:', appointmentData || []);
+      setAppointments(appointmentData || []);
+      
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      setError(`Failed to load appointments: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast({
         title: "Error",
-        description: "Failed to load appointments",
+        description: "Failed to load appointments. Please try refreshing the page.",
         variant: "destructive",
       });
     } finally {
