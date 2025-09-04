@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, User, AlertTriangle, CheckCircle, Volume2, VolumeX, Maximize, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useQRCodeManager } from '@/hooks/useQRCodeManager';
 
 interface QueueItem {
@@ -419,9 +420,13 @@ export default function QueueMonitor() {
             </div>
             <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 mb-2">
               {dailyQR ? (
-                <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center text-xs font-mono text-center p-1">
-                  QR-{dailyQR.id.slice(-4)}
-                </div>
+                <QRCodeSVG 
+                  value={JSON.parse(dailyQR.data).checkInUrl}
+                  size={96}
+                  level="M"
+                  includeMargin={false}
+                  className="mx-auto"
+                />
               ) : (
                 <div className="w-24 h-24 mx-auto bg-gray-100 rounded flex items-center justify-center">
                   <QrCode className="w-12 h-12 text-gray-400" />
