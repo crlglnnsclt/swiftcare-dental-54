@@ -226,16 +226,31 @@ export default function FeatureToggles() {
     try {
       const newEnabled = !feature.is_enabled;
       
-      const { error } = await supabase
+      console.log('Updating feature:', {
+        featureId,
+        featureName: feature.feature_name,
+        newEnabled,
+        clinic_id: feature.clinic_id,
+        user_id: profile?.user_id,
+        role: profile?.role
+      });
+      
+      const { data, error } = await supabase
         .from('clinic_feature_toggles')
         .update({
           is_enabled: newEnabled,
           modified_by: profile?.user_id,
           updated_at: new Date().toISOString()
         })
-        .eq('id', featureId);
+        .eq('id', featureId)
+        .select();
 
-      if (error) throw error;
+      console.log('Update result:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
       toast({
         title: `Feature ${newEnabled ? 'Enabled' : 'Disabled'}`,
