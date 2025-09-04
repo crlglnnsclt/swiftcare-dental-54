@@ -133,7 +133,7 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Branch management and oversight</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="btn-3d" onClick={() => navigate('/clinic-settings')}>
+          <Button variant="outline" className="btn-3d" onClick={() => navigate('/clinic-branding')}>
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
