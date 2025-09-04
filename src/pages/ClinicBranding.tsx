@@ -252,7 +252,7 @@ export default function ClinicBranding() {
           utterance.onerror = (error) => console.error('Speech error:', error);
           
           speechSynthesis.speak(utterance);
-        }, 300);
+        }, 1300);
       });
     }
 

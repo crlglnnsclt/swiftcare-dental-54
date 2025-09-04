@@ -149,7 +149,7 @@ export default function QueueMonitor() {
       utterance.onerror = (error) => console.error('Queue announcement error:', error);
       
       speechSynthesis.speak(utterance);
-    }, 300);
+    }, 1300);
   };
 
   const toggleFullscreen = () => {
