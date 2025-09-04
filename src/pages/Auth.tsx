@@ -163,91 +163,19 @@ export default function Auth() {
               </TabsContent>
               
               <TabsContent value="signup" className="mt-6">
-                <QuickFillButtons 
-                  onFillForm={setSignUpData} 
-                  type="signup" 
-                />
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={signUpData.fullName}
-                      onChange={(e) => setSignUpData({ ...signUpData, fullName: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signUpData.email}
-                      onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select value={signUpData.role} onValueChange={(value) => setSignUpData({ ...signUpData, role: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="patient">Patient</SelectItem>
-                        <SelectItem value="dentist">Dentist</SelectItem>
-                        <SelectItem value="staff">Staff</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="super_admin">Super Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={signUpData.password}
-                      onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={signUpData.confirmPassword}
-                      onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full medical-gradient text-white hover:shadow-glow smooth-transition btn-3d"
-                    disabled={isLoading || signUpData.password !== signUpData.confirmPassword || !signUpData.email || !signUpData.password || !signUpData.fullName}
+                <div className="text-center space-y-4">
+                  <p className="text-muted-foreground">Staff accounts are created by administrators</p>
+                  <Link 
+                    to="/register" 
+                    className="inline-flex items-center gap-2 px-6 py-3 medical-gradient text-white rounded-lg hover:shadow-glow smooth-transition"
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Account...
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Create Account
-                      </>
-                    )}
-                  </Button>
-                  {signUpData.password && signUpData.confirmPassword && signUpData.password !== signUpData.confirmPassword && (
-                    <p className="text-sm text-destructive">Passwords do not match</p>
-                  )}
-                </form>
+                    <UserPlus className="w-4 h-4" />
+                    Register as Patient
+                  </Link>
+                  <p className="text-sm text-muted-foreground">
+                    Need a staff account? Contact your clinic administrator
+                  </p>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

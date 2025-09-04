@@ -67,6 +67,7 @@ import ESignForms from "./pages/ESignForms";
 import DocumentsUploads from "./pages/DocumentsUploads";
 import SystemHealth from "./pages/SystemHealth";
 import EnhancedAnalytics from "./pages/EnhancedAnalytics";
+import PatientRegistration from "./pages/PatientRegistration";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ function AppRoutes() {
       {/* Public routes */}
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
+      <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <PatientRegistration />} />
       <Route path="/branch-selection" element={user ? <BranchSelection /> : <Navigate to="/auth" replace />} />
       <Route path="/profile-switcher" element={<ProfileSwitcher />} />
       
