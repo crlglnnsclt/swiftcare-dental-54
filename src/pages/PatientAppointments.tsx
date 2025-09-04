@@ -163,10 +163,13 @@ export default function PatientAppointments() {
       console.log('Fetching services from treatments table...');
       const { data, error } = await supabase
         .from('treatments')
-        .select('id, name, default_duration_minutes, default_price, service_code');
+        .select('id, name, default_duration_minutes, default_price, service_code, clinic_id');
+
+      console.log('Services query result:', { data, error });
 
       if (error) {
         console.error('Error fetching services:', error);
+        toast.error(`Failed to load services: ${error.message}`);
         // Fallback to mock data if database query fails
         const mockServices = [
           { id: '1', name: 'General Consultation', default_duration_minutes: 30, default_price: 100 },
@@ -177,10 +180,11 @@ export default function PatientAppointments() {
         return;
       }
 
-      console.log('Services fetched:', data);
+      console.log('Services fetched successfully:', data);
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching services:', error);
+      toast.error('Failed to load services. Please try again.');
     }
   };
 
@@ -189,18 +193,22 @@ export default function PatientAppointments() {
       console.log('Fetching dentists...');
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('id, full_name, clinic_id')
         .eq('role', 'dentist');
 
       console.log('Dentists query result:', { data, error });
       
       if (error) {
         console.error('Error fetching dentists:', error);
-        throw error;
+        toast.error(`Failed to load dentists: ${error.message}`);
+        return;
       }
+      
+      console.log('Dentists fetched successfully:', data);
       setDentists(data || []);
     } catch (error) {
       console.error('Error fetching dentists:', error);
+      toast.error('Failed to load dentists. Please try again.');
     }
   };
 
@@ -373,21 +381,27 @@ export default function PatientAppointments() {
                   <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border-border shadow-lg z-50">
-                    {services.map((service) => (
-                      <SelectItem 
-                        key={service.id} 
-                        value={service.id}
-                        className="bg-background hover:bg-muted"
-                      >
-                        <div className="flex justify-between w-full">
-                          <span>{service.name}</span>
-                          <span className="text-muted-foreground ml-4">
-                            ${service.default_price} • {service.default_duration_minutes}min
-                          </span>
-                        </div>
+                  <SelectContent className="bg-background border-border shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                    {services.length === 0 ? (
+                      <SelectItem value="no-services" disabled className="bg-background">
+                        No services available. Please contact the clinic.
                       </SelectItem>
-                    ))}
+                    ) : (
+                      services.map((service) => (
+                        <SelectItem 
+                          key={service.id} 
+                          value={service.id}
+                          className="bg-background hover:bg-muted focus:bg-muted"
+                        >
+                          <div className="flex justify-between w-full">
+                            <span>{service.name}</span>
+                            <span className="text-muted-foreground ml-4">
+                              ${service.default_price} • {service.default_duration_minutes}min
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -399,19 +413,25 @@ export default function PatientAppointments() {
                   <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Any available dentist" />
                   </SelectTrigger>
-                   <SelectContent className="bg-background border-border shadow-lg z-[9999]">
-                     <SelectItem value="any" className="bg-background hover:bg-muted">
+                   <SelectContent className="bg-background border-border shadow-lg z-[9999] max-h-[200px] overflow-y-auto">
+                     <SelectItem value="any" className="bg-background hover:bg-muted focus:bg-muted">
                        Any available dentist
                      </SelectItem>
-                    {dentists.map((dentist) => (
-                      <SelectItem 
-                        key={dentist.id} 
-                        value={dentist.id}
-                        className="bg-background hover:bg-muted"
-                      >
-                        Dr. {dentist.full_name}
+                    {dentists.length === 0 ? (
+                      <SelectItem value="no-dentists" disabled className="bg-background">
+                        No dentists available. Please contact the clinic.
                       </SelectItem>
-                    ))}
+                    ) : (
+                      dentists.map((dentist) => (
+                        <SelectItem 
+                          key={dentist.id} 
+                          value={dentist.id}
+                          className="bg-background hover:bg-muted focus:bg-muted"
+                        >
+                          Dr. {dentist.full_name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -435,12 +455,12 @@ export default function PatientAppointments() {
                   <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Select time slot" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border-border shadow-lg z-50">
+                  <SelectContent className="bg-background border-border shadow-lg z-50 max-h-[200px] overflow-y-auto">
                     {timeSlots.map((time) => (
                       <SelectItem 
                         key={time} 
                         value={time}
-                        className="bg-background hover:bg-muted"
+                        className="bg-background hover:bg-muted focus:bg-muted"
                       >
                         {time}
                       </SelectItem>
