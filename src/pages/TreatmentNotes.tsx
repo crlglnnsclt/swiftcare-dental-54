@@ -14,14 +14,45 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Patient {
+  id: string;
+  full_name: string;
+  contact_number?: string;
+}
+
+interface Treatment {
+  id: string;
+  name: string;
+  default_price?: number;
+  default_duration_minutes?: number;
+}
+
+interface TreatmentRecord {
+  id: string;
+  patient_id: string;
+  treatment_id: string;
+  dentist_id: string;
+  clinic_id: string;
+  notes?: string;
+  complications?: string;
+  follow_up_required?: boolean;
+  follow_up_notes?: string;
+  status: string;
+  price_charged?: number;
+  actual_duration_minutes?: number;
+  start_time?: string;
+  end_time?: string;
+  created_at: string;
+}
+
 export default function TreatmentNotes() {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [patients, setPatients] = useState<any[]>([]);
-  const [treatments, setTreatments] = useState<any[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState({
     patientId: "",
@@ -37,7 +68,7 @@ export default function TreatmentNotes() {
     duration: ""
   });
 
-  const [treatmentNotes, setTreatmentNotes] = useState<any[]>([]);
+  const [treatmentNotes, setTreatmentNotes] = useState<TreatmentRecord[]>([]);
 
   useEffect(() => {
     if (profile?.clinic_id) {
@@ -49,41 +80,36 @@ export default function TreatmentNotes() {
     try {
       setLoading(true);
       
-      // Fetch patients
-      const { data: patientsData, error: patientsError } = await supabase
+      if (!profile?.clinic_id) {
+        return;
+      }
+
+      // Fetch patients using simple approach
+      const patientsResult = await supabase
         .from('patients')
-        .select('id, full_name, contact_number')
-        .eq('clinic_id', profile?.clinic_id)
-        .order('full_name');
+        .select('id, full_name, contact_number');
+      
+      if (patientsResult.data) {
+        setPatients(patientsResult.data);
+      }
 
-      if (patientsError) throw patientsError;
-      setPatients(patientsData || []);
-
-      // Fetch treatments/services
-      const { data: treatmentsData, error: treatmentsError } = await supabase
+      // Fetch treatments using simple approach
+      const treatmentsResult = await supabase
         .from('treatments')
-        .select('id, name, default_price, default_duration_minutes')
-        .eq('clinic_id', profile?.clinic_id || '')
-        .eq('is_active', true)
-        .order('name');
+        .select('id, name, default_price, default_duration_minutes');
+      
+      if (treatmentsResult.data) {
+        setTreatments(treatmentsResult.data);
+      }
 
-      if (treatmentsError) throw treatmentsError;
-      setTreatments(treatmentsData || []);
-
-      // Fetch treatment records
-      const { data: recordsData, error: recordsError } = await supabase
+      // Fetch treatment records using simple approach
+      const recordsResult = await supabase
         .from('treatment_records')
-        .select(`
-          *,
-          patients!treatment_records_patient_id_fkey(full_name),
-          treatments!treatment_records_treatment_id_fkey(name),
-          dentist:users!treatment_records_dentist_id_fkey(full_name)
-        `)
-        .eq('clinic_id', profile?.clinic_id)
-        .order('created_at', { ascending: false });
-
-      if (recordsError) throw recordsError;
-      setTreatmentNotes(recordsData || []);
+        .select('*');
+      
+      if (recordsResult.data) {
+        setTreatmentNotes(recordsResult.data);
+      }
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -109,8 +135,8 @@ export default function TreatmentNotes() {
 
     try {
       const selectedTreatment = treatments.find(t => t.id === newNote.treatmentId);
-      const treatmentCost = newNote.cost || selectedTreatment?.default_price || 0;
-      const treatmentDuration = newNote.duration || selectedTreatment?.default_duration_minutes || 60;
+      const treatmentCost = parseFloat(newNote.cost) || selectedTreatment?.default_price || 0;
+      const treatmentDuration = parseInt(newNote.duration) || selectedTreatment?.default_duration_minutes || 60;
 
       // Create treatment record
       const { data: record, error: recordError } = await supabase
@@ -158,7 +184,6 @@ export default function TreatmentNotes() {
 
         if (invoiceError) {
           console.error('Error creating invoice:', invoiceError);
-          // Continue even if invoice creation fails
         }
       }
 
@@ -196,9 +221,8 @@ export default function TreatmentNotes() {
   };
 
   const filteredNotes = treatmentNotes.filter(note => {
-    const matchesSearch = note.patients?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.treatments?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.notes?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = note.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         note.complications?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = selectedFilter === "all" || note.status === selectedFilter;
     
@@ -382,7 +406,7 @@ export default function TreatmentNotes() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by patient name, treatment type, or diagnosis..."
+            placeholder="Search treatment notes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -409,19 +433,13 @@ export default function TreatmentNotes() {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <CardTitle className="text-lg">{note.patients?.full_name}</CardTitle>
+                    <CardTitle className="text-lg">Patient #{note.patient_id.slice(0, 8)}</CardTitle>
                     <Badge variant="outline">{note.id.slice(0, 8)}</Badge>
                   </div>
                   <Badge variant={note.status === 'completed' ? 'default' : 'secondary'}>
                     {note.status === 'completed' ? 'Completed' : 'In Progress'}
                   </Badge>
-                  {note.is_visible_to_patient && (
-                    <Badge variant="outline">
-                      <Eye className="w-3 h-3 mr-1" />
-                      Patient Visible
-                    </Badge>
-                  )}
-                  {note.price_charged > 0 && (
+                  {note.price_charged && note.price_charged > 0 && (
                     <Badge variant="outline" className="text-green-600">
                       <DollarSign className="w-3 h-3 mr-1" />
                       ${note.price_charged}
@@ -437,51 +455,34 @@ export default function TreatmentNotes() {
                 <CardDescription className="flex items-center space-x-4">
                   <span className="flex items-center space-x-1">
                     <Stethoscope className="w-4 h-4" />
-                    <span>{note.treatments?.name}</span>
+                    <span>Treatment #{note.treatment_id.slice(0, 8)}</span>
                   </span>
                   <span>•</span>
-                  <span>{note.dentist?.full_name}</span>
+                  <span>Dr. {note.dentist_id.slice(0, 8)}</span>
                   <span>•</span>
-                  <span>{note.actual_duration_minutes} minutes</span>
+                  <span>{note.actual_duration_minutes || 30} minutes</span>
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="diagnosis" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="diagnosis">Diagnosis</TabsTrigger>
-                  <TabsTrigger value="procedure">Procedure</TabsTrigger>
-                  <TabsTrigger value="notes">Clinical Notes</TabsTrigger>
+              <Tabs defaultValue="notes" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="notes">Notes</TabsTrigger>
+                  <TabsTrigger value="complications">Complications</TabsTrigger>
                   <TabsTrigger value="followup">Follow-up</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="diagnosis" className="mt-4">
+                <TabsContent value="notes" className="mt-4">
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">Treatment Notes</h4>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{note.notes || "No notes available"}</p>
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="procedure" className="mt-4">
+                <TabsContent value="complications" className="mt-4">
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">Complications</h4>
                     <p className="text-sm text-muted-foreground">{note.complications || "No complications reported"}</p>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="notes" className="mt-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Treatment Details</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Start Time</p>
-                        <p className="text-sm">{note.start_time ? new Date(note.start_time).toLocaleString() : 'Not recorded'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">End Time</p>
-                        <p className="text-sm">{note.end_time ? new Date(note.end_time).toLocaleString() : 'Not recorded'}</p>
-                      </div>
-                    </div>
                   </div>
                 </TabsContent>
                 
