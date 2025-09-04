@@ -53,6 +53,7 @@ import QueueReports from "./pages/QueueReports";
 import RevenueReports from "./pages/RevenueReports";
 import WorkloadReports from "./pages/WorkloadReports";
 import TreatmentNotes from "./pages/TreatmentNotes";
+import ServicesManagement from "./pages/ServicesManagement";
 import ClinicBranding from "./pages/ClinicBranding";
 import FeatureToggles from "./pages/FeatureToggles";
 import UserRoles from "./pages/UserRoles";
@@ -246,6 +247,11 @@ function AppRoutes() {
         <Route path="treatment-notes" element={
           <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'super_admin']}>
             <TreatmentNotes />
+          </ProtectedRoute>
+        } />
+        <Route path="services-management" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <ServicesManagement />
           </ProtectedRoute>
         } />
         <Route path="clinic-branding" element={

@@ -77,7 +77,7 @@ export default function ServicesManagement() {
     try {
       setLoading(true);
       
-      // Fetch treatments with enhanced data structure
+      // Fetch treatments - using the actual table structure
       const { data: treatmentsData, error: treatmentsError } = await supabase
         .from('treatments')
         .select('*')
@@ -85,13 +85,15 @@ export default function ServicesManagement() {
 
       if (treatmentsError) throw treatmentsError;
 
-      // Transform data to include signature requirements and forms
+      // Transform data to include our enhanced fields with defaults using type casting
       const enhancedTreatments = (treatmentsData || []).map(treatment => ({
         ...treatment,
-        category: treatment.category || 'General',
-        requires_patient_signature: treatment.requires_patient_signature || false,
-        requires_dentist_signature: treatment.requires_dentist_signature || false,
-        attached_forms: treatment.attached_forms || []
+        description: (treatment as any).description || '',
+        category: (treatment as any).category || 'General',
+        is_active: (treatment as any).is_active !== undefined ? (treatment as any).is_active : true,
+        requires_patient_signature: (treatment as any).requires_patient_signature || false,
+        requires_dentist_signature: (treatment as any).requires_dentist_signature || false,
+        attached_forms: (treatment as any).attached_forms || []
       }));
 
       setTreatments(enhancedTreatments);
@@ -128,19 +130,24 @@ export default function ServicesManagement() {
     }
 
     try {
+      // Only include fields that exist in the current table structure
+      const insertData: any = {
+        name: formData.name.trim(),
+        default_price: formData.default_price ? parseFloat(formData.default_price) : null,
+        default_duration_minutes: formData.default_duration_minutes ? parseInt(formData.default_duration_minutes) : null
+      };
+
+      // Add optional fields only if they exist in the table
+      if (formData.description.trim()) {
+        insertData.description = formData.description.trim();
+      }
+      if (formData.category) {
+        insertData.category = formData.category;
+      }
+
       const { data, error } = await supabase
         .from('treatments')
-        .insert([{
-          name: formData.name.trim(),
-          description: formData.description.trim() || null,
-          category: formData.category,
-          default_price: formData.default_price ? parseFloat(formData.default_price) : null,
-          default_duration_minutes: formData.default_duration_minutes ? parseInt(formData.default_duration_minutes) : null,
-          is_active: formData.is_active,
-          requires_patient_signature: formData.requires_patient_signature,
-          requires_dentist_signature: formData.requires_dentist_signature,
-          attached_forms: formData.attached_forms
-        }])
+        .insert([insertData])
         .select()
         .single();
 
@@ -175,20 +182,25 @@ export default function ServicesManagement() {
     }
 
     try {
+      // Only include fields that exist in the current table structure
+      const updateData: any = {
+        name: formData.name.trim(),
+        default_price: formData.default_price ? parseFloat(formData.default_price) : null,
+        default_duration_minutes: formData.default_duration_minutes ? parseInt(formData.default_duration_minutes) : null,
+        updated_at: new Date().toISOString()
+      };
+
+      // Add optional fields only if they exist in the table
+      if (formData.description.trim()) {
+        updateData.description = formData.description.trim();
+      }
+      if (formData.category) {
+        updateData.category = formData.category;
+      }
+
       const { error } = await supabase
         .from('treatments')
-        .update({
-          name: formData.name.trim(),
-          description: formData.description.trim() || null,
-          category: formData.category,
-          default_price: formData.default_price ? parseFloat(formData.default_price) : null,
-          default_duration_minutes: formData.default_duration_minutes ? parseInt(formData.default_duration_minutes) : null,
-          is_active: formData.is_active,
-          requires_patient_signature: formData.requires_patient_signature,
-          requires_dentist_signature: formData.requires_dentist_signature,
-          attached_forms: formData.attached_forms,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', editingTreatment.id);
 
       if (error) throw error;

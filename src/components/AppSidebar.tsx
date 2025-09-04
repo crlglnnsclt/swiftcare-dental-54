@@ -170,6 +170,13 @@ const moduleNavigation: NavItem[] = [
     module: "treatment"
   },
   {
+    title: "Services Management",
+    url: "/services-management",
+    icon: Settings,
+    roles: ["clinic_admin", "super_admin"],
+    module: "treatment"
+  },
+  {
     title: "Billing & Invoices",
     url: "/billing",
     icon: CreditCard,
