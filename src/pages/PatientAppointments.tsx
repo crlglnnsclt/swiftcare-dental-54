@@ -290,12 +290,16 @@ export default function PatientAppointments() {
               <div>
                 <Label htmlFor="service">Service *</Label>
                 <Select value={selectedService} onValueChange={setSelectedService}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border-border shadow-lg z-50">
                     {services.map((service) => (
-                      <SelectItem key={service.id} value={service.id}>
+                      <SelectItem 
+                        key={service.id} 
+                        value={service.id}
+                        className="bg-background hover:bg-muted"
+                      >
                         <div className="flex justify-between w-full">
                           <span>{service.name}</span>
                           <span className="text-muted-foreground ml-4">${service.default_price}</span>
@@ -310,12 +314,19 @@ export default function PatientAppointments() {
               <div>
                 <Label htmlFor="dentist">Preferred Dentist (Optional)</Label>
                 <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Any available dentist" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border-border shadow-lg z-50">
+                    <SelectItem value="" className="bg-background hover:bg-muted">
+                      Any available dentist
+                    </SelectItem>
                     {dentists.map((dentist) => (
-                      <SelectItem key={dentist.id} value={dentist.id}>
+                      <SelectItem 
+                        key={dentist.id} 
+                        value={dentist.id}
+                        className="bg-background hover:bg-muted"
+                      >
                         Dr. {dentist.full_name}
                       </SelectItem>
                     ))}
@@ -339,12 +350,16 @@ export default function PatientAppointments() {
               <div>
                 <Label htmlFor="time">Appointment Time *</Label>
                 <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border z-10">
                     <SelectValue placeholder="Select time slot" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border-border shadow-lg z-50">
                     {timeSlots.map((time) => (
-                      <SelectItem key={time} value={time}>
+                      <SelectItem 
+                        key={time} 
+                        value={time}
+                        className="bg-background hover:bg-muted"
+                      >
                         {time}
                       </SelectItem>
                     ))}
