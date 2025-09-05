@@ -5,7 +5,6 @@ import { useFeatureToggle } from '@/hooks/useFeatureToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Calendar, 
   Clock, 
@@ -14,9 +13,7 @@ import {
   CheckCircle, 
   DollarSign,
   User,
-  Bell,
-  MapPin,
-  Phone
+  MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -35,39 +32,30 @@ interface Appointment {
   status: string;
   queue_position?: number;
   dentist_name?: string;
-}
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  created_at: string;
-  is_read: boolean;
+  notes?: string;
 }
 
 export function PatientDashboard() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const featureToggle = useFeatureToggle();
   const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
   const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileComplete, setProfileComplete] = useState(false);
+  const [patientData, setPatientData] = useState<any>(null);
 
   useEffect(() => {
-    if (profile?.id) {
+    if (user && profile) {
       fetchDashboardData();
     }
-  }, [profile?.id]);
+  }, [user, profile]);
 
   const fetchDashboardData = async () => {
     try {
       await Promise.all([
-        fetchPendingTasks(),
+        fetchPatientData(),
         fetchUpcomingAppointments(),
-        fetchNotifications(),
         checkProfileCompleteness()
       ]);
     } catch (error) {
@@ -78,99 +66,49 @@ export function PatientDashboard() {
     }
   };
 
-  const fetchPendingTasks = async () => {
+  const fetchPatientData = async () => {
     try {
-      // Mock incomplete forms data
-      const incompleteForms: any[] = [];
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('user_id', user?.id)
+        .maybeSingle();
 
-      // Check for overdue payments only if billing is enabled
-      let overduePayments: any[] = [];
-      if (isFeatureEnabled('billing_system')) {
-        const { data: paymentsData, error: paymentsError } = await supabase
-          .from('payments')
-          .select('id, amount, created_at')
-          .eq('patient_id', profile?.id)
-          .eq('payment_status', 'pending');
-
-        if (paymentsError) throw paymentsError;
-        overduePayments = paymentsData || [];
-      }
-
-      const tasks: PendingTask[] = [];
-
-      // Add form completion tasks only if digital forms are enabled
-      if (isFeatureEnabled('digital_forms')) {
-        incompleteForms?.forEach((appointment: any) => {
-          tasks.push({
-            id: `form-${appointment.id}`,
-            type: 'form',
-            title: 'Complete Required Forms',
-            description: `Complete forms for your ${new Date(appointment.appointment_date).toLocaleDateString()} appointment`,
-            priority: 'high',
-            due_date: appointment.appointment_date
-          });
-        });
-      }
-
-      // Add payment tasks only if billing is enabled
-      if (isFeatureEnabled('billing_system')) {
-        overduePayments?.forEach((result: any) => {
-          tasks.push({
-            id: `payment-${result.id}`,
-            type: 'payment',
-            title: 'Payment Required',
-            description: `Payment required to view results: ${result.title}`,
-            priority: 'medium'
-          });
-        });
-      }
-
-      setPendingTasks(tasks);
+      if (error && error.code !== 'PGRST116') throw error;
+      setPatientData(data);
     } catch (error) {
-      console.error('Error fetching pending tasks:', error);
+      console.error('Error fetching patient data:', error);
     }
   };
 
   const fetchUpcomingAppointments = async () => {
     try {
-      // First get the user's patient record(s)
-      const { data: userProfile, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('user_id', profile?.user_id)
-        .single();
+      if (!patientData && !user?.id) return;
 
-      if (userError) {
-        console.error('Error fetching user profile:', userError);
-        return;
+      let patientId = patientData?.id;
+      
+      if (!patientId) {
+        const { data: patient } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+        
+        patientId = patient?.id;
       }
 
-      const { data: patientRecords, error: patientError } = await supabase
-        .from('patients')
-        .select('id')
-        .eq('user_id', userProfile.id);
-
-      if (patientError) {
-        console.error('Error fetching patient records:', patientError);
+      if (!patientId) {
+        console.log('No patient record found');
         return;
       }
-
-      if (!patientRecords?.length) {
-        console.log('No patient records found for user');
-        setUpcomingAppointments([]);
-        return;
-      }
-
-      const patientIds = patientRecords.map(p => p.id);
 
       const { data, error } = await supabase
         .from('appointments')
         .select(`
           *,
-          patients(full_name),
           users!dentist_id(full_name)
         `)
-        .in('patient_id', patientIds)
+        .eq('patient_id', patientId)
         .gte('scheduled_time', new Date().toISOString())
         .order('scheduled_time')
         .limit(3);
@@ -188,51 +126,16 @@ export function PatientDashboard() {
     }
   };
 
-  const fetchNotifications = async () => {
-    try {
-      // Mock notifications since table doesn't exist
-      const mockNotifications = [
-        {
-          id: '1',
-          title: 'Appointment Reminder',
-          message: 'Your appointment is tomorrow at 2:00 PM',
-          type: 'reminder',
-          is_read: false,
-          created_at: new Date().toISOString()
-        }
-      ];
-      setNotifications(mockNotifications);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
   const checkProfileCompleteness = async () => {
     try {
-      // First get the user's profile
-      const { data: userProfile, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('user_id', profile?.user_id)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching user profile:', userError);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .eq('user_id', userProfile.id)
+        .eq('user_id', user?.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking profile completeness:', error);
-        return;
-      }
+      if (error && error.code !== 'PGRST116') throw error;
 
-      // Check if essential fields are filled
       const hasEssentialInfo = data && 
         data.full_name && 
         data.date_of_birth && 
@@ -245,33 +148,14 @@ export function PatientDashboard() {
     }
   };
 
-  const getTaskIcon = (type: string) => {
-    switch (type) {
-      case 'form': return <FileText className="w-4 h-4" />;
-      case 'payment': return <DollarSign className="w-4 h-4" />;
-      case 'profile': return <User className="w-4 h-4" />;
-      case 'appointment': return <Calendar className="w-4 h-4" />;
-      default: return <AlertCircle className="w-4 h-4" />;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'outline';
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmed':
-      case 'scheduled':
+      case 'booked':
         return 'default';
       case 'checked_in':
         return 'secondary';
-      case 'in_treatment':
+      case 'in_progress':
         return 'default';
       default:
         return 'outline';
@@ -293,7 +177,7 @@ export function PatientDashboard() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Welcome back, {profile?.full_name?.split(' ')[0] || 'Patient'}!
+            Welcome back, {patientData?.full_name?.split(' ')[0] || profile?.full_name?.split(' ')[0] || 'Patient'}!
           </h1>
           <p className="text-muted-foreground">Here's your health overview</p>
         </div>
@@ -323,47 +207,40 @@ export function PatientDashboard() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Pending Tasks */}
+        {/* Patient Info */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-orange-500" />
-              Pending Tasks
+              <User className="w-5 h-5 text-primary" />
+              Your Information
             </CardTitle>
-            <CardDescription>
-              {pendingTasks.length} tasks require your attention
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {pendingTasks.length > 0 ? (
-              pendingTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getTaskIcon(task.type)}
-                    <div>
-                      <p className="font-medium">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">{task.description}</p>
-                      {task.due_date && (
-                        <p className="text-xs text-orange-600">
-                          Due: {new Date(task.due_date).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getPriorityColor(task.priority)}>
-                      {task.priority}
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      Action
-                    </Button>
-                  </div>
+            {patientData ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium">Full Name</p>
+                  <p className="text-muted-foreground">{patientData.full_name}</p>
                 </div>
-              ))
+                <div>
+                  <p className="font-medium">Email</p>
+                  <p className="text-muted-foreground">{patientData.email}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Contact Number</p>
+                  <p className="text-muted-foreground">{patientData.contact_number}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Date of Birth</p>
+                  <p className="text-muted-foreground">
+                    {patientData.date_of_birth ? new Date(patientData.date_of_birth).toLocaleDateString() : 'Not provided'}
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="text-center py-8">
-                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
-                <p className="text-muted-foreground">All tasks completed!</p>
+                <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-2" />
+                <p className="text-muted-foreground">No patient profile found. Please complete your registration.</p>
               </div>
             )}
           </CardContent>
@@ -382,42 +259,21 @@ export function PatientDashboard() {
                     {new Date(upcomingAppointments[0].scheduled_time).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Appointment
+                    {new Date(upcomingAppointments[0].scheduled_time).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    with {upcomingAppointments[0].dentist_name || 'Dr. TBD'}
+                    with {upcomingAppointments[0].dentist_name}
                   </p>
                   <Badge variant={getStatusColor(upcomingAppointments[0].status)}>
                     {upcomingAppointments[0].status}
                   </Badge>
-                  {upcomingAppointments[0].queue_position && (
-                    <p className="text-sm font-medium text-primary">
-                      Queue Position: #{upcomingAppointments[0].queue_position}
-                    </p>
-                  )}
                 </div>
               ) : (
                 <p className="text-muted-foreground">No upcoming appointments</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Recent Notifications</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {notifications.slice(0, 3).map((notification) => (
-                <div key={notification.id} className="space-y-1">
-                  <p className="text-sm font-medium">{notification.title}</p>
-                  <p className="text-xs text-muted-foreground">{notification.message}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(notification.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-              {notifications.length === 0 && (
-                <p className="text-sm text-muted-foreground">No new notifications</p>
               )}
             </CardContent>
           </Card>
@@ -433,70 +289,69 @@ export function PatientDashboard() {
               Upcoming Appointments
             </CardTitle>
           </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingAppointments.map((appointment) => (
-              <Card key={appointment.id} className="border">
-                <CardContent className="pt-4 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">Appointment</p>
-                      <p className="text-sm text-muted-foreground">
-                        {appointment.dentist_name || 'Dr. TBD'}
-                      </p>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingAppointments.map((appointment) => (
+                <Card key={appointment.id} className="border">
+                  <CardContent className="pt-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">Appointment</p>
+                        <p className="text-sm text-muted-foreground">
+                          {appointment.dentist_name}
+                        </p>
+                      </div>
+                      <Badge variant={getStatusColor(appointment.status)}>
+                        {appointment.status}
+                      </Badge>
                     </div>
-                    <Badge variant={getStatusColor(appointment.status)}>
-                      {appointment.status}
-                    </Badge>
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <p className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(appointment.scheduled_time).toLocaleDateString()}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      {new Date(appointment.scheduled_time).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </p>
-                    {appointment.status === 'checked_in' && appointment.queue_position && (
-                      <p className="flex items-center gap-2 text-primary font-medium">
-                        <MapPin className="w-4 h-4" />
-                        Queue Position: #{appointment.queue_position}
+                    <div className="space-y-1 text-sm">
+                      <p className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(appointment.scheduled_time).toLocaleDateString()}
                       </p>
-                    )}
-                  </div>
-                  <div className="pt-2">
-                    {appointment.status !== 'checked_in' && (
-                      <Button size="sm" className="w-full">
-                        Check In
-                      </Button>
-                    )}
-                    {appointment.status === 'checked_in' && (
-                      <Button size="sm" variant="outline" className="w-full" disabled>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Checked In
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {upcomingAppointments.length === 0 && (
-            <div className="text-center py-8">
-              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">No upcoming appointments scheduled</p>
-              <Button className="mt-4" variant="outline">
-                Schedule Appointment
-              </Button>
+                      <p className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {new Date(appointment.scheduled_time).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </p>
+                      {appointment.notes && (
+                        <p className="text-xs text-muted-foreground">
+                          {appointment.notes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="pt-2">
+                      {appointment.status !== 'checked_in' && (
+                        <Button size="sm" className="w-full">
+                          Check In
+                        </Button>
+                      )}
+                      {appointment.status === 'checked_in' && (
+                        <Button size="sm" variant="outline" className="w-full" disabled>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Checked In
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            {upcomingAppointments.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground">No upcoming appointments scheduled</p>
+                <Button className="mt-4" variant="outline">
+                  Schedule Appointment
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

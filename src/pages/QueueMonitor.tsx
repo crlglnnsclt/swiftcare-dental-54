@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Clock, User, AlertTriangle, CheckCircle, Volume2, VolumeX, Maximize, QrCode } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { Clock, User, AlertTriangle, CheckCircle, Volume2, VolumeX, Maximize } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface QueueDisplayItem {
@@ -13,7 +12,7 @@ interface QueueDisplayItem {
   patient_name: string;
   appointment_time: string;
   estimated_wait_minutes: number;
-  priority: 'emergency' | 'scheduled' | 'walk_in';
+  priority: 'emergency' | 'online' | 'walk_in';
   status: 'waiting' | 'called' | 'in_treatment' | 'completed';
   dentist_name?: string;
 }
@@ -30,33 +29,15 @@ export default function QueueMonitor() {
     
     const interval = setInterval(() => {
       fetchQueueData();
-      setCurrentTime(new Date());
-    }, 30000); // Refresh every 30 seconds
+    }, 60000); // Refresh every minute
 
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000); // Update time every second
-
-    // Real-time subscription
-    const channel = supabase
-      .channel('queue-monitor')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'queue'
-        },
-        () => {
-          fetchQueueData();
-        }
-      )
-      .subscribe();
+    }, 1000);
 
     return () => {
       clearInterval(interval);
       clearInterval(timeInterval);
-      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -66,29 +47,24 @@ export default function QueueMonitor() {
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
       
-      console.log('QueueMonitor: Fetching appointments for date range:', { startOfDay, endOfDay });
-      
-      // Simplified approach - fetch directly from appointments since queue table may be empty
+      // Fetch directly from appointments table
       const { data, error } = await supabase
         .from('appointments')
         .select(`
           id,
-          patient_id,
-          dentist_id,
           scheduled_time,
-          duration_minutes,
           status,
           booking_type,
+          duration_minutes,
           notes,
-          patients!inner(full_name),
+          patients!inner(full_name, contact_number),
           users!dentist_id(full_name)
         `)
         .in('status', ['checked_in', 'in_progress'])
         .gte('scheduled_time', startOfDay)
         .lt('scheduled_time', endOfDay)
-        .order('scheduled_time');
-
-      console.log('QueueMonitor: Appointments query result:', { data, error });
+        .order('scheduled_time')
+        .limit(20);
 
       if (error) throw error;
 
@@ -97,14 +73,13 @@ export default function QueueMonitor() {
         position: index + 1,
         patient_name: item.patients?.full_name || 'Unknown Patient',
         appointment_time: new Date(item.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        estimated_wait_minutes: index * 20, // Simple estimation: 20 min per position
+        estimated_wait_minutes: index * 30,
         priority: item.booking_type === 'emergency' ? 'emergency' : 
-                  item.booking_type === 'walk_in' ? 'walk_in' : 'scheduled',
+                  item.booking_type === 'walk_in' ? 'walk_in' : 'online',
         status: item.status === 'in_progress' ? 'in_treatment' : 'waiting',
         dentist_name: item.users?.full_name
       }));
 
-      console.log('QueueMonitor: Mapped data:', mappedData);
       setQueueItems(mappedData);
     } catch (error) {
       console.error('Error fetching queue data:', error);
@@ -125,18 +100,9 @@ export default function QueueMonitor() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'emergency': return 'bg-red-600 text-white';
-      case 'scheduled': return 'bg-blue-600 text-white';
+      case 'online': return 'bg-blue-600 text-white';
       case 'walk_in': return 'bg-yellow-600 text-white';
       default: return 'bg-gray-600 text-white';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'waiting': return 'bg-yellow-100 text-yellow-800';
-      case 'in_treatment': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -168,7 +134,6 @@ export default function QueueMonitor() {
               <p className="text-lg text-gray-600">Real-time patient queue display</p>
             </div>
             <div className="flex items-center space-x-4">
-              {/* Controls */}
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -186,7 +151,6 @@ export default function QueueMonitor() {
                 </Button>
               </div>
               
-              {/* Time */}
               <div className="text-right">
                 <div className="text-3xl font-bold text-blue-600">
                   {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -260,7 +224,6 @@ export default function QueueMonitor() {
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {waitingPatients
                   .sort((a, b) => {
-                    // Emergency first, then by position
                     if (a.priority === 'emergency' && b.priority !== 'emergency') return -1;
                     if (b.priority === 'emergency' && a.priority !== 'emergency') return 1;
                     return a.position - b.position;
@@ -302,7 +265,7 @@ export default function QueueMonitor() {
                           </div>
                           <div className="space-y-2">
                             <Badge className={getPriorityColor(patient.priority)}>
-                              {patient.priority.replace('_', ' ').toUpperCase()}
+                              {patient.priority.toUpperCase()}
                             </Badge>
                             <div className="w-full">
                               <Progress 
@@ -333,7 +296,7 @@ export default function QueueMonitor() {
                 </span>
                 <span className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                  Scheduled
+                  Online Booking
                 </span>
                 <span className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
