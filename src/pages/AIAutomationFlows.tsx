@@ -19,6 +19,10 @@ import {
   CheckCircle
 } from "lucide-react";
 import { toast } from "sonner";
+import InteractiveFlowDiagram from "@/components/InteractiveFlowDiagram";
+import N8nWorkflowDashboard from "@/components/N8nWorkflowDashboard";
+import ProcessDocumentationViewer from "@/components/ProcessDocumentationViewer";
+import SystemMetricsDashboard from "@/components/SystemMetricsDashboard";
 
 const AIAutomationFlows = () => {
   const [activeFlow, setActiveFlow] = useState("overview");
@@ -396,12 +400,12 @@ const AIAutomationFlows = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeFlow} onValueChange={setActiveFlow} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="workflows">AI Workflows</TabsTrigger>
             <TabsTrigger value="journeys">User Journeys</TabsTrigger>
-            <TabsTrigger value="architecture">Architecture</TabsTrigger>
-            <TabsTrigger value="implementation">Implementation</TabsTrigger>
+            <TabsTrigger value="metrics">Impact Metrics</TabsTrigger>
+            <TabsTrigger value="n8n">n8n Dashboard</TabsTrigger>
             <TabsTrigger value="documentation">Documentation</TabsTrigger>
           </TabsList>
 
@@ -546,228 +550,102 @@ const AIAutomationFlows = () => {
             </div>
           </TabsContent>
 
-          {/* Architecture Tab */}
-          <TabsContent value="architecture" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  System Architecture Overview
-                </CardTitle>
-                <CardDescription>
-                  Complete technical architecture with AI integration points
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">Frontend</div>
-                    <div className="text-sm space-y-1">
-                      <div>React/TypeScript</div>
-                      <div>Tailwind CSS</div>
-                      <div>Real-time UI</div>
-                      <div>PWA Capabilities</div>
-                    </div>
-                  </div>
-                  <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 mb-2">Backend</div>
-                    <div className="text-sm space-y-1">
-                      <div>Supabase</div>
-                      <div>PostgreSQL</div>
-                      <div>Row Level Security</div>
-                      <div>Edge Functions</div>
-                    </div>
-                  </div>
-                  <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 mb-2">AI Layer</div>
-                    <div className="text-sm space-y-1">
-                      <div>n8n Workflows</div>
-                      <div>OpenAI GPT-4</div>
-                      <div>Machine Learning</div>
-                      <div>Predictive Analytics</div>
-                    </div>
-                  </div>
-                  <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600 mb-2">Security</div>
-                    <div className="text-sm space-y-1">
-                      <div>HIPAA Compliant</div>
-                      <div>End-to-End Encryption</div>
-                      <div>Audit Logging</div>
-                      <div>Role-Based Access</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-8">
-                  <Button className="w-full" onClick={() => toast.success("Opening interactive architecture diagram")}>
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    View Interactive Architecture Diagram
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Impact Metrics Tab */}
+          <TabsContent value="metrics" className="space-y-6">
+            <SystemMetricsDashboard />
           </TabsContent>
 
-          {/* Implementation Tab */}
-          <TabsContent value="implementation" className="space-y-6">
+          {/* n8n Dashboard Tab */}
+          <TabsContent value="n8n" className="space-y-6">
+            <N8nWorkflowDashboard />
+          </TabsContent>
+
+          {/* Architecture Tab */}
+          <TabsContent value="architecture" className="space-y-6">
             <div className="space-y-6">
-              {implementationPhases.map((phase, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Badge variant="outline">{phase.timeline}</Badge>
-                          {phase.phase}
-                        </CardTitle>
-                        <CardDescription>{phase.description}</CardDescription>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">{phase.progress}%</div>
-                        <div className="text-sm text-muted-foreground">Complete</div>
+              {/* Patient Journey Example */}
+              <InteractiveFlowDiagram
+                title="Patient Appointment Journey"
+                description="Complete patient experience from booking to follow-up"
+                type="patient-journey"
+                beforeSteps={[
+                  { id: "1", title: "Call Clinic", description: "Patient calls during business hours", duration: "5 min", status: "completed", type: "manual" },
+                  { id: "2", title: "Wait on Hold", description: "Average wait time for receptionist", duration: "8 min", status: "completed", type: "manual" },
+                  { id: "3", title: "Schedule Manually", description: "Receptionist checks calendar manually", duration: "12 min", status: "completed", type: "manual" },
+                  { id: "4", title: "Paper Confirmation", description: "Manual confirmation process", duration: "3 min", status: "completed", type: "manual" },
+                  { id: "5", title: "Follow-up Call", description: "Staff calls to confirm 24h before", duration: "5 min", status: "completed", type: "manual" }
+                ]}
+                afterSteps={[
+                  { id: "1", title: "AI Chat Assistant", description: "24/7 intelligent booking assistant", duration: "30 sec", status: "completed", type: "ai", improvement: "+400% faster" },
+                  { id: "2", title: "Smart Scheduling", description: "AI optimizes appointment slots", duration: "45 sec", status: "completed", type: "ai", improvement: "Conflict-free" },
+                  { id: "3", title: "Instant Confirmation", description: "Automated confirmation with details", duration: "15 sec", status: "completed", type: "automated", improvement: "Real-time" },
+                  { id: "4", title: "Smart Reminders", description: "Personalized automated reminders", duration: "0 sec", status: "completed", type: "ai", improvement: "Predictive timing" }
+                ]}
+                metrics={{
+                  timeReduction: "87% faster",
+                  efficiencyGain: "5x improvement",
+                  satisfactionIncrease: "+40% patient satisfaction"
+                }}
+              />
+
+              {/* System Architecture Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Technical Architecture
+                  </CardTitle>
+                  <CardDescription>
+                    AI-enhanced system architecture with integration points
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 mb-2">Frontend</div>
+                      <div className="text-sm space-y-1">
+                        <div>React/TypeScript</div>
+                        <div>Tailwind CSS</div>
+                        <div>Real-time UI</div>
+                        <div>PWA Capabilities</div>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <Progress value={phase.progress} className="h-2" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {phase.deliverables.map((deliverable, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
-                            <CheckCircle className={`h-4 w-4 ${phase.progress > (idx + 1) * 25 ? 'text-green-600' : 'text-gray-400'}`} />
-                            {deliverable}
-                          </div>
-                        ))}
+                    <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 mb-2">Backend</div>
+                      <div className="text-sm space-y-1">
+                        <div>Supabase</div>
+                        <div>PostgreSQL</div>
+                        <div>Row Level Security</div>
+                        <div>Edge Functions</div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 mb-2">AI Layer</div>
+                      <div className="text-sm space-y-1">
+                        <div>n8n Workflows</div>
+                        <div>OpenAI GPT-4</div>
+                        <div>Machine Learning</div>
+                        <div>Predictive Analytics</div>
+                      </div>
+                    </div>
+                    <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600 mb-2">Security</div>
+                      <div className="text-sm space-y-1">
+                        <div>HIPAA Compliant</div>
+                        <div>End-to-End Encryption</div>
+                        <div>Audit Logging</div>
+                        <div>Role-Based Access</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
           {/* Documentation Tab */}
           <TabsContent value="documentation" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Core Flow Documentation
-                  </CardTitle>
-                  <CardDescription>
-                    Detailed user journeys and process flows (50+ pages)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => toast.success("Opening core flow documentation")}
-                  >
-                    View Documentation
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    Interactive Dashboard
-                  </CardTitle>
-                  <CardDescription>
-                    6 interactive tabs with real-time metrics and visualizations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => toast.success("Opening interactive dashboard")}
-                  >
-                    Launch Dashboard
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5" />
-                    n8n Workflow Library
-                  </CardTitle>
-                  <CardDescription>
-                    Complete library of 12 AI automation workflows
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={handleN8nIntegration}
-                  >
-                    Access Workflows
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    User Journey Maps
-                  </CardTitle>
-                  <CardDescription>
-                    Detailed flows for all 5 user roles with AI enhancements
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => toast.success("Opening user journey documentation")}
-                  >
-                    View Journeys
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Impact Analytics
-                  </CardTitle>
-                  <CardDescription>
-                    Before/after comparisons and ROI calculations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => toast.success("Opening impact analytics")}
-                  >
-                    View Analytics
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Executive Summary
-                  </CardTitle>
-                  <CardDescription>
-                    High-level overview and implementation roadmap
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => toast.success("Opening executive summary")}
-                  >
-                    View Summary
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <ProcessDocumentationViewer />
           </TabsContent>
         </Tabs>
       </div>

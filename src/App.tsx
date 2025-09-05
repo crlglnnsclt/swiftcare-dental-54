@@ -67,6 +67,7 @@ import ESignForms from "./pages/ESignForms";
 import DocumentsUploads from "./pages/DocumentsUploads";
 import SystemHealth from "./pages/SystemHealth";
 import EnhancedAnalytics from "./pages/EnhancedAnalytics";
+import AIAutomationFlows from "./pages/AIAutomationFlows";
 import PatientRegistration from "./pages/PatientRegistration";
 import AppointmentsHub from "./pages/AppointmentsHub";
 import { PatientCheckIn } from "./pages/PatientCheckIn";
@@ -117,6 +118,11 @@ function AppRoutes() {
         <Route path="enhanced-analytics" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <EnhancedAnalytics />
+          </ProtectedRoute>
+        } />
+        <Route path="ai-automation-flows" element={
+          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+            <AIAutomationFlows />
           </ProtectedRoute>
         } />
         <Route path="users" element={
