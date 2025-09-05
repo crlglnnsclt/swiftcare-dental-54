@@ -339,6 +339,14 @@ export default function FeatureToggles() {
           priority: "low"
         },
         {
+          key: "n8n_integration",
+          name: "n8n Workflow Integration",
+          description: "Enable n8n workflow automation and webhook integrations",
+          dependencies: ["ai_automation_flows"],
+          category: "system",
+          priority: "low"
+        },
+        {
           key: "multi_language",
           name: "Multi-Language Support",
           description: "Support for multiple languages and localization",
