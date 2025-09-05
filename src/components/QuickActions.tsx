@@ -19,7 +19,14 @@ export function QuickActions() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const featureToggle = useFeatureToggle();
-  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
+  
+  // Properly extract isFeatureEnabled function
+  const isFeatureEnabled = (featureName: string): boolean => {
+    if ('isFeatureEnabled' in featureToggle && typeof featureToggle.isFeatureEnabled === 'function') {
+      return featureToggle.isFeatureEnabled(featureName);
+    }
+    return false;
+  };
 
   interface QuickAction {
     title: string;
@@ -131,6 +138,30 @@ export function QuickActions() {
     return hasRole && hasFeature;
   });
 
+  // Show loading state while features are being fetched
+  if (featureToggle.loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Bell className="h-5 w-5" />
+            <span>Quick Actions</span>
+          </CardTitle>
+          <CardDescription>
+            Loading available actions...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-20 bg-muted animate-pulse rounded-md"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -143,30 +174,38 @@ export function QuickActions() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {allActions.map((action, index) => (
-            <Button
-              key={index}
-              variant={action.variant}
-              className="h-auto p-4 flex flex-col items-start space-y-2"
-              onClick={action.action}
-            >
-              <div className="flex items-center justify-between w-full">
-                <action.icon className="h-5 w-5" />
-                {action.badge && (
-                  <Badge variant="secondary" className="text-xs">
-                    {action.badge}
-                  </Badge>
-                )}
-              </div>
-              <div className="text-left">
-                <div className="font-medium text-sm">{action.title}</div>
-                <div className="text-xs text-muted-foreground">
-                  {action.description}
+        <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+          {allActions.length === 0 ? (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No actions available</p>
+              <p className="text-sm">Features may need to be enabled</p>
+            </div>
+          ) : (
+            allActions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant}
+                className="h-auto p-4 flex flex-col items-start space-y-2 text-left"
+                onClick={action.action}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <action.icon className="h-5 w-5" />
+                  {action.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {action.badge}
+                    </Badge>
+                  )}
                 </div>
-              </div>
-            </Button>
-          ))}
+                <div className="text-left w-full">
+                  <div className="font-medium text-sm">{action.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {action.description}
+                  </div>
+                </div>
+              </Button>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
