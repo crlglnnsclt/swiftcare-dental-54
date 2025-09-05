@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
+import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 import {
   Sidebar,
   SidebarContent,
@@ -376,12 +377,43 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { profile } = useAuth();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
-  // Filter navigation items based on user role
+  // Map routes to required features
+  const getFeatureRequirement = (url: string): string | null => {
+    const featureMap: Record<string, string> = {
+      '/appointments': 'appointment_booking',
+      '/queue': 'queue_management',
+      '/queue-monitor': 'queue_management',
+      '/appointment-settings': 'appointment_settings',
+      '/patient-records': 'patient_records',
+      '/family-management': 'family_accounts',
+      '/insurance': 'insurance_management',
+      '/esign-forms': 'digital_forms',
+      '/documents-uploads': 'document_management',
+      '/dental-charts': 'dental_charts',
+      '/billing': 'billing_system',
+      '/payment-tracking': 'payment_processing',
+      '/inventory': 'inventory_management',
+      '/analytics': 'basic_analytics',
+      '/patient-app': 'patient_portal',
+      '/patient-booking': 'online_booking'
+    };
+    return featureMap[url] || null;
+  };
+
+  // Filter navigation items based on user role and feature toggles
   const allowedItems = moduleNavigation.filter(item => {
-    return profile?.role && item.roles.includes(profile.role);
+    const hasRole = profile?.role && item.roles.includes(profile.role);
+    
+    // Check feature requirements
+    const featureRequired = getFeatureRequirement(item.url);
+    const hasFeature = !featureRequired || isFeatureEnabled(featureRequired);
+    
+    return hasRole && hasFeature;
   });
 
   // For super admin, show only system management related features

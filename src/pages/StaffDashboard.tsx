@@ -25,6 +25,7 @@ import {
   Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useFeatureToggle } from '@/hooks/useFeatureToggle';
 
 interface QueueItem {
   id: string;
@@ -66,6 +67,8 @@ interface AppointmentFormData {
 
 export function StaffDashboard() {
   const { profile } = useAuth();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
   const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
   const [taskNotifications, setTaskNotifications] = useState<TaskNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -324,23 +327,27 @@ export function StaffDashboard() {
           <p className="text-muted-foreground">Queue management and patient operations</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button 
-            onClick={() => setIsAppointmentModalOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Appointment
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4" />
-            Patient Portal
-          </Button>
+          {isFeatureEnabled('appointment_booking') && (
+            <Button 
+              onClick={() => setIsAppointmentModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create Appointment
+            </Button>
+          )}
+          {isFeatureEnabled('patient_portal') && (
+            <Button variant="outline" className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" />
+              Patient Portal
+            </Button>
+          )}
         </div>
       </div>
 
       <Tabs defaultValue="queue" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="queue">Queue Management</TabsTrigger>
+          {isFeatureEnabled('queue_management') && <TabsTrigger value="queue">Queue Management</TabsTrigger>}
           <TabsTrigger value="tasks">
             Task Notifications
             {taskNotifications.length > 0 && (
@@ -351,7 +358,8 @@ export function StaffDashboard() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="queue" className="space-y-4">
+        {isFeatureEnabled('queue_management') && (
+          <TabsContent value="queue" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -449,7 +457,8 @@ export function StaffDashboard() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         <TabsContent value="tasks" className="space-y-4">
           <Card>

@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AppointmentCreationDialog } from '@/components/AppointmentCreationDialog';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { useFeatureToggle } from '@/hooks/useFeatureToggle';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -39,6 +40,8 @@ export default function AdminDashboard() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
 
   useEffect(() => {
     if (profile?.role === 'clinic_admin' || profile?.role === 'super_admin') {

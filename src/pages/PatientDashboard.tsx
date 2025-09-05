@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useFeatureToggle } from '@/hooks/useFeatureToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +48,8 @@ interface Notification {
 
 export function PatientDashboard() {
   const { profile } = useAuth();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
   const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -365,13 +368,14 @@ export function PatientDashboard() {
       </div>
 
       {/* Upcoming Appointments */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            Upcoming Appointments
-          </CardTitle>
-        </CardHeader>
+      {isFeatureEnabled('appointment_booking') && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              Upcoming Appointments
+            </CardTitle>
+          </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {upcomingAppointments.map((appointment) => (
@@ -436,6 +440,7 @@ export function PatientDashboard() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

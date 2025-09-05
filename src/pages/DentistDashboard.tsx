@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useFeatureToggle } from '@/hooks/useFeatureToggle';
 
 export default function DentistDashboard() {
   const [stats, setStats] = useState({
@@ -29,6 +30,8 @@ export default function DentistDashboard() {
   const [dentalCharts, setDentalCharts] = useState<any[]>([]);
   const { profile } = useAuth();
   const { toast } = useToast();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
 
   useEffect(() => {
     if (profile?.role === 'dentist') {
@@ -200,7 +203,7 @@ export default function DentistDashboard() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="today">Today's Schedule</TabsTrigger>
           <TabsTrigger value="patients">My Patients</TabsTrigger>
-          <TabsTrigger value="charts">Dental Charts</TabsTrigger>
+          {isFeatureEnabled('dental_charts') && <TabsTrigger value="charts">Dental Charts</TabsTrigger>}
           <TabsTrigger value="notes">Treatment Notes</TabsTrigger>
         </TabsList>
 
@@ -351,9 +354,10 @@ export default function DentistDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="charts" className="space-y-6">
-          {/* Recent Dental Charts */}
-          <Card className="glass-card card-3d interactive-3d">
+        {isFeatureEnabled('dental_charts') && (
+          <TabsContent value="charts" className="space-y-6">
+            {/* Recent Dental Charts */}
+            <Card className="glass-card card-3d interactive-3d">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5 float-gentle" />
@@ -396,7 +400,8 @@ export default function DentistDashboard() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         <TabsContent value="notes" className="space-y-6">
           <Card className="glass-card card-3d">
