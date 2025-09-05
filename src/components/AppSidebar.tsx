@@ -462,6 +462,7 @@ export function AppSidebar() {
   const getVisibleItems = () => {
     console.log('🔍 Sidebar Debug - Current user role:', profile?.role);
     console.log('🔍 Total navigation items to check:', moduleNavigation.length);
+    console.log('🔍 Patient Portal items exist:', moduleNavigation.filter(item => item.module === "patient_portal"));
     console.log('🔍 Feature toggle object:', featureToggle);
     console.log('🔍 isFeatureEnabled function:', typeof isFeatureEnabled);
     
@@ -508,6 +509,9 @@ export function AppSidebar() {
   const patientPortalItems = visibleItems.filter(item => item.module === "patient_portal");
   const settingsItems = visibleItems.filter(item => item.module === "settings");
 
+  console.log('🔍 Debug Module Filtering:');
+  console.log('  visibleItems modules:', visibleItems.map(item => `${item.title}: ${item.module}`));
+  console.log('  patientPortalItems filtered:', patientPortalItems.map(item => item.title));
   console.log('🔍 Module Groups:');
   console.log('  patientPortalItems:', patientPortalItems.map(item => item.title));
   console.log('  paperlessItems:', paperlessItems.map(item => item.title));
