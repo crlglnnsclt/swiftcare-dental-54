@@ -379,6 +379,7 @@ export function AppSidebar() {
   const { profile } = useAuth();
   const featureToggle = useFeatureToggle();
   const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
+  const loading = 'loading' in featureToggle ? featureToggle.loading : false;
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
@@ -530,6 +531,17 @@ export function AppSidebar() {
       </SidebarGroup>
     );
   };
+
+  // Don't render sidebar until features are loaded
+  if (loading) {
+    return (
+      <Sidebar className="w-64 border-r">
+        <SidebarContent className="bg-card p-4">
+          <div className="text-sm text-muted-foreground">Loading...</div>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar
