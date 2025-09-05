@@ -40,8 +40,7 @@ const AppointmentScheduling = () => {
           description: 'Regular dental cleaning and checkup',
           default_price: 100,
           default_duration_minutes: 30,
-          is_active: true,
-          clinic_id: '1'
+          is_active: true
         },
         {
           id: '2',
@@ -49,8 +48,7 @@ const AppointmentScheduling = () => {
           description: 'Composite tooth filling',
           default_price: 150,
           default_duration_minutes: 45,
-          is_active: true,
-          clinic_id: '1'
+          is_active: true
         },
         {
           id: '3',
@@ -58,8 +56,7 @@ const AppointmentScheduling = () => {
           description: 'Root canal treatment',
           default_price: 500,
           default_duration_minutes: 90,
-          is_active: true,
-          clinic_id: '1'
+          is_active: true
         }
       ];
 
@@ -68,7 +65,6 @@ const AppointmentScheduling = () => {
           id: '1',
           patient_id: 'p1',
           dentist_id: 'd1',
-          clinic_id: '1',
           scheduled_time: `${selectedDate}T09:00:00`,
           duration_minutes: 30,
           status: 'booked',
@@ -82,7 +78,6 @@ const AppointmentScheduling = () => {
           id: '2',
           patient_id: 'p2',
           dentist_id: 'd1',
-          clinic_id: '1',
           scheduled_time: `${selectedDate}T10:30:00`,
           duration_minutes: 45,
           status: 'checked_in',
@@ -117,7 +112,6 @@ const AppointmentScheduling = () => {
         id: Math.random().toString(36).substr(2, 9),
         patient_id: 'mock-patient',
         dentist_id: 'mock-dentist',
-        clinic_id: '1',
         scheduled_time: newAppointment.scheduled_time,
         duration_minutes: newAppointment.duration_minutes,
         status: 'booked',

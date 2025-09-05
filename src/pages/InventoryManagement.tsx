@@ -35,14 +35,12 @@ const InventoryManagement = () => {
     supplier_name: '',
     supplier_contact: '',
     expiry_date: '',
-    clinic_id: '',
     is_active: true
   });
 
   const [newCategory, setNewCategory] = useState({
     name: '',
     description: '',
-    clinic_id: '',
     is_active: true
   });
 
@@ -53,7 +51,6 @@ const InventoryManagement = () => {
     unit_cost: 0,
     total_cost: 0,
     notes: '',
-    clinic_id: '',
     created_by: ''
   });
 
@@ -65,9 +62,9 @@ const InventoryManagement = () => {
     try {
       // Fetch categories with mock data since the schema has issues
       const mockCategories: InventoryCategory[] = [
-        { id: '1', name: 'Dental Supplies', description: 'Basic dental supplies', clinic_id: '1', is_active: true },
-        { id: '2', name: 'Equipment', description: 'Dental equipment', clinic_id: '1', is_active: true },
-        { id: '3', name: 'Medications', description: 'Pharmaceutical supplies', clinic_id: '1', is_active: true }
+        { id: '1', name: 'Dental Supplies', description: 'Basic dental supplies', is_active: true },
+        { id: '2', name: 'Equipment', description: 'Dental equipment', is_active: true },
+        { id: '3', name: 'Medications', description: 'Pharmaceutical supplies', is_active: true }
       ];
       setCategories(mockCategories);
 
@@ -83,7 +80,6 @@ const InventoryManagement = () => {
           unit_cost: 0.25,
           unit_type: 'pieces',
           category_id: '1',
-          clinic_id: '1',
           is_active: true,
           supplier_name: 'MedSupply Co',
           supplier_contact: 'contact@medsupply.com',
@@ -99,7 +95,6 @@ const InventoryManagement = () => {
           unit_cost: 45.00,
           unit_type: 'tubes',
           category_id: '1',
-          clinic_id: '1',
           is_active: true,
           supplier_name: 'DentalTech Ltd',
           supplier_contact: 'orders@dentaltech.com',
@@ -113,7 +108,6 @@ const InventoryManagement = () => {
         {
           id: '1',
           item_id: '1',
-          clinic_id: '1',
           transaction_type: 'in',
           quantity: 100,
           unit_cost: 0.25,
@@ -180,7 +174,7 @@ const InventoryManagement = () => {
 
       setCategories([...categories, mockCategory]);
       setShowAddCategory(false);
-      setNewCategory({ name: '', description: '', clinic_id: '', is_active: true });
+      setNewCategory({ name: '', description: '', is_active: true });
       toast.success('Category added successfully');
     } catch (error) {
       console.error('Error adding category:', error);
@@ -225,7 +219,6 @@ const InventoryManagement = () => {
         unit_cost: 0,
         total_cost: 0,
         notes: '',
-        clinic_id: '',
         created_by: ''
       });
       toast.success('Transaction recorded successfully');
@@ -248,7 +241,6 @@ const InventoryManagement = () => {
       supplier_name: '',
       supplier_contact: '',
       expiry_date: '',
-      clinic_id: '',
       is_active: true
     });
     setEditingItem(null);
@@ -267,7 +259,6 @@ const InventoryManagement = () => {
       supplier_name: item.supplier_name || '',
       supplier_contact: item.supplier_contact || '',
       expiry_date: item.expiry_date || '',
-      clinic_id: item.clinic_id,
       is_active: item.is_active
     });
     setEditingItem(item);

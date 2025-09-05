@@ -41,9 +41,8 @@ export function AppointmentBookingForm() {
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   
   const [formData, setFormData] = useState({
-    clinic_id: '',
-    dentist_id: '',
     treatment_type: '',
+    dentist_id: '',
     appointment_date: '',
     appointment_time: '',
     notes: ''
@@ -54,37 +53,21 @@ export function AppointmentBookingForm() {
   }, []);
 
   useEffect(() => {
-    if (formData.clinic_id) {
-      fetchDentists(formData.clinic_id);
-      fetchTreatments(formData.clinic_id);
-    }
-  }, [formData.clinic_id]);
+    // Fetch dentists and treatments for single clinic
+    fetchDentists();
+    fetchTreatments();
+  }, []);
 
   const fetchClinics = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('clinics')
-        .select('id, clinic_name, address')
-        .order('clinic_name');
-      
-      if (error) throw error;
-      setClinics(data || []);
-      
-      // Auto-select user's clinic if they have one
-      if (profile?.clinic_id && data?.find(c => c.id === profile.clinic_id)) {
-        setFormData(prev => ({ ...prev, clinic_id: profile.clinic_id }));
-      }
-    } catch (error) {
-      console.error('Error fetching clinics:', error);
-    }
+    // For single clinic mode, we don't need to fetch clinics
+    // The clinic is hardcoded as SwiftCare Dental Clinic
   };
 
-  const fetchDentists = async (clinicId: string) => {
+  const fetchDentists = async () => {
     try {
       const { data, error } = await supabase
         .from('users')
         .select('id, full_name')
-        .eq('clinic_id', clinicId)
         .eq('role', 'dentist')
         .order('full_name');
       
@@ -95,7 +78,7 @@ export function AppointmentBookingForm() {
     }
   };
 
-  const fetchTreatments = async (clinicId: string) => {
+  const fetchTreatments = async () => {
     // Use predefined treatments since treatments table may not exist
     setTreatments([
       { id: 'checkup', name: 'Routine Checkup', default_duration_minutes: 30, default_price: 150 },
@@ -121,7 +104,7 @@ export function AppointmentBookingForm() {
   };
 
   const handleSubmit = async () => {
-    if (!formData.clinic_id || !formData.appointment_date || !formData.appointment_time) {
+    if (!formData.appointment_date || !formData.appointment_time) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -151,7 +134,6 @@ export function AppointmentBookingForm() {
         .insert({
           patient_id: patientData.id,
           dentist_id: formData.dentist_id || null,
-          clinic_id: formData.clinic_id,
           scheduled_time: scheduledTime,
           duration_minutes: 30, // Default duration
           status: 'booked',
@@ -174,7 +156,7 @@ export function AppointmentBookingForm() {
           bookingId: appointmentData.id,
           appointmentDate: formData.appointment_date,
           appointmentTime: formData.appointment_time,
-          clinic: clinics.find(c => c.id === formData.clinic_id)?.clinic_name,
+          clinic: 'SwiftCare Dental Clinic',
           dentist: dentists.find(d => d.id === formData.dentist_id)?.full_name
         }
       });
@@ -193,7 +175,7 @@ export function AppointmentBookingForm() {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return formData.clinic_id && formData.treatment_type;
+        return formData.treatment_type;
       case 2:
         return formData.appointment_date && formData.appointment_time;
       default:
@@ -245,28 +227,9 @@ export function AppointmentBookingForm() {
           {/* Step 1: Service & Location */}
           {step === 1 && (
             <div className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium mb-3 block">Select Clinic</Label>
-                <Select value={formData.clinic_id} onValueChange={(value) => setFormData({...formData, clinic_id: value})}>
-                  <SelectTrigger className="h-auto min-h-[50px]">
-                    <SelectValue placeholder="Choose clinic location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clinics.map((clinic) => (
-                      <SelectItem key={clinic.id} value={clinic.id}>
-                        <div className="flex flex-col items-start">
-                          <span className="font-medium">{clinic.clinic_name}</span>
-                          {clinic.address && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {clinic.address}
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <h3 className="font-semibold text-lg mb-2">SwiftCare Dental Clinic</h3>
+                <p className="text-sm text-muted-foreground">123 Healthcare Drive, Medical Center, CA 90210</p>
               </div>
               
               <div>
@@ -370,7 +333,7 @@ export function AppointmentBookingForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Clinic</p>
-                    <p className="font-medium">{clinics.find(c => c.id === formData.clinic_id)?.clinic_name}</p>
+                    <p className="font-medium">SwiftCare Dental Clinic</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Treatment</p>

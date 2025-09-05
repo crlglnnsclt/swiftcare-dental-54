@@ -49,16 +49,13 @@ export function AppointmentCreationDialog({ isOpen, onClose, onSuccess }: Appoin
       fetchPatients();
       fetchDentists();
     }
-  }, [isOpen, profile?.clinic_id]);
+  }, [isOpen]);
 
   const fetchPatients = async () => {
-    if (!profile?.clinic_id) return;
-    
     try {
       const { data, error } = await supabase
         .from('patients')
         .select('id, full_name, email')
-        .eq('clinic_id', profile.clinic_id)
         .order('full_name');
       
       if (error) throw error;
@@ -69,13 +66,10 @@ export function AppointmentCreationDialog({ isOpen, onClose, onSuccess }: Appoin
   };
 
   const fetchDentists = async () => {
-    if (!profile?.clinic_id) return;
-    
     try {
       const { data, error } = await supabase
         .from('users')
         .select('id, full_name')
-        .eq('clinic_id', profile.clinic_id)
         .eq('role', 'dentist')
         .order('full_name');
       
@@ -106,7 +100,6 @@ export function AppointmentCreationDialog({ isOpen, onClose, onSuccess }: Appoin
         .insert({
           patient_id: formData.patient_id,
           dentist_id: formData.dentist_id || null,
-          clinic_id: profile?.clinic_id,
           scheduled_time: scheduledTime,
           duration_minutes: 30,
           status: 'booked',
