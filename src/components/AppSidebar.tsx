@@ -30,7 +30,8 @@ import {
   Palette,
   FileCheck,
   Layers,
-  Share2
+  Share2,
+  Bot
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -306,6 +307,13 @@ const moduleNavigation: NavItem[] = [
     title: "Enhanced Analytics",
     url: "/enhanced-analytics",
     icon: BarChart3,
+    roles: ["clinic_admin", "super_admin"],
+    module: "reports"
+  },
+  {
+    title: "AI Automation Flows",
+    url: "/ai-automation-flows",
+    icon: Bot,
     roles: ["clinic_admin", "super_admin"],
     module: "reports"
   },
