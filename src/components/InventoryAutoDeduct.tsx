@@ -55,7 +55,6 @@ export function InventoryAutoDeduct({ appointmentId, isOpen, onClose, onComplete
         .from('inventory_items')
         .select('*')
         .eq('is_active', true)
-        .eq('clinic_id', profile?.clinic_id)
         .order('name');
 
       if (error) throw error;
@@ -118,7 +117,7 @@ export function InventoryAutoDeduct({ appointmentId, isOpen, onClose, onComplete
       // Create inventory transactions for used items
       const transactions = usedItems.map(item => ({
         item_id: item.item_id,
-        clinic_id: profile?.clinic_id || '',
+        
         created_by: profile?.id || '',
         transaction_type: 'usage',
         quantity: -item.quantity, // Negative for deduction

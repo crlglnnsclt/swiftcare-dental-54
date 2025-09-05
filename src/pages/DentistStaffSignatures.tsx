@@ -79,7 +79,6 @@ export default function DentistStaffSignatures() {
           *,
           patients!dentist_signatures_patient_id_fkey(full_name)
         `)
-        .eq('clinic_id', profile?.clinic_id)
         .order('signed_at', { ascending: false });
 
       // For now, skip treatment records since the table structure doesn't match
@@ -90,7 +89,6 @@ export default function DentistStaffSignatures() {
       const { data: patientsData } = await supabase
         .from('patients')
         .select('id, full_name, email')
-        .eq('clinic_id', profile?.clinic_id)
         .order('full_name');
 
       // Transform signatures data to handle the patients relation
@@ -120,7 +118,6 @@ export default function DentistStaffSignatures() {
         .from('dentist_signatures')
         .insert({
           dentist_id: user?.id,
-          clinic_id: profile?.clinic_id,
           patient_id: selectedPatient,
           signature_data: currentSignature,
           signature_type: signatureType,

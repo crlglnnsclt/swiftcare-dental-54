@@ -53,7 +53,7 @@ export function PatientCheckIn() {
       // Get patient record directly from patients table using user profile
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .select('id, clinic_id, full_name')
+        .select('id, full_name')
         .eq('user_id', profile.id) // Use profile.id instead of users.id
         .maybeSingle();
 

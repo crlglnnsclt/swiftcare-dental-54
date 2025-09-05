@@ -174,7 +174,7 @@ const SystemHealth: React.FC = () => {
             // Test appointments table access and data integrity
             const { data: appointmentData, error: appointmentError } = await supabase
               .from('appointments')
-              .select('id, status, scheduled_time, patient_id, clinic_id')
+              .select('id, status, scheduled_time, patient_id')
               .limit(5);
             
             if (appointmentError) {
@@ -268,7 +268,7 @@ const SystemHealth: React.FC = () => {
             // Test patient data access and integrity
             const { data: patientData, error: patientError } = await supabase
               .from('patients')
-              .select('id, full_name, email, clinic_id, user_id')
+              .select('id, full_name, email, user_id')
               .not('id', 'is', null)
               .limit(5);
             
@@ -507,7 +507,7 @@ const SystemHealth: React.FC = () => {
                   // Try checking inventory items
                   const { data: inventoryData, error: inventoryError } = await supabase
                     .from('inventory_items')
-                    .select('id, name, clinic_id')
+                    .select('id, name')
                     .limit(1);
                   
                   if (!inventoryError) {
@@ -735,7 +735,7 @@ const SystemHealth: React.FC = () => {
         supabase.from('clinics').select('id, clinic_name'),
         supabase.from('patients').select('id'),
         supabase.from('invoices').select('id, payment_status'),
-        supabase.from('clinic_feature_toggles').select('id, is_enabled, clinic_id')
+        supabase.from('clinic_feature_toggles').select('id, is_enabled')
       ]);
 
       // Check for any critical database errors

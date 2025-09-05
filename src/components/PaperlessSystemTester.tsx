@@ -52,12 +52,10 @@ export default function PaperlessSystemTester() {
       const [formsResult, documentsResult] = await Promise.all([
         supabase
           .from('form_responses')
-          .select('verification_status')
-          .eq('clinic_id', profile?.clinic_id),
+          .select('verification_status'),
         supabase
           .from('patient_documents')
           .select('verification_status')
-          .eq('clinic_id', profile?.clinic_id)
       ]);
 
       const forms = formsResult.data || [];
@@ -266,7 +264,7 @@ export default function PaperlessSystemTester() {
           action_type: 'submitted',
           action_description: `Test form "${selectedTestForm.name}" submitted for verification`,
           performed_by: user?.id,
-          clinic_id: profile?.clinic_id,
+          
           metadata: {
             test_mode: true,
             form_name: selectedTestForm.name
@@ -388,7 +386,7 @@ export default function PaperlessSystemTester() {
             <AlertDescription>
               <strong>Current User:</strong> {profile?.full_name} ({profile?.role})
               <br />
-              <strong>Clinic ID:</strong> {profile?.clinic_id}
+              <strong>User ID:</strong> {profile?.user_id?.slice(0, 8)}...
             </AlertDescription>
           </Alert>
         </TabsContent>

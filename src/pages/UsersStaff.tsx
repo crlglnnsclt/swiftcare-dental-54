@@ -109,10 +109,7 @@ export default function UsersStaff() {
         `)
         .order('created_at', { ascending: false });
 
-      // Filter for branch admin
-      if (profile?.role === 'clinic_admin' && profile.clinic_id) {
-        query = query.eq('clinic_id', profile.clinic_id);
-      }
+      // No longer filtering by clinic_id since we removed multi-clinic support
 
       const { data, error } = await query;
       if (error) throw error;
@@ -125,7 +122,7 @@ export default function UsersStaff() {
         full_name: user.full_name,
         role: user.role,
         enhanced_role: user.role, // Use role as enhanced_role
-        branch_id: user.clinic_id, // Use clinic_id as branch_id
+        branch_id: null, // No longer using clinic_id
         phone: user.phone,
         is_active: user.status === 'active',
         created_at: user.created_at,
@@ -218,7 +215,6 @@ export default function UsersStaff() {
           full_name: editData.full_name,
           phone: editData.phone,
           role: editData.role as any,
-          clinic_id: editData.branch_id,
           status: editData.is_active ? 'active' : 'inactive'
         })
         .eq('id', editData.id);

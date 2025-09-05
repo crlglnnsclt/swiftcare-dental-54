@@ -16,14 +16,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface ClinicFeature {
   id: string;
-  clinic_id: string;
   feature_name: string;
   is_enabled: boolean;
   description: string;
   created_at: string;
   updated_at: string;
   modified_by?: string;
-  clinic_name?: string;
 }
 
 interface FeatureCategory {
@@ -177,34 +175,15 @@ export default function FeatureToggles() {
         // Super admin sees all clinics' features
         const { data, error } = await supabase
           .from('clinic_feature_toggles')
-          .select(`
-            *,
-            clinics!inner(clinic_name)
-          `);
+          .select('*');
           
         if (error) throw error;
-        
-        const featuresWithClinicNames = data?.map(feature => ({
-          ...feature,
-          clinic_name: feature.clinics?.clinic_name || 'Unknown Clinic'
-        })) || [];
-        
-        setFeatures(featuresWithClinicNames);
-        
-        // Fetch clinic list for filter
-        const { data: clinicsData, error: clinicsError } = await supabase
-          .from('clinics')
-          .select('id, clinic_name')
-          .order('clinic_name');
-          
-        if (clinicsError) throw clinicsError;
-        setClinics(clinicsData || []);
+        setFeatures(data || []);
       } else {
-        // Clinic admins see only their clinic's features
+        // For non-super-admin users, show all features
         const { data, error } = await supabase
           .from('clinic_feature_toggles')
-          .select('*')
-          .eq('clinic_id', profile?.clinic_id);
+          .select('*');
           
         if (error) throw error;
         setFeatures(data || []);
@@ -240,9 +219,7 @@ export default function FeatureToggles() {
     const featureTier = featureDefinitions[feature.feature_name]?.tier || 'core';
     const matchesTier = tierFilter === "all" || tierFilter === featureTier;
     
-    const matchesClinic = 
-      clinicFilter === "all" || 
-      feature.clinic_id === clinicFilter;
+    const matchesClinic = clinicFilter === "all"; // No longer filtering by clinic_id
     
     return matchesSearch && matchesStatus && matchesTier && matchesClinic;
   });
@@ -573,12 +550,6 @@ export default function FeatureToggles() {
                             <Badge variant={featureDef?.tier === 'premium' ? 'default' : 'secondary'}>
                               {featureDef?.tier || 'core'}
                             </Badge>
-                            {profile?.role === 'super_admin' && feature.clinic_name && (
-                              <Badge variant="outline">
-                                <Building2 className="w-3 h-3 mr-1" />
-                                {feature.clinic_name}
-                              </Badge>
-                            )}
                           </div>
                           <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                             <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
@@ -631,12 +602,6 @@ export default function FeatureToggles() {
                                 <Badge variant={featureDef?.tier === 'premium' ? 'default' : 'secondary'}>
                                   {featureDef?.tier || 'core'}
                                 </Badge>
-                                {profile?.role === 'super_admin' && feature.clinic_name && (
-                                  <Badge variant="outline">
-                                    <Building2 className="w-3 h-3 mr-1" />
-                                    {feature.clinic_name}
-                                  </Badge>
-                                )}
                               </div>
                               <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                                 <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>

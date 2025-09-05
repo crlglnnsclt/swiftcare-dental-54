@@ -57,22 +57,19 @@ export default function AdminDashboard() {
       // Fetch patients count
       const { count: patientCount } = await supabase
         .from('patients')
-        .select('*', { count: 'exact', head: true })
-        .eq('clinic_id', profile?.clinic_id);
+        .select('*', { count: 'exact', head: true });
 
       // Fetch staff count  
       const { count: staffCount } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .in('role', ['dentist', 'staff', 'receptionist'])
-        .eq('clinic_id', profile?.clinic_id);
+        .in('role', ['dentist', 'staff', 'receptionist']);
 
       // Fetch today's appointments
       const today = new Date().toISOString().split('T')[0];
       const { count: todayAppts } = await supabase
         .from('appointments')
         .select('*', { count: 'exact', head: true })
-        .eq('clinic_id', profile?.clinic_id)
         .gte('scheduled_time', `${today}T00:00:00`)
         .lt('scheduled_time', `${today}T23:59:59`);
 
@@ -80,7 +77,6 @@ export default function AdminDashboard() {
       const { count: pendingApprovals } = await supabase
         .from('payments')  
         .select('*', { count: 'exact', head: true })
-        .eq('clinic_id', profile?.clinic_id)
         .eq('payment_status', 'pending');
 
       setStats({

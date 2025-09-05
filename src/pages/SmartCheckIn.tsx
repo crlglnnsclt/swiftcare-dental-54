@@ -54,7 +54,7 @@ function StaffCheckIn({ profile }: StaffCheckInProps) {
             patients!inner(full_name)
           )
         `)
-        .eq('appointments.clinic_id', profile.clinic_id)
+        
         .eq('status', 'waiting')
         .order('position');
 
@@ -129,8 +129,8 @@ function StaffCheckIn({ profile }: StaffCheckInProps) {
               </Badge>
             </div>
             <div>
-              <p className="text-sm text-blue-700 font-medium">Clinic</p>
-              <p className="text-blue-900">{profile.clinic_id}</p>
+              <p className="text-sm text-blue-700 font-medium">ID</p>
+              <p className="text-blue-900">{profile.user_id.slice(0, 8)}...</p>
             </div>
           </div>
         </CardContent>
@@ -262,7 +262,6 @@ function AdminCheckIn({ profile }: { profile: any }) {
       const { count: checkedInCount } = await supabase
         .from('appointments')
         .select('*', { count: 'exact', head: true })
-        .eq('clinic_id', profile.clinic_id)
         .eq('status', 'checked_in')
         .gte('scheduled_time', `${today}T00:00:00`);
 
