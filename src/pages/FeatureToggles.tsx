@@ -1,18 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Search, 
-  Plus, 
   Settings, 
-  Zap, 
   Star, 
   Users, 
   BarChart3, 
@@ -23,7 +17,6 @@ import {
   FileText,
   CreditCard,
   Package,
-  Activity,
   CheckCircle,
   XCircle,
   Clock,
@@ -67,15 +60,9 @@ export default function FeatureToggles() {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [features, setFeatures] = useState<FeatureToggle[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['core']));
-  const [newFeature, setNewFeature] = useState({
-    name: "",
-    description: "",
-    defaultEnabled: false
-  });
 
   // Consolidated feature definitions without duplicates
   const featureGroups: FeatureGroup[] = [
@@ -332,15 +319,8 @@ export default function FeatureToggles() {
   };
 
   const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
-    // Get all existing features with this name
-    const existingFeatures = features.filter(f => f.feature_name === featureName);
-    
-    if (existingFeatures.length > 0) {
-      // Update the most recent one and delete duplicates
-      const mostRecent = existingFeatures.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )[0];
-      
+    try {
+      // First, try to update existing records
       const { error: updateError } = await supabase
         .from('clinic_feature_toggles')
         .update({ 
@@ -348,34 +328,57 @@ export default function FeatureToggles() {
           updated_at: new Date().toISOString(),
           modified_by: profile?.user_id
         })
-        .eq('id', mostRecent.id);
+        .eq('feature_name', featureName);
         
-      if (updateError) throw updateError;
-      
-      // Delete duplicates
-      const duplicateIds = existingFeatures
-        .filter(f => f.id !== mostRecent.id)
-        .map(f => f.id);
-        
-      if (duplicateIds.length > 0) {
-        await supabase
+      if (updateError) {
+        // If update fails, try to insert a new record
+        const featureDefinition = getAllFeatures().find(f => f.key === featureName);
+        const { error: insertError } = await supabase
           .from('clinic_feature_toggles')
-          .delete()
-          .in('id', duplicateIds);
+          .insert({
+            feature_name: featureName,
+            is_enabled: enabled,
+            description: featureDefinition?.description || '',
+            modified_by: profile?.user_id
+          });
+          
+        if (insertError) throw insertError;
       }
-    } else {
-      // Create new feature toggle
-      const featureDefinition = getAllFeatures().find(f => f.key === featureName);
-      const { error } = await supabase
-        .from('clinic_feature_toggles')
-        .insert({
-          feature_name: featureName,
-          is_enabled: enabled,
-          description: featureDefinition?.description || '',
-          modified_by: profile?.user_id
-        });
-        
-      if (error) throw error;
+      
+      // Clean up duplicates after update/insert
+      await cleanupDuplicates();
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const cleanupDuplicates = async () => {
+    try {
+      // Get all features grouped by name
+      const featureNames = [...new Set(features.map(f => f.feature_name))];
+      
+      for (const featureName of featureNames) {
+        const duplicates = features.filter(f => f.feature_name === featureName);
+        if (duplicates.length > 1) {
+          // Keep the most recent one, delete the rest
+          const mostRecent = duplicates.sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )[0];
+          
+          const duplicateIds = duplicates
+            .filter(f => f.id !== mostRecent.id)
+            .map(f => f.id);
+            
+          if (duplicateIds.length > 0) {
+            await supabase
+              .from('clinic_feature_toggles')
+              .delete()
+              .in('id', duplicateIds);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error cleaning up duplicates:', error);
     }
   };
 
@@ -440,45 +443,6 @@ export default function FeatureToggles() {
     }
   };
 
-  const handleCreateFeature = async () => {
-    if (!newFeature.name.trim() || !newFeature.description.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please provide both name and description",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('clinic_feature_toggles')
-        .insert({
-          feature_name: newFeature.name.toLowerCase().replace(/\s+/g, '_'),
-          description: newFeature.description,
-          is_enabled: newFeature.defaultEnabled,
-          modified_by: profile?.user_id
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Custom feature created successfully",
-      });
-
-      setNewFeature({ name: "", description: "", defaultEnabled: false });
-      setShowCreateDialog(false);
-      fetchFeatures();
-    } catch (error) {
-      // Error creating feature
-      toast({
-        title: "Error",
-        description: "Failed to create feature",
-        variant: "destructive",
-      });
-    }
-  };
 
   const toggleGroupExpansion = (groupId: string) => {
     setExpandedGroups(prev => {
@@ -527,12 +491,6 @@ export default function FeatureToggles() {
     }
   };
 
-  // Get only truly custom features (not in predefined groups) and remove duplicates
-  const predefinedFeatureKeys = getAllFeatures().map(f => f.key);
-  const customFeatures = features.filter((f, index, self) => 
-    !predefinedFeatureKeys.includes(f.feature_name) &&
-    self.findIndex(item => item.feature_name === f.feature_name) === index
-  );
 
   if (loading) {
     return (
@@ -553,57 +511,6 @@ export default function FeatureToggles() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Feature Management</h1>
             <p className="text-sm sm:text-base text-muted-foreground">Control system-wide features and dependencies</p>
           </div>
-          
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                <span className="sm:inline">Add Custom Feature</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create Custom Feature</DialogTitle>
-                <DialogDescription className="text-sm">
-                  Add a custom feature toggle for specialized functionality
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="feature-name">Feature Name</Label>
-                  <Input
-                    id="feature-name"
-                    value={newFeature.name}
-                    onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="My Custom Feature"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="feature-description">Description</Label>
-                  <Textarea
-                    id="feature-description"
-                    value={newFeature.description}
-                    onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Describe what this feature does..."
-                    className="min-h-[80px]"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={newFeature.defaultEnabled}
-                    onCheckedChange={(checked) => setNewFeature(prev => ({ ...prev, defaultEnabled: checked }))}
-                  />
-                  <Label>Enable by default</Label>
-                </div>
-                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
-                  <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateFeature} className="w-full sm:w-auto">Create Feature</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Search */}
@@ -736,46 +643,6 @@ export default function FeatureToggles() {
         })}
       </div>
 
-      {/* Custom Features - Only show if there are truly custom features */}
-      {customFeatures.length > 0 && (
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              Custom Features
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Additional features not part of standard groups</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {customFeatures.map((feature) => (
-                <div
-                  key={feature.id}
-                  className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/50 transition-all gap-3"
-                >
-                  <div className="flex items-start gap-2 min-w-0 flex-1">
-                    {feature.is_enabled ? (
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-medium text-sm sm:text-base truncate">{feature.feature_name}</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <Switch
-                      checked={feature.is_enabled}
-                      onCheckedChange={(checked) => handleToggleFeature(feature.feature_name, checked)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
