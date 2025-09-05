@@ -1,5 +1,5 @@
-import { EnhancedQueueManagement } from '@/components/EnhancedQueueManagement';
+import { RealTimeQueueManagement } from '@/components/RealTimeQueueManagement';
 
 export default function QueueManagement() {
-  return <EnhancedQueueManagement />;
+  return <RealTimeQueueManagement />;
 }
