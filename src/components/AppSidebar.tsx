@@ -568,11 +568,16 @@ export function AppSidebar() {
           </div>
         </div>
 
-        {/* Module-Based Navigation Groups - Conditional based on role */}
+        {/* Module-Based Navigation Groups - Super Admin sees ALL features */}
         {profile?.role === 'super_admin' ? (
           <>
             {renderNavGroup(dashboardItems, "🏠 Dashboard")}
             {renderNavGroup(superAdminItems, "🌍 System Management")}
+            {renderNavGroup(appointmentItems, "📅 Appointments & Queueing")}
+            {renderNavGroup(patientItems, "👤 Patient Management")}
+            {renderNavGroup(paperlessItems, "📝 Paperless Records")}
+            {renderNavGroup(treatmentItems, "💉 Treatment & Billing")}
+            {renderNavGroup(reportsItems, "📊 Reports & Analytics")}
             {renderNavGroup(adminItems, "⚙️ Administration")}
             {renderNavGroup(settingsItems, "⚙️ Settings")}
           </>
