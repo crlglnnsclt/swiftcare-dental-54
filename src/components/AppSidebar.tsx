@@ -400,40 +400,58 @@ export function AppSidebar() {
   // Map routes to required features
   const getFeatureRequirement = (url: string): string | null => {
     const featureMap: Record<string, string> = {
+      // Appointments & Scheduling
       '/appointments': 'appointment_booking',
       '/my-appointments': 'appointment_booking', 
       '/walk-ins': 'appointment_booking',
       '/appointment-settings': 'appointment_settings',
+      
+      // Queue Management
       '/queue': 'queue_management',
       '/queue-monitor': 'queue_management',
       '/checkin': 'qr_checkin',
+      
+      // Patient Management
       '/patient-records': 'patient_records',
       '/family-management': 'family_accounts',
       '/insurance': 'insurance_management',
       '/verification-queue': 'patient_records',
+      
+      // Digital Forms & Documents
       '/esign-forms': 'digital_forms',
-      '/digital-forms': 'digital_forms',
-      '/patient-forms': 'digital_forms',
       '/dentist-signatures': 'digital_forms',
       '/documents-uploads': 'document_management',
       '/paperless': 'document_management',
+      
+      // Dental Charts & Treatment
       '/charts': 'dental_charts',
       '/treatment-notes': 'dental_charts',
+      
+      // Billing & Payments
       '/billing': 'billing_system',
       '/my-billing': 'billing_system',
       '/payment-tracking': 'payment_processing',
       '/revenue-reports': 'billing_system',
+      
+      // Analytics & Reports
       '/analytics': 'basic_analytics',
       '/queue-reports': 'basic_analytics',
       '/workload-reports': 'advanced_analytics',
       '/enhanced-analytics': 'advanced_analytics',
+      
+      // Inventory & Operations
       '/inventory': 'inventory_management',
       '/services-management': 'user_management',
-      '/patient-app': 'patient_portal',
+      
+      // Patient Portal & Engagement - FIXED MAPPING
       '/my-profile': 'patient_portal',
       '/patient-engagement': 'patient_engagement',
+      
+      // Staff & User Management
       '/users-staff': 'user_management',
       '/user-roles': 'role_based_access',
+      
+      // Administration
       '/clinic-branding': 'clinic_customization',
       '/audit-logs': 'audit_logging'
     };

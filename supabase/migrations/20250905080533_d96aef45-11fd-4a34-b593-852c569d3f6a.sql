@@ -1,0 +1,2 @@
+-- Test 1: Disable some key features to test sidebar filtering
+UPDATE feature_toggles SET is_enabled = false WHERE feature_name IN ('billing_system', 'dental_charts', 'appointment_booking', 'patient_portal');
