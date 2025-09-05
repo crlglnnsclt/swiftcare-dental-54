@@ -469,9 +469,10 @@ export function AppSidebar() {
     return hasRole && hasFeature;
   });
 
-  // For super admin, show only system management related features
+  // For super admin, show only system management related features (but still respect feature toggles)
   const getFilteredItems = () => {
     if (profile?.role === 'super_admin') {
+      // Filter allowedItems (which already respects feature toggles) further for super admin
       return allowedItems.filter(item => 
         item.module === 'super_admin' || 
         item.module === 'administration' || 
@@ -481,6 +482,7 @@ export function AppSidebar() {
         item.url === '/clinic-branding'
       );
     }
+    // For all other roles, use the allowedItems (which already respects both role and feature toggles)
     return allowedItems;
   };
 
