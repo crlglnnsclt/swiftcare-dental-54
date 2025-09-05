@@ -8,11 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Palette, Eye, Save, RotateCcw, Download, Volume2, RotateCcw as Reset } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/auth/AuthContext";
 
 export default function ClinicBranding() {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [previewMode, setPreviewMode] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [brandingData, setBrandingData] = useState({
     clinicName: "SwiftCare Dental Center",
     logo: "",
@@ -60,14 +65,14 @@ export default function ClinicBranding() {
     },
     {
       id: "classic",
-      name: "Classic",
+      name: "Classic", 
       description: "Traditional professional design with conservative colors",
       preview: "🏛️ Professional medical styling with structured layouts"
     },
     {
       id: "minimal",
       name: "Minimal",
-      description: "Simple, focused design with lots of white space",
+      description: "Simple, focused design with lots of white space", 
       preview: "⚪ Clean minimal interface with essential elements only"
     },
     {
@@ -77,6 +82,57 @@ export default function ClinicBranding() {
       preview: "🚀 High-tech interface with 3D animations and neon accents"
     }
   ];
+
+  // Load branding data from database
+  const loadBrandingData = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('clinic_branding')
+        .select('*')
+        .single();
+        
+      if (error && error.code !== 'PGRST116') { // Ignore "no rows" error
+        throw error;
+      }
+      
+      if (data) {
+        setBrandingData({
+          clinicName: data.welcome_message?.split(' - ')[0]?.replace('Welcome to ', '') || brandingData.clinicName,
+          logo: data.logo_url || "",
+          primaryColor: data.primary_color || brandingData.primaryColor,
+          secondaryColor: data.secondary_color || brandingData.secondaryColor,
+          accentColor: brandingData.accentColor, // Not stored in current schema
+          welcomeMessage: data.welcome_message || brandingData.welcomeMessage,
+          buttonLabels: (typeof data.custom_button_labels === 'object' && data.custom_button_labels !== null) 
+            ? data.custom_button_labels as any || brandingData.buttonLabels
+            : brandingData.buttonLabels,
+          template: brandingData.template, // Not stored in current schema
+          animations: brandingData.animations, // Not stored in current schema
+          fontStyle: brandingData.fontStyle, // Not stored in current schema
+          voiceAnnouncements: (typeof data.patient_portal_theme === 'object' && 
+                             data.patient_portal_theme !== null &&
+                             'voiceAnnouncements' in (data.patient_portal_theme as any))
+            ? (data.patient_portal_theme as any).voiceAnnouncements || brandingData.voiceAnnouncements
+            : brandingData.voiceAnnouncements
+        });
+      }
+    } catch (error) {
+      console.error('Error loading branding data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load branding data. Using defaults.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    loadBrandingData();
+  }, []);
 
   // Load available voices
   useEffect(() => {
@@ -118,12 +174,65 @@ export default function ClinicBranding() {
     });
   };
 
-  const handleSaveChanges = () => {
-    // Save to backend
-    toast({
-      title: "Branding Saved",
-      description: "Your clinic branding has been updated successfully.",
-    });
+  const handleSaveChanges = async () => {
+    try {
+      setSaving(true);
+      
+      // Prepare data for database
+      const dbData = {
+        primary_color: brandingData.primaryColor,
+        secondary_color: brandingData.secondaryColor,
+        welcome_message: brandingData.welcomeMessage,
+        custom_button_labels: brandingData.buttonLabels,
+        patient_portal_theme: {
+          template: brandingData.template,
+          animations: brandingData.animations,
+          fontStyle: brandingData.fontStyle,
+          voiceAnnouncements: brandingData.voiceAnnouncements,
+          accentColor: brandingData.accentColor
+        },
+        logo_url: brandingData.logo,
+        modified_by: profile?.id
+      };
+
+      // Try to update first, if no record exists, insert new one
+      const { data: existingData } = await supabase
+        .from('clinic_branding')
+        .select('id')
+        .single();
+
+      if (existingData) {
+        // Update existing record
+        const { error } = await supabase
+          .from('clinic_branding')
+          .update(dbData)
+          .eq('id', existingData.id);
+          
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('clinic_branding')
+          .insert(dbData);
+          
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Branding Saved",
+        description: "Your clinic branding has been updated successfully.",
+      });
+      
+    } catch (error) {
+      console.error('Error saving branding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save branding changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleResetToDefaults = () => {
@@ -297,9 +406,9 @@ export default function ClinicBranding() {
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
           </Button>
-          <Button onClick={handleSaveChanges}>
+          <Button onClick={handleSaveChanges} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            Save Changes
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>
