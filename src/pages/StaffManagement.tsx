@@ -91,7 +91,6 @@ export default function StaffManagement() {
         .from('users')
         .select('*')
         .neq('role', 'patient')
-        .eq('clinic_id', profile?.clinic_id)
         .order('full_name');
 
       if (error) throw error;

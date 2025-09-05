@@ -71,8 +71,7 @@ export function Analytics() {
       // Fetch patients data
       const { data: patientsData, error: patientsError } = await supabase
         .from('patients')
-        .select('id, created_at')
-        .eq('clinic_id', profile?.clinic_id);
+        .select('id, created_at');
 
       if (patientsError) throw patientsError;
 
@@ -85,7 +84,6 @@ export function Analytics() {
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('id, status, scheduled_time, dentist_id, created_at, duration_minutes')
-        .eq('clinic_id', profile?.clinic_id)
         .gte('scheduled_time', startDate.toISOString())
         .lte('scheduled_time', endDate.toISOString());
 
@@ -100,7 +98,6 @@ export function Analytics() {
       const { data: paymentsData } = await supabase
         .from('payments')
         .select('amount, created_at')
-        .eq('clinic_id', profile?.clinic_id)
         .eq('payment_status', 'verified');
 
       const totalRevenue = paymentsData?.reduce((sum, p) => sum + p.amount, 0) || 0;
@@ -177,8 +174,7 @@ export function Analytics() {
       const { data: staffData, error: staffError } = await supabase
         .from('users')
         .select('id, full_name')
-        .in('role', ['dentist', 'staff'])
-        .eq('clinic_id', profile?.clinic_id);
+        .in('role', ['dentist', 'staff']);
 
       if (staffError) throw staffError;
 

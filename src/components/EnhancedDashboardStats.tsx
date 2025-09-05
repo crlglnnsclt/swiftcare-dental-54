@@ -62,7 +62,6 @@ export function EnhancedDashboardStats() {
       const { data: todayAppointments } = await supabase
         .from('appointments')
         .select('*')
-        .eq('clinic_id', profile.clinic_id)
         .gte('scheduled_time', today)
         .lt('scheduled_time', `${today} 23:59:59`);
 
@@ -77,14 +76,12 @@ export function EnhancedDashboardStats() {
       const { data: monthlyAppointments } = await supabase
         .from('appointments')
         .select('*')
-        .eq('clinic_id', profile.clinic_id)
         .gte('scheduled_time', `${currentMonth}-01`)
         .lt('scheduled_time', `${currentMonth}-31`);
 
       const { data: lastMonthAppointments } = await supabase
         .from('appointments')
         .select('*')
-        .eq('clinic_id', profile.clinic_id)
         .gte('scheduled_time', `${lastMonth}-01`)
         .lt('scheduled_time', `${lastMonth}-31`);
 

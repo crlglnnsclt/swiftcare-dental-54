@@ -42,8 +42,7 @@ export function useQRCodeManager() {
       const { data, error } = await supabase
         .from('clinic_feature_toggles')
         .select('*')
-        .eq('feature_name', 'qr_codes')
-        .eq('clinic_id', profile.clinic_id);
+        .eq('feature_name', 'qr_codes');
 
       if (error && error.code !== 'PGRST116') {
         throw error;
