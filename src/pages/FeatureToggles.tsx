@@ -407,7 +407,7 @@ export default function FeatureToggles() {
           .update({ 
             is_enabled: enabled,
             updated_at: new Date().toISOString(),
-            modified_by: profile?.user_id
+            modified_by: profile?.id  // Use profile.id instead of profile.user_id
           })
           .eq('feature_name', featureName);
           
@@ -424,7 +424,7 @@ export default function FeatureToggles() {
             feature_name: featureName,
             is_enabled: enabled,
             description: featureDefinition?.description || '',
-            modified_by: profile?.user_id
+            modified_by: profile?.id  // Use profile.id instead of profile.user_id
           });
           
         console.log('Insert result:', insertError);
