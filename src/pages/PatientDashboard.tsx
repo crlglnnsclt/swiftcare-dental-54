@@ -118,24 +118,14 @@ export function PatientDashboard() {
   };
 
   const checkProfileCompleteness = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      const hasEssentialInfo = data && 
-        data.full_name && 
-        data.date_of_birth && 
-        data.contact_number && 
-        data.emergency_contact;
-
+    if (patientData) {
+      const hasEssentialInfo = patientData.full_name && 
+        patientData.date_of_birth && 
+        patientData.contact_number && 
+        patientData.emergency_contact_name;
       setProfileComplete(!!hasEssentialInfo);
-    } catch (error) {
-      console.error('Error checking profile completeness:', error);
+    } else {
+      setProfileComplete(false);
     }
   };
 
