@@ -442,23 +442,39 @@ export function AppSidebar() {
 
   // Filter items based on role AND feature toggles
   const getVisibleItems = () => {
-    return moduleNavigation.filter(item => {
+    console.log('🔍 Sidebar Debug - Current user role:', profile?.role);
+    console.log('🔍 Total navigation items to check:', moduleNavigation.length);
+    
+    const visibleItems = moduleNavigation.filter(item => {
       // Check role permission
       const hasRole = profile?.role && item.roles.includes(profile.role);
-      if (!hasRole) return false;
       
       // Check feature requirement
       const requiredFeature = getFeatureRequirement(item.url);
+      let featureEnabled = true;
+      
       if (requiredFeature) {
-        const featureEnabled = isFeatureEnabled(requiredFeature);
+        featureEnabled = isFeatureEnabled(requiredFeature);
         if (!featureEnabled) {
           console.log(`🚫 HIDING: ${item.title} - feature '${requiredFeature}' is disabled`);
-          return false;
         }
       }
       
-      return true;
+      const shouldShow = hasRole && featureEnabled;
+      
+      if (!hasRole) {
+        console.log(`👤 ROLE FILTER: ${item.title} - Required roles: [${item.roles.join(', ')}], User role: ${profile?.role}, Show: ${shouldShow}`);
+      } else if (featureEnabled) {
+        console.log(`✅ SHOWING: ${item.title} - Role: ✓, Feature: ${requiredFeature || 'none'}`);
+      }
+      
+      return shouldShow;
     });
+    
+    console.log('🔍 Final visible items count:', visibleItems.length);
+    console.log('🔍 Visible items:', visibleItems.map(item => item.title));
+    
+    return visibleItems;
   };
 
   const visibleItems = getVisibleItems();
