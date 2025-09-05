@@ -389,17 +389,35 @@ export default function FeatureToggles() {
 
   const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
     try {
-      const { error: updateError } = await supabase
+      console.log('Updating feature in database:', featureName, enabled);
+      
+      // Check if feature exists first
+      const { data: existingFeature } = await supabase
         .from('clinic_feature_toggles')
-        .update({ 
-          is_enabled: enabled,
-          updated_at: new Date().toISOString(),
-          modified_by: profile?.user_id
-        })
-        .eq('feature_name', featureName);
-        
-      if (updateError) {
+        .select('*')
+        .eq('feature_name', featureName)
+        .single();
+
+      console.log('Existing feature found:', existingFeature);
+
+      if (existingFeature) {
+        // Update existing feature
+        const { error: updateError } = await supabase
+          .from('clinic_feature_toggles')
+          .update({ 
+            is_enabled: enabled,
+            updated_at: new Date().toISOString(),
+            modified_by: profile?.user_id
+          })
+          .eq('feature_name', featureName);
+          
+        console.log('Update result:', updateError);
+        if (updateError) throw updateError;
+      } else {
+        // Insert new feature
         const featureDefinition = getAllFeatures().find(f => f.key === featureName);
+        console.log('Inserting new feature:', featureDefinition);
+        
         const { error: insertError } = await supabase
           .from('clinic_feature_toggles')
           .insert({
@@ -409,11 +427,13 @@ export default function FeatureToggles() {
             modified_by: profile?.user_id
           });
           
+        console.log('Insert result:', insertError);
         if (insertError) throw insertError;
       }
       
       await cleanupDuplicates();
     } catch (error) {
+      console.error('Database update error:', error);
       throw error;
     }
   };
