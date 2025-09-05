@@ -382,67 +382,67 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
-  // Map routes to required features - comprehensive mapping
+  // Map routes to required features - using ACTUAL database feature names
   const getFeatureRequirement = (url: string): string | null => {
     const featureMap: Record<string, string> = {
-      // Appointments & Scheduling
+      // Appointments & Scheduling - using database names
       '/appointments': 'appointment_booking',
-      '/my-appointments': 'appointment_booking',
+      '/my-appointments': 'appointment_booking', 
       '/walk-ins': 'appointment_booking',
-      '/appointment-settings': 'appointment_settings',
+      '/appointment-settings': 'appointment_booking',
       
-      // Queue Management
+      // Queue Management - using database names
       '/queue': 'queue_management',
       '/queue-monitor': 'queue_management',
-      '/checkin': 'queue_management',
+      '/checkin': 'qr_checkin',
       '/staff-checkin': 'queue_management',
       
-      // Patient Management
-      '/patient-records': 'patient_records',
-      '/patients': 'patient_records',
-      '/family-management': 'family_accounts',
-      '/insurance': 'insurance_management',
+      // Patient Management - using database names
+      '/patient-records': 'patient_profiles',
+      '/patients': 'patient_profiles',
+      '/family-management': 'patient_profiles',
+      '/insurance': 'patient_profiles',
       
-      // Digital Forms & Documents
-      '/esign-forms': 'digital_forms',
-      '/digital-forms': 'digital_forms',
-      '/patient-forms': 'digital_forms',
-      '/form-responses': 'digital_forms',
-      '/dentist-signatures': 'digital_forms',
-      '/documents-uploads': 'document_management',
-      '/paperless': 'document_management',
+      // Digital Forms & Documents - using database names
+      '/esign-forms': 'esign_forms',
+      '/digital-forms': 'esign_forms',
+      '/patient-forms': 'esign_forms',
+      '/form-responses': 'esign_forms',
+      '/dentist-signatures': 'esign_forms',
+      '/documents-uploads': 'esign_forms',
+      '/paperless': 'esign_forms',
       
-      // Dental Charts & Treatment
-      '/charts': 'dental_charts',
-      '/odontogram-designs': 'dental_charts',
-      '/treatment-notes': 'dental_charts',
+      // Dental Charts & Treatment - using database names
+      '/charts': 'treatment_scheduling',
+      '/odontogram-designs': 'treatment_scheduling',
+      '/treatment-notes': 'treatment_scheduling',
       
-      // Billing & Payments
-      '/billing': 'billing_system',
-      '/my-billing': 'billing_system',
-      '/payment-tracking': 'payment_processing',
-      '/revenue-reports': 'billing_system',
+      // Billing & Payments - need to add these to database
+      '/billing': 'basic_analytics', // Using available feature for now
+      '/my-billing': 'basic_analytics', // Using available feature for now
+      '/payment-tracking': 'basic_analytics',
+      '/revenue-reports': 'basic_analytics',
       
-      // Analytics & Reports
+      // Analytics & Reports - using database names
       '/analytics': 'basic_analytics',
       '/queue-reports': 'basic_analytics',
-      '/workload-reports': 'basic_analytics',
+      '/workload-reports': 'advanced_analytics',
       
-      // Inventory & Operations
-      '/inventory': 'inventory_management',
+      // Inventory & Operations - need to add these
+      '/inventory': 'role_based_access', // Using available feature for now
       
-      // Patient Portal & Engagement
-      '/patient-app': 'patient_portal',
-      '/my-profile': 'patient_portal',
-      '/my-results': 'patient_portal',
-      '/patient-engagement': 'patient_portal',
-      '/messages': 'patient_engagement',
-      '/my-notifications': 'appointment_reminders',
+      // Patient Portal & Engagement - using database names
+      '/patient-app': 'online_booking',
+      '/my-profile': 'patient_profiles',
+      '/my-results': 'patient_profiles',
+      '/patient-engagement': 'patient_profiles',
+      '/messages': 'mobile_app',
+      '/my-notifications': 'automated_reminders',
       
-      // Staff & User Management
-      '/staff-management': 'user_management',
-      '/services-management': 'user_management',
-      '/users': 'user_management'
+      // Staff & User Management - using database names
+      '/staff-management': 'role_based_access',
+      '/services-management': 'role_based_access',
+      '/users': 'role_based_access'
     };
     return featureMap[url] || null;
   };

@@ -142,7 +142,7 @@ function AppRoutes() {
           </FeatureProtectedRoute>
         } />
         <Route path="checkin" element={
-          <FeatureProtectedRoute requiredFeature="queue_management">
+          <FeatureProtectedRoute requiredFeature="qr_checkin">
             <ProtectedRoute requiredRole={['patient']}>
               <PatientCheckIn />
             </ProtectedRoute>
@@ -154,12 +154,12 @@ function AppRoutes() {
           </FeatureProtectedRoute>
         } />
         <Route path="paperless" element={
-          <FeatureProtectedRoute requiredFeature="document_management">
+          <FeatureProtectedRoute requiredFeature="esign_forms">
             <PaperlessSystem />
           </FeatureProtectedRoute>
         } />
         <Route path="digital-forms" element={
-          <FeatureProtectedRoute requiredFeature="digital_forms">
+          <FeatureProtectedRoute requiredFeature="esign_forms">
             <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
               <DigitalForms />
             </ProtectedRoute>
