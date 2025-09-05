@@ -1,22 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
-
-interface Appointment {
-  id: string;
-  patient_id: string;
-  dentist_id: string | null;
-  scheduled_time: string;
-  status: string;
-  duration_minutes?: number;
-  notes?: string;
-  clinic_id: string;
-  created_at: string;
-  updated_at: string;
-  profiles?: {
-    full_name: string;
-  };
-}
+import { Appointment } from '@/lib/types';
 
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -40,9 +25,8 @@ export function useAppointments() {
         query = query.eq('patient_id', profile.id);
       } else if (profile.role === 'dentist') {
         query = query.eq('dentist_id', profile.id);
-      } else if (profile.clinic_id) {
-        query = query.eq('clinic_id', profile.clinic_id);
       }
+      // For single clinic system, all users see all appointments based on role
 
       const { data, error } = await query;
 
@@ -51,7 +35,10 @@ export function useAppointments() {
         return;
       }
 
-      setAppointments(data || []);
+      setAppointments((data || []).map(item => ({
+        ...item,
+        profiles: item.patients ? { full_name: item.patients.full_name } : undefined
+      })) as Appointment[]);
     } catch (error) {
       console.error('Error:', error);
     } finally {

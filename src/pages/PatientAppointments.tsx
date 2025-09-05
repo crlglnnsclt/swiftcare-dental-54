@@ -95,7 +95,7 @@ export default function PatientAppointments() {
       // First, get the patient record for this user - patients table uses users.id, not users.user_id
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, clinic_id, role')
+        .select('id, role')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -118,7 +118,7 @@ export default function PatientAppointments() {
       // Get the first patient record for this user (handle duplicates gracefully)
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .select('id, clinic_id')
+        .select('id')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: true })
         .limit(1);
@@ -247,7 +247,7 @@ export default function PatientAppointments() {
       // Get patient ID
       const { data: userData } = await supabase
         .from('users')
-        .select('id, role, clinic_id')
+        .select('id, role')
         .eq('user_id', user?.id)
         .single();
 
@@ -261,7 +261,7 @@ export default function PatientAppointments() {
 
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .select('id, clinic_id')
+        .select('id')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: true })
         .limit(1);
@@ -282,7 +282,7 @@ export default function PatientAppointments() {
 
       const selectedServiceData = services.find(s => s.id === selectedService);
 
-      const { error } = await supabase
+       const { error } = await supabase
         .from('appointments')
         .insert({
           patient_id: patient.id,
@@ -290,7 +290,6 @@ export default function PatientAppointments() {
           dentist_id: selectedDentist === 'any' ? null : selectedDentist || null,
           duration_minutes: selectedServiceData?.default_duration_minutes || 30,
           notes: appointmentNotes,
-          clinic_id: patient.clinic_id,
           status: 'booked'
         });
 

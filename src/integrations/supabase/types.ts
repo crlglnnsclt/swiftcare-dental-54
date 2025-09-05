@@ -1802,7 +1802,6 @@ export type Database = {
       payment_proofs: {
         Row: {
           amount: number
-          clinic_id: string
           created_at: string
           id: string
           invoice_id: string
@@ -1819,7 +1818,6 @@ export type Database = {
         }
         Insert: {
           amount: number
-          clinic_id: string
           created_at?: string
           id?: string
           invoice_id: string
@@ -1836,7 +1834,6 @@ export type Database = {
         }
         Update: {
           amount?: number
-          clinic_id?: string
           created_at?: string
           id?: string
           invoice_id?: string
