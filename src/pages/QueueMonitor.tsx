@@ -63,6 +63,7 @@ export default function QueueMonitor() {
   const fetchQueueData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
+      console.log('QueueMonitor: Fetching queue data for date:', today);
       
       const { data, error } = await supabase
         .from('queue')
@@ -84,6 +85,8 @@ export default function QueueMonitor() {
         .in('status', ['waiting', 'called'])
         .order('position', { ascending: true });
 
+      console.log('QueueMonitor: Query result:', { data, error });
+
       if (error) throw error;
 
       const mappedData: QueueDisplayItem[] = (data || []).map(item => ({
@@ -97,6 +100,7 @@ export default function QueueMonitor() {
         dentist_name: item.appointment.dentist?.full_name
       }));
 
+      console.log('QueueMonitor: Mapped data:', mappedData);
       setQueueItems(mappedData);
     } catch (error) {
       console.error('Error fetching queue data:', error);
