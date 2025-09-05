@@ -448,6 +448,10 @@ export default function FeatureToggles() {
 
   const handleToggleFeature = async (featureName: string, enabled: boolean) => {
     try {
+      console.log('Toggling feature:', featureName, 'to', enabled);
+      console.log('Current features:', features);
+      console.log('User profile:', profile);
+      
       if (enabled) {
         const feature = getAllFeatures().find(f => f.key === featureName);
         if (feature?.dependencies) {
@@ -495,6 +499,7 @@ export default function FeatureToggles() {
       
       fetchFeatures();
     } catch (error) {
+      console.error('Error toggling feature:', error);
       toast({
         title: "Error",
         description: "Failed to update feature toggle",
