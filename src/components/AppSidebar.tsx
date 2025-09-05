@@ -232,8 +232,8 @@ const moduleNavigation: NavItem[] = [
 
   // ⚙️ Module 6: Administration
   {
-    title: "Staff Management",
-    url: "/staff-management",
+    title: "Users & Staff",
+    url: "/users-staff",
     icon: Users,
     roles: ["clinic_admin", "super_admin"],
     module: "administration"
@@ -243,6 +243,13 @@ const moduleNavigation: NavItem[] = [
     url: "/user-roles",
     icon: Shield,
     roles: ["clinic_admin", "super_admin"],
+    module: "administration"
+  },
+  {
+    title: "Clinic Branding",
+    url: "/clinic-branding",
+    icon: Palette,
+    roles: ["super_admin"],
     module: "administration"
   },
   {
@@ -377,17 +384,34 @@ export function AppSidebar() {
     return profile?.role && item.roles.includes(profile.role);
   });
 
+  // For super admin, show only system management related features
+  const getFilteredItems = () => {
+    if (profile?.role === 'super_admin') {
+      return allowedItems.filter(item => 
+        item.module === 'super_admin' || 
+        item.module === 'administration' || 
+        item.module === 'settings' ||
+        item.url === '/dashboard' ||
+        item.url === '/users-staff' ||
+        item.url === '/clinic-branding'
+      );
+    }
+    return allowedItems;
+  };
+
+  const filteredItems = getFilteredItems();
+
   // Group items by modules
-  const dashboardItems = allowedItems.filter(item => item.module === "dashboard");
-  const appointmentItems = allowedItems.filter(item => item.module === "appointments");
-  const patientItems = allowedItems.filter(item => item.module === "patients");
-  const paperlessItems = allowedItems.filter(item => item.module === "paperless");
-  const treatmentItems = allowedItems.filter(item => item.module === "treatment");
-  const reportsItems = allowedItems.filter(item => item.module === "reports");
-  const adminItems = allowedItems.filter(item => item.module === "administration");
-  const superAdminItems = allowedItems.filter(item => item.module === "super_admin");
-  const patientPortalItems = allowedItems.filter(item => item.module === "patient_portal");
-  const settingsItems = allowedItems.filter(item => item.module === "settings");
+  const dashboardItems = filteredItems.filter(item => item.module === "dashboard");
+  const appointmentItems = filteredItems.filter(item => item.module === "appointments");
+  const patientItems = filteredItems.filter(item => item.module === "patients");
+  const paperlessItems = filteredItems.filter(item => item.module === "paperless");
+  const treatmentItems = filteredItems.filter(item => item.module === "treatment");
+  const reportsItems = filteredItems.filter(item => item.module === "reports");
+  const adminItems = filteredItems.filter(item => item.module === "administration");
+  const superAdminItems = filteredItems.filter(item => item.module === "super_admin");
+  const patientPortalItems = filteredItems.filter(item => item.module === "patient_portal");
+  const settingsItems = filteredItems.filter(item => item.module === "settings");
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -448,17 +472,28 @@ export function AppSidebar() {
           </div>
         </div>
 
-        {/* Module-Based Navigation Groups */}
-        {renderNavGroup(dashboardItems, "🏠 Dashboard")}
-        {renderNavGroup(appointmentItems, "📅 Appointments & Queueing")}
-        {renderNavGroup(patientItems, "👤 Patient Management")}
-        {renderNavGroup(paperlessItems, "📝 Paperless Records")}
-        {renderNavGroup(treatmentItems, "💉 Treatment & Billing")}
-        {renderNavGroup(reportsItems, "📊 Reports & Analytics")}
-        {renderNavGroup(adminItems, "⚙️ Administration")}
-        {renderNavGroup(superAdminItems, "🌍 Super Admin")}
-        {renderNavGroup(patientPortalItems, "👨‍⚕️ Patient Portal")}
-        {renderNavGroup(settingsItems, "⚙️ Settings")}
+        {/* Module-Based Navigation Groups - Conditional based on role */}
+        {profile?.role === 'super_admin' ? (
+          <>
+            {renderNavGroup(dashboardItems, "🏠 Dashboard")}
+            {renderNavGroup(superAdminItems, "🌍 System Management")}
+            {renderNavGroup(adminItems, "⚙️ Administration")}
+            {renderNavGroup(settingsItems, "⚙️ Settings")}
+          </>
+        ) : (
+          <>
+            {renderNavGroup(dashboardItems, "🏠 Dashboard")}
+            {renderNavGroup(appointmentItems, "📅 Appointments & Queueing")}
+            {renderNavGroup(patientItems, "👤 Patient Management")}
+            {renderNavGroup(paperlessItems, "📝 Paperless Records")}
+            {renderNavGroup(treatmentItems, "💉 Treatment & Billing")}
+            {renderNavGroup(reportsItems, "📊 Reports & Analytics")}
+            {renderNavGroup(adminItems, "⚙️ Administration")}
+            {renderNavGroup(superAdminItems, "🌍 Super Admin")}
+            {renderNavGroup(patientPortalItems, "👨‍⚕️ Patient Portal")}
+            {renderNavGroup(settingsItems, "⚙️ Settings")}
+          </>
+        )}
       </SidebarContent>
     </Sidebar>
   );
