@@ -508,6 +508,12 @@ export function AppSidebar() {
   const patientPortalItems = visibleItems.filter(item => item.module === "patient_portal");
   const settingsItems = visibleItems.filter(item => item.module === "settings");
 
+  console.log('🔍 Module Groups:');
+  console.log('  patientPortalItems:', patientPortalItems.map(item => item.title));
+  console.log('  paperlessItems:', paperlessItems.map(item => item.title));
+  console.log('  dashboardItems:', dashboardItems.map(item => item.title));
+  console.log('  settingsItems:', settingsItems.map(item => item.title));
+
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-primary/10 text-primary font-medium border-r-2 border-primary" : "hover:bg-muted/50";
