@@ -462,10 +462,8 @@ export function AppSidebar() {
     const featureRequired = getFeatureRequirement(item.url);
     const hasFeature = !featureRequired || isFeatureEnabled(featureRequired);
     
-    // Debug logging
-    if (featureRequired) {
-      console.log(`Sidebar: ${item.title} (${item.url}) requires ${featureRequired}: ${hasFeature}`);
-    }
+    // Debug logging for all items
+    console.log(`Sidebar Filter: ${item.title} (${item.url}) - Role: ${hasRole}, Feature: ${featureRequired || 'none'}, Enabled: ${hasFeature}, Result: ${hasRole && hasFeature}`);
     
     return hasRole && hasFeature;
   });
