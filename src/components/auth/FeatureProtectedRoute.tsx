@@ -29,12 +29,17 @@ export function FeatureProtectedRoute({
   const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? 
     featureToggle.isFeatureEnabled(requiredFeature) : false;
 
-  console.log(`FeatureProtectedRoute: Checking feature '${requiredFeature}':`, isFeatureEnabled);
+  console.log(`FeatureProtectedRoute: DEBUG for '${requiredFeature}':`);
+  console.log('  - featureToggle object:', featureToggle);
+  console.log('  - isFeatureEnabled function exists:', 'isFeatureEnabled' in featureToggle);
+  console.log('  - feature check result:', isFeatureEnabled);
 
   if (!isFeatureEnabled) {
     console.log(`FeatureProtectedRoute: Feature '${requiredFeature}' disabled, redirecting to ${fallbackRoute}`);
     return <Navigate to={fallbackRoute} replace />;
   }
+
+  console.log(`FeatureProtectedRoute: Feature '${requiredFeature}' enabled, allowing access`);
 
   return <>{children}</>;
 }
