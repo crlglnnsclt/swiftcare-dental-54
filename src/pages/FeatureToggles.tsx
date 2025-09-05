@@ -296,7 +296,7 @@ export default function FeatureToggles() {
       if (error) throw error;
       setFeatures(data || []);
     } catch (error) {
-      console.error('Error fetching features:', error);
+      // Error fetching features
       toast({
         title: "Error",
         description: "Failed to load feature toggles.",
@@ -412,7 +412,7 @@ export default function FeatureToggles() {
       
       fetchFeatures();
     } catch (error) {
-      console.error('Error toggling feature:', error);
+      // Error toggling feature
       toast({
         title: "Error",
         description: "Failed to update feature toggle",
@@ -452,7 +452,7 @@ export default function FeatureToggles() {
       setShowCreateDialog(false);
       fetchFeatures();
     } catch (error) {
-      console.error('Error creating feature:', error);
+      // Error creating feature
       toast({
         title: "Error",
         description: "Failed to create feature",
