@@ -16,12 +16,15 @@ import {
   FileText,
   Heart,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
+import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 
 const AIAutomationFlows = () => {
   const [activeFlow, setActiveFlow] = useState("overview");
+  const isN8nEnabled = useFeatureToggle("n8n_integration");
 
   const automationFlows = [
     {
@@ -96,10 +99,19 @@ const AIAutomationFlows = () => {
             Complete AI automation documentation with interactive flows, user journeys, and implementation roadmaps
           </p>
           <div className="flex justify-center gap-4">
-            <Button onClick={handleN8nIntegration} className="gap-2">
-              <Zap className="h-4 w-4" />
-              n8n Integration Dashboard
-            </Button>
+            {isN8nEnabled ? (
+              <Button onClick={handleN8nIntegration} className="gap-2">
+                <Zap className="h-4 w-4" />
+                n8n Integration Dashboard
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  n8n Integration disabled by administrator
+                </span>
+              </div>
+            )}
             <Button variant="outline" onClick={() => toast.success("Opening interactive dashboard")}>
               <BarChart3 className="h-4 w-4 mr-2" />
               Interactive Dashboard
@@ -244,7 +256,11 @@ const AIAutomationFlows = () => {
                         <Button 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => toast.success(`Opening n8n workflow for ${flow.name}`)}
+                          onClick={() => isN8nEnabled 
+                            ? toast.success(`Opening n8n workflow for ${flow.name}`)
+                            : toast.error("n8n Integration is disabled by administrator")
+                          }
+                          disabled={!isN8nEnabled}
                         >
                           n8n Setup
                         </Button>
@@ -304,17 +320,27 @@ const AIAutomationFlows = () => {
                   <CardTitle className="flex items-center gap-2">
                     <Zap className="h-5 w-5" />
                     n8n Workflow Library
+                    {!isN8nEnabled && (
+                      <Badge variant="secondary" className="ml-2">
+                        Disabled
+                      </Badge>
+                    )}
                   </CardTitle>
                   <CardDescription>
                     Complete library of 12 AI automation workflows
+                    {!isN8nEnabled && " (Feature disabled by administrator)"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
                     className="w-full" 
-                    onClick={handleN8nIntegration}
+                    onClick={isN8nEnabled 
+                      ? handleN8nIntegration 
+                      : () => toast.error("n8n Integration is disabled by administrator")
+                    }
+                    disabled={!isN8nEnabled}
                   >
-                    Access Workflows
+                    {isN8nEnabled ? "Access Workflows" : "Feature Disabled"}
                   </Button>
                 </CardContent>
               </Card>

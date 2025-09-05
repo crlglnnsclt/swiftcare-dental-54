@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
@@ -13,12 +14,16 @@ import {
   Database,
   Globe,
   Settings,
-  Palette
+  Palette,
+  Workflow,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BranchAssignment } from '@/components/BranchAssignment';
 import { ClinicBrandingManager } from '@/components/ClinicBrandingManager';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SuperAdmin() {
   const [stats, setStats] = useState({
@@ -33,11 +38,15 @@ export default function SuperAdmin() {
     auth: 'healthy',
     functions: 'healthy'
   });
+  const [n8nIntegrationEnabled, setN8nIntegrationEnabled] = useState(false);
+  const [loadingN8nToggle, setLoadingN8nToggle] = useState(false);
   const { profile } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (profile?.role === 'super_admin') {
       fetchSystemStats();
+      fetchN8nToggleStatus();
     }
   }, [profile]);
 
@@ -72,21 +81,56 @@ export default function SuperAdmin() {
     }
   };
 
-  if (profile?.role !== 'super_admin') {
-    return (
-      <div className="p-8">
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold mb-2">Super Admin Access Required</h2>
-            <p className="text-muted-foreground">
-              This section is only accessible to super administrators.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const fetchN8nToggleStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feature_toggles')
+        .select('is_enabled')
+        .eq('feature_name', 'n8n_integration')
+        .single();
+
+      if (error) {
+        console.error('Error fetching n8n toggle status:', error);
+      } else {
+        setN8nIntegrationEnabled(data.is_enabled);
+      }
+    } catch (error) {
+      console.error('Error fetching n8n toggle status:', error);
+    }
+  };
+
+  const toggleN8nIntegration = async () => {
+    setLoadingN8nToggle(true);
+    try {
+      const { error } = await supabase
+        .from('feature_toggles')
+        .update({ 
+          is_enabled: !n8nIntegrationEnabled,
+          modified_by: profile?.user_id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('feature_name', 'n8n_integration');
+
+      if (error) {
+        throw error;
+      }
+
+      setN8nIntegrationEnabled(!n8nIntegrationEnabled);
+      toast({
+        title: "Success",
+        description: `n8n Integration ${!n8nIntegrationEnabled ? 'enabled' : 'disabled'} successfully`,
+      });
+    } catch (error) {
+      console.error('Error toggling n8n integration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to toggle n8n integration",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingN8nToggle(false);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 page-container">
@@ -279,7 +323,44 @@ export default function SuperAdmin() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* n8n Integration Toggle */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium mb-2 flex items-center gap-2">
+                        <Workflow className="w-4 h-4" />
+                        n8n Workflow Integration
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Enable advanced n8n automation workflows for enhanced AI-powered processes
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {n8nIntegrationEnabled ? (
+                        <ToggleRight className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <ToggleLeft className="w-5 h-5 text-gray-400" />
+                      )}
+                      <Switch
+                        checked={n8nIntegrationEnabled}
+                        onCheckedChange={toggleN8nIntegration}
+                        disabled={loadingN8nToggle}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Badge variant={n8nIntegrationEnabled ? "default" : "secondary"}>
+                      {n8nIntegrationEnabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                    {n8nIntegrationEnabled && (
+                      <Badge variant="outline" className="text-green-600">
+                        Active Workflows: 12
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
                 <div className="p-4 border rounded-lg">
                   <h3 className="font-medium mb-2">Backup Configuration</h3>
                   <p className="text-sm text-muted-foreground mb-3">
