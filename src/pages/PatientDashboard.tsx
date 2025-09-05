@@ -133,10 +133,44 @@ export function PatientDashboard() {
 
   const fetchUpcomingAppointments = async () => {
     try {
+      // First get the user's patient record(s)
+      const { data: userProfile, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('user_id', profile?.user_id)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user profile:', userError);
+        return;
+      }
+
+      const { data: patientRecords, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', userProfile.id);
+
+      if (patientError) {
+        console.error('Error fetching patient records:', patientError);
+        return;
+      }
+
+      if (!patientRecords?.length) {
+        console.log('No patient records found for user');
+        setUpcomingAppointments([]);
+        return;
+      }
+
+      const patientIds = patientRecords.map(p => p.id);
+
       const { data, error } = await supabase
         .from('appointments')
-        .select('*')
-        .eq('patient_id', profile?.id)
+        .select(`
+          *,
+          patients(full_name),
+          users!dentist_id(full_name)
+        `)
+        .in('patient_id', patientIds)
         .gte('scheduled_time', new Date().toISOString())
         .order('scheduled_time')
         .limit(3);
@@ -145,7 +179,7 @@ export function PatientDashboard() {
 
       const formattedAppointments = (data || []).map(apt => ({
         ...apt,
-        dentist_name: 'Dr. Smith' // Mock dentist name
+        dentist_name: apt.users?.full_name || 'Dr. TBD'
       }));
 
       setUpcomingAppointments(formattedAppointments);
@@ -175,13 +209,28 @@ export function PatientDashboard() {
 
   const checkProfileCompleteness = async () => {
     try {
+      // First get the user's profile
+      const { data: userProfile, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('user_id', profile?.user_id)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user profile:', userError);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .eq('id', profile?.id)
+        .eq('user_id', userProfile.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking profile completeness:', error);
+        return;
+      }
 
       // Check if essential fields are filled
       const hasEssentialInfo = data && 

@@ -62,42 +62,46 @@ export default function QueueMonitor() {
 
   const fetchQueueData = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      console.log('QueueMonitor: Fetching queue data for date:', today);
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
       
+      console.log('QueueMonitor: Fetching appointments for date range:', { startOfDay, endOfDay });
+      
+      // Simplified approach - fetch directly from appointments since queue table may be empty
       const { data, error } = await supabase
-        .from('queue')
+        .from('appointments')
         .select(`
-          *,
-          appointment:appointments!inner(
-            scheduled_time,
-            duration_minutes,
-            patient:patients!inner(
-              full_name
-            ),
-            dentist:users!appointments_dentist_id_fkey(
-              full_name
-            )
-          )
+          id,
+          patient_id,
+          dentist_id,
+          scheduled_time,
+          duration_minutes,
+          status,
+          booking_type,
+          notes,
+          patients!inner(full_name),
+          users!dentist_id(full_name)
         `)
-        .gte('appointment.scheduled_time', today + 'T00:00:00')
-        .lte('appointment.scheduled_time', today + 'T23:59:59')
-        .in('status', ['waiting', 'called'])
-        .order('position', { ascending: true });
+        .in('status', ['checked_in', 'in_progress'])
+        .gte('scheduled_time', startOfDay)
+        .lt('scheduled_time', endOfDay)
+        .order('scheduled_time');
 
-      console.log('QueueMonitor: Query result:', { data, error });
+      console.log('QueueMonitor: Appointments query result:', { data, error });
 
       if (error) throw error;
 
-      const mappedData: QueueDisplayItem[] = (data || []).map(item => ({
+      const mappedData: QueueDisplayItem[] = (data || []).map((item, index) => ({
         id: item.id,
-        position: item.manual_order || item.position,
-        patient_name: item.appointment.patient.full_name,
-        appointment_time: new Date(item.appointment.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        estimated_wait_minutes: item.estimated_wait_minutes || 0,
-        priority: item.priority as QueueDisplayItem['priority'],
-        status: item.status as QueueDisplayItem['status'],
-        dentist_name: item.appointment.dentist?.full_name
+        position: index + 1,
+        patient_name: item.patients?.full_name || 'Unknown Patient',
+        appointment_time: new Date(item.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        estimated_wait_minutes: index * 20, // Simple estimation: 20 min per position
+        priority: item.booking_type === 'emergency' ? 'emergency' : 
+                  item.booking_type === 'walk_in' ? 'walk_in' : 'scheduled',
+        status: item.status === 'in_progress' ? 'in_treatment' : 'waiting',
+        dentist_name: item.users?.full_name
       }));
 
       console.log('QueueMonitor: Mapped data:', mappedData);
