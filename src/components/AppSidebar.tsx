@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Calendar, 
   Clock,
@@ -378,8 +378,12 @@ export function AppSidebar() {
   const location = useLocation();
   const { profile } = useAuth();
   const featureToggle = useFeatureToggle();
+  
+  // Safely extract feature checking function and loading state
   const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
   const loading = 'loading' in featureToggle ? featureToggle.loading : false;
+  const features = 'features' in featureToggle ? featureToggle.features : {};
+  
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
@@ -456,18 +460,22 @@ export function AppSidebar() {
   };
 
   // Filter navigation items based on user role and feature toggles
-  const allowedItems = moduleNavigation.filter(item => {
-    const hasRole = profile?.role && item.roles.includes(profile.role);
-    
-    // Check feature requirements
-    const featureRequired = getFeatureRequirement(item.url);
-    const hasFeature = !featureRequired || isFeatureEnabled(featureRequired);
-    
-    // Debug logging for all items
-    console.log(`Sidebar Filter: ${item.title} (${item.url}) - Role: ${hasRole}, Feature: ${featureRequired || 'none'}, Enabled: ${hasFeature}, Result: ${hasRole && hasFeature}`);
-    
-    return hasRole && hasFeature;
-  });
+  const allowedItems = useMemo(() => {
+    return moduleNavigation.filter(item => {
+      const hasRole = profile?.role && item.roles.includes(profile.role);
+      
+      // Check feature requirements
+      const featureRequired = getFeatureRequirement(item.url);
+      const hasFeature = !featureRequired || isFeatureEnabled(featureRequired);
+      
+      // Debug logging for disabled features
+      if (featureRequired && !isFeatureEnabled(featureRequired)) {
+        console.log(`🚫 HIDDEN: ${item.title} (feature '${featureRequired}' is disabled)`);
+      }
+      
+      return hasRole && hasFeature;
+    });
+  }, [profile?.role, features, isFeatureEnabled]);
 
   // For super admin, show only system management related features (but still respect feature toggles)
   const getFilteredItems = () => {
