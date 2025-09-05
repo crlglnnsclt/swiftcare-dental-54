@@ -382,8 +382,12 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
   
+  // Extract loading state and feature checking function safely
+  const loading = 'loading' in featureToggle ? featureToggle.loading : false;
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
+  
   // Wait for features to load
-  if ('loading' in featureToggle && featureToggle.loading) {
+  if (loading) {
     return (
       <Sidebar className="w-64 border-r">
         <SidebarContent className="bg-card p-4">
@@ -392,9 +396,6 @@ export function AppSidebar() {
       </Sidebar>
     );
   }
-
-  // Get feature checking function
-  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
 
   // Map routes to required features
   const getFeatureRequirement = (url: string): string | null => {
