@@ -462,6 +462,8 @@ export function AppSidebar() {
   const getVisibleItems = () => {
     console.log('🔍 Sidebar Debug - Current user role:', profile?.role);
     console.log('🔍 Total navigation items to check:', moduleNavigation.length);
+    console.log('🔍 Feature toggle object:', featureToggle);
+    console.log('🔍 isFeatureEnabled function:', typeof isFeatureEnabled);
     
     const visibleItems = moduleNavigation.filter(item => {
       // Check role permission
@@ -473,6 +475,7 @@ export function AppSidebar() {
       
       if (requiredFeature) {
         featureEnabled = isFeatureEnabled(requiredFeature);
+        console.log(`🎯 Feature Check: ${item.title} requires '${requiredFeature}' = ${featureEnabled}`);
         if (!featureEnabled) {
           console.log(`🚫 HIDING: ${item.title} - feature '${requiredFeature}' is disabled`);
         }
@@ -480,11 +483,7 @@ export function AppSidebar() {
       
       const shouldShow = hasRole && featureEnabled;
       
-      if (!hasRole) {
-        console.log(`👤 ROLE FILTER: ${item.title} - Required roles: [${item.roles.join(', ')}], User role: ${profile?.role}, Show: ${shouldShow}`);
-      } else if (featureEnabled) {
-        console.log(`✅ SHOWING: ${item.title} - Role: ✓, Feature: ${requiredFeature || 'none'}`);
-      }
+      console.log(`📝 Item: ${item.title} | Role: ${hasRole} (needs: [${item.roles.join(', ')}]) | Feature: ${requiredFeature || 'none'} = ${featureEnabled} | Show: ${shouldShow}`);
       
       return shouldShow;
     });
