@@ -22,12 +22,17 @@ export default function MyBilling() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Check if billing feature is enabled
-  console.log('MyBilling: Checking billing feature toggle...', isFeatureEnabled('billing_system'));
+  // Check if billing feature is enabled - WITH DETAILED DEBUGGING
+  console.log('MyBilling: Feature toggle object:', featureToggle);
+  console.log('MyBilling: isFeatureEnabled function:', typeof isFeatureEnabled);
+  console.log('MyBilling: billing_system feature check:', isFeatureEnabled('billing_system'));
+  
   if (!isFeatureEnabled('billing_system')) {
     console.log('MyBilling: Billing feature disabled, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
+  
+  console.log('MyBilling: Billing feature enabled, rendering component');
 
   useEffect(() => {
     const getCurrentUserRole = async () => {
