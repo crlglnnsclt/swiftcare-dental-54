@@ -5,99 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Clock, TrendingUp, Activity, Download, Calendar } from "lucide-react";
+import { User, Clock, TrendingUp, Activity, Download, Calendar, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useWorkloadData } from "@/hooks/useWorkloadData";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function WorkloadReports() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-
-  // Demo dentist workload data
-  const dentistData = [
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      avatar: "",
-      initials: "SJ",
-      todayPatients: 14,
-      weeklyHours: 38.5,
-      avgTreatmentTime: 45,
-      patientSatisfaction: 4.8,
-      specialties: ["General", "Cosmetic"],
-      thisWeekStats: {
-        appointments: 56,
-        completed: 52,
-        noShows: 3,
-        revenue: 12400
-      },
-      dailySchedule: [
-        { day: "Mon", hours: 8, patients: 12, utilization: 95 },
-        { day: "Tue", hours: 7.5, patients: 11, utilization: 88 },
-        { day: "Wed", hours: 8, patients: 14, utilization: 100 },
-        { day: "Thu", hours: 7, patients: 10, utilization: 82 },
-        { day: "Fri", hours: 8, patients: 13, utilization: 92 }
-      ]
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Chen",
-      avatar: "",
-      initials: "MC",
-      todayPatients: 11,
-      weeklyHours: 35,
-      avgTreatmentTime: 52,
-      patientSatisfaction: 4.6,
-      specialties: ["Orthodontics", "Surgery"],
-      thisWeekStats: {
-        appointments: 42,
-        completed: 40,
-        noShows: 2,
-        revenue: 15200
-      },
-      dailySchedule: [
-        { day: "Mon", hours: 7, patients: 9, utilization: 78 },
-        { day: "Tue", hours: 7.5, patients: 10, utilization: 85 },
-        { day: "Wed", hours: 7, patients: 8, utilization: 75 },
-        { day: "Thu", hours: 6.5, patients: 8, utilization: 80 },
-        { day: "Fri", hours: 7, patients: 11, utilization: 92 }
-      ]
-    },
-    {
-      id: 3,
-      name: "Dr. Lisa Rodriguez",
-      avatar: "",
-      initials: "LR",
-      todayPatients: 16,
-      weeklyHours: 42,
-      avgTreatmentTime: 38,
-      patientSatisfaction: 4.9,
-      specialties: ["Pediatric", "General"],
-      thisWeekStats: {
-        appointments: 68,
-        completed: 65,
-        noShows: 2,
-        revenue: 18600
-      },
-      dailySchedule: [
-        { day: "Mon", hours: 8.5, patients: 15, utilization: 98 },
-        { day: "Tue", hours: 8, patients: 14, utilization: 95 },
-        { day: "Wed", hours: 8.5, patients: 16, utilization: 100 },
-        { day: "Thu", hours: 8, patients: 13, utilization: 88 },
-        { day: "Fri", hours: 9, patients: 16, utilization: 96 }
-      ]
-    }
-  ];
-
-  const overallStats = {
-    totalDentists: 3,
-    avgUtilization: 88.7,
-    totalPatientsToday: 41,
-    totalWeeklyHours: 115.5,
-    avgSatisfaction: 4.77
-  };
+  const [exportLoading, setExportLoading] = useState(false);
+  const { dentistData, overallStats, loading, error, refetch } = useWorkloadData();
 
   const handleExportReport = async (type: string) => {
-    setLoading(true);
+    setExportLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -149,9 +68,38 @@ export default function WorkloadReports() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setExportLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading workload data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error} 
+            <Button variant="outline" size="sm" onClick={refetch} className="ml-2">
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -164,7 +112,7 @@ export default function WorkloadReports() {
           <Button 
             variant="outline" 
             onClick={() => handleExportReport('dentist-performance')}
-            disabled={loading}
+            disabled={exportLoading || loading}
           >
             <Download className="w-4 h-4 mr-2" />
             Export Performance
@@ -172,7 +120,7 @@ export default function WorkloadReports() {
           <Button 
             variant="outline" 
             onClick={() => handleExportReport('schedule')}
-            disabled={loading}
+            disabled={exportLoading || loading}
           >
             <Download className="w-4 h-4 mr-2" />
             Export Schedule
