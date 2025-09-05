@@ -8,13 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3, Loader2, Building2, Filter, ToggleLeft, ToggleRight } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3, Loader2, AlertTriangle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-interface ClinicFeature {
+interface FeatureToggle {
   id: string;
   feature_name: string;
   is_enabled: boolean;
@@ -24,170 +24,221 @@ interface ClinicFeature {
   modified_by?: string;
 }
 
-interface FeatureCategory {
+interface FeatureGroup {
   id: string;
   name: string;
+  description: string;
   icon: any;
   color: string;
-  features: string[];
+  parentFeature?: string; // If this group depends on another feature
+  features: FeatureDefinition[];
+}
+
+interface FeatureDefinition {
+  key: string;
+  name: string;
+  description: string;
+  dependencies?: string[]; // Features this depends on
+  dependents?: string[]; // Features that depend on this
 }
 
 export default function FeatureToggles() {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [tierFilter, setTierFilter] = useState<string>("all");
-  const [clinicFilter, setClinicFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [features, setFeatures] = useState<ClinicFeature[]>([]);
-  const [clinics, setClinics] = useState<{id: string, clinic_name: string}[]>([]);
+  const [features, setFeatures] = useState<FeatureToggle[]>([]);
   const [newFeature, setNewFeature] = useState({
     name: "",
     description: "",
-    category: "core",
     defaultEnabled: false
   });
 
-  // Feature categories with their associated features
-  const categories: FeatureCategory[] = [
-    { 
-      id: "core", 
-      name: "Core Features", 
-      icon: Settings, 
+  // Organized feature groups with dependencies
+  const featureGroups: FeatureGroup[] = [
+    {
+      id: "core_system",
+      name: "Core System",
+      description: "Essential clinic management features",
+      icon: Settings,
       color: "blue",
       features: [
-        "queue_management",
-        "appointment_reminders", 
-        "digital_forms",
-        "billing_integration",
-        "inventory_management",
-        "patient_portal"
+        {
+          key: "user_management",
+          name: "User Management",
+          description: "Manage staff and patient accounts",
+        },
+        {
+          key: "appointment_system",
+          name: "Appointment System",
+          description: "Basic appointment scheduling and management",
+        },
+        {
+          key: "patient_records",
+          name: "Patient Records",
+          description: "Basic patient information and medical history",
+        }
       ]
     },
-    { 
-      id: "premium", 
-      name: "Premium Features", 
-      icon: Star, 
-      color: "purple",
-      features: [
-        "ai_queueing",
-        "teledentistry",
-        "analytics_reporting",
-        "multi_language"
-      ]
-    },
-    { 
-      id: "integration", 
-      name: "Integrations", 
-      icon: Zap, 
+    {
+      id: "queue_management",
+      name: "Queue Management",
+      description: "Patient queue and waiting system",
+      icon: Users,
       color: "green",
+      parentFeature: "appointment_system",
       features: [
-        "insurance_integration",
-        "family_accounts",
-        "payment_gateway",
-        "sms_notifications"
+        {
+          key: "basic_queue",
+          name: "Basic Queue System",
+          description: "Patient check-in and basic queue management",
+          dependencies: ["appointment_system"]
+        },
+        {
+          key: "queue_analytics",
+          name: "Queue Analytics",
+          description: "Queue performance metrics and reporting",
+          dependencies: ["basic_queue"]
+        },
+        {
+          key: "smart_queue",
+          name: "Smart Queue Optimization",
+          description: "AI-powered queue optimization and predictions",
+          dependencies: ["basic_queue", "queue_analytics"]
+        }
       ]
     },
-    { 
-      id: "experimental", 
-      name: "Experimental", 
-      icon: BarChart3, 
-      color: "orange",
+    {
+      id: "digital_forms",
+      name: "Digital Forms & Documents",
+      description: "Paperless documentation system",
+      icon: Shield,
+      color: "purple",
+      parentFeature: "patient_records",
       features: [
-        "voice_commands",
-        "ar_visualization",
-        "automated_scheduling"
+        {
+          key: "basic_forms",
+          name: "Digital Forms",
+          description: "Electronic forms and basic e-signatures",
+          dependencies: ["patient_records"]
+        },
+        {
+          key: "advanced_signatures",
+          name: "Advanced E-Signatures",
+          description: "Advanced digital signatures with verification",
+          dependencies: ["basic_forms"]
+        },
+        {
+          key: "document_automation",
+          name: "Document Automation",
+          description: "Automated form filling and document generation",
+          dependencies: ["basic_forms", "advanced_signatures"]
+        }
+      ]
+    },
+    {
+      id: "billing_payment",
+      name: "Billing & Payments",
+      description: "Financial management system",
+      icon: BarChart3,
+      color: "orange",
+      parentFeature: "appointment_system",
+      features: [
+        {
+          key: "basic_billing",
+          name: "Basic Billing",
+          description: "Invoice generation and payment tracking",
+          dependencies: ["appointment_system"]
+        },
+        {
+          key: "payment_integration",
+          name: "Payment Gateway Integration",
+          description: "Online payment processing",
+          dependencies: ["basic_billing"]
+        },
+        {
+          key: "insurance_claims",
+          name: "Insurance Claims",
+          description: "Insurance verification and claim processing",
+          dependencies: ["basic_billing"]
+        },
+        {
+          key: "financial_reporting",
+          name: "Financial Reporting",
+          description: "Revenue analytics and financial reports",
+          dependencies: ["basic_billing"]
+        }
+      ]
+    },
+    {
+      id: "patient_engagement",
+      name: "Patient Engagement",
+      description: "Patient communication and portal",
+      icon: Zap,
+      color: "teal",
+      parentFeature: "patient_records",
+      features: [
+        {
+          key: "patient_portal",
+          name: "Patient Portal",
+          description: "Patient self-service portal",
+          dependencies: ["patient_records"]
+        },
+        {
+          key: "appointment_reminders",
+          name: "Appointment Reminders",
+          description: "Automated email and SMS reminders",
+          dependencies: ["appointment_system"]
+        },
+        {
+          key: "telemedicine",
+          name: "Telemedicine",
+          description: "Virtual consultations and remote care",
+          dependencies: ["patient_portal", "appointment_system"]
+        }
+      ]
+    },
+    {
+      id: "analytics_reporting",
+      name: "Analytics & Reporting",
+      description: "Business intelligence and insights",
+      icon: Star,
+      color: "indigo",
+      features: [
+        {
+          key: "basic_analytics",
+          name: "Basic Analytics",
+          description: "Essential clinic performance metrics",
+          dependencies: ["appointment_system"]
+        },
+        {
+          key: "advanced_analytics",
+          name: "Advanced Analytics",
+          description: "Comprehensive business intelligence",
+          dependencies: ["basic_analytics", "basic_billing"]
+        },
+        {
+          key: "predictive_analytics",
+          name: "Predictive Analytics",
+          description: "AI-powered insights and forecasting",
+          dependencies: ["advanced_analytics"]
+        }
       ]
     }
   ];
-
-  // Feature display names and descriptions
-  const featureDefinitions: Record<string, { name: string; description: string; tier: string }> = {
-    queue_management: {
-      name: "Queue Management",
-      description: "Patient queue system with priority handling and real-time updates",
-      tier: "core"
-    },
-    ai_queueing: {
-      name: "AI Queue Optimization",
-      description: "AI-powered queue management with predictive analytics",
-      tier: "premium"
-    },
-    teledentistry: {
-      name: "Teledentistry",
-      description: "Remote consultation and tele-dentistry features",
-      tier: "premium"
-    },
-    billing_integration: {
-      name: "Billing Integration",
-      description: "Integrated billing and payment processing",
-      tier: "core"
-    },
-    inventory_management: {
-      name: "Inventory Management",
-      description: "Track and manage clinic inventory",
-      tier: "core"
-    },
-    patient_portal: {
-      name: "Patient Portal",
-      description: "Patient self-service portal",
-      tier: "core"
-    },
-    appointment_reminders: {
-      name: "Appointment Reminders",
-      description: "Automated appointment reminders via email and SMS",
-      tier: "core"
-    },
-    digital_forms: {
-      name: "Digital Forms",
-      description: "Electronic signature and digital forms",
-      tier: "core"
-    },
-    analytics_reporting: {
-      name: "Advanced Analytics",
-      description: "Comprehensive business intelligence and reporting tools",
-      tier: "premium"
-    },
-    multi_language: {
-      name: "Multi-Language Support",
-      description: "Support for multiple languages in patient interfaces",
-      tier: "premium"
-    },
-    insurance_integration: {
-      name: "Insurance Integration",
-      description: "Insurance claim processing and verification",
-      tier: "integration"
-    },
-    family_accounts: {
-      name: "Family Account Management",
-      description: "Manage family relationships and group appointments",
-      tier: "core"
-    }
-  };
 
   const fetchFeatures = async () => {
     try {
       setLoading(true);
       
-      if (profile?.role === 'super_admin') {
-        // Super admin sees all clinics' features
-        const { data, error } = await supabase
-          .from('clinic_feature_toggles')
-          .select('*');
-          
-        if (error) throw error;
-        setFeatures(data || []);
-      } else {
-        // For non-super-admin users, show all features
-        const { data, error } = await supabase
-          .from('clinic_feature_toggles')
-          .select('*');
-          
-        if (error) throw error;
-        setFeatures(data || []);
-      }
+      const { data, error } = await supabase
+        .from('clinic_feature_toggles')
+        .select('*')
+        .order('feature_name');
+        
+      if (error) throw error;
+      setFeatures(data || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -200,238 +251,227 @@ export default function FeatureToggles() {
   };
 
   useEffect(() => {
-    if (profile?.clinic_id || profile?.role === 'super_admin') {
+    if (profile?.role === 'super_admin') {
       fetchFeatures();
     }
   }, [profile]);
 
-  const filteredFeatures = features.filter(feature => {
-    const matchesSearch = 
-      feature.feature_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feature.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (featureDefinitions[feature.feature_name]?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false);
-    
-    const matchesStatus = 
-      statusFilter === "all" || 
-      (statusFilter === "enabled" && feature.is_enabled) ||
-      (statusFilter === "disabled" && !feature.is_enabled);
-      
-    const featureTier = featureDefinitions[feature.feature_name]?.tier || 'core';
-    const matchesTier = tierFilter === "all" || tierFilter === featureTier;
-    
-    const matchesClinic = clinicFilter === "all"; // No longer filtering by clinic_id
-    
-    return matchesSearch && matchesStatus && matchesTier && matchesClinic;
-  });
-
-  const handleToggleFeature = async (featureId: string) => {
-    const feature = features.find(f => f.id === featureId);
-    if (!feature) return;
-
+  const handleToggleFeature = async (featureName: string, enabled: boolean) => {
     try {
-      const newEnabled = !feature.is_enabled;
-      
-      const { data, error } = await supabase
-        .from('clinic_feature_toggles')
-        .update({
-          is_enabled: newEnabled,
-          modified_by: profile?.user_id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', featureId)
-        .select();
+      // Check dependencies before enabling
+      if (enabled) {
+        const feature = getAllFeatures().find(f => f.key === featureName);
+        if (feature?.dependencies) {
+          const missingDeps = feature.dependencies.filter(dep => 
+            !isFeatureEnabled(dep)
+          );
+          
+          if (missingDeps.length > 0) {
+            toast({
+              title: "Dependencies Required",
+              description: `Please enable these features first: ${missingDeps.join(', ')}`,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+      }
 
-      if (error) throw error;
+      // Check dependents before disabling
+      if (!enabled) {
+        const dependents = getAllFeatures().filter(f => 
+          f.dependencies?.includes(featureName) && isFeatureEnabled(f.key)
+        );
+        
+        if (dependents.length > 0) {
+          // Auto-disable dependents
+          for (const dependent of dependents) {
+            await updateFeatureInDatabase(dependent.key, false);
+          }
+          
+          toast({
+            title: "Dependent Features Disabled",
+            description: `Also disabled: ${dependents.map(d => d.name).join(', ')}`,
+          });
+        }
+      }
+
+      await updateFeatureInDatabase(featureName, enabled);
       
       toast({
-        title: `Feature ${newEnabled ? 'Enabled' : 'Disabled'}`,
-        description: `${getFeatureName(feature.feature_name)} has been ${newEnabled ? 'enabled' : 'disabled'}.`,
+        title: "Success",
+        description: `Feature ${enabled ? 'enabled' : 'disabled'} successfully`,
       });
       
-      // Update local state
-      setFeatures(features.map(f => 
-        f.id === featureId 
-          ? { ...f, is_enabled: newEnabled, updated_at: new Date().toISOString() }
-          : f
-      ));
-      
+      fetchFeatures();
     } catch (error) {
-      console.error('Error toggling feature:', error);
       toast({
         title: "Error",
-        description: "Failed to update feature toggle.",
+        description: "Failed to update feature toggle",
         variant: "destructive",
       });
     }
   };
 
+  const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
+    const existingFeature = features.find(f => f.feature_name === featureName);
+    
+    if (existingFeature) {
+      const { error } = await supabase
+        .from('clinic_feature_toggles')
+        .update({ 
+          is_enabled: enabled,
+          updated_at: new Date().toISOString(),
+          modified_by: profile?.user_id
+        })
+        .eq('feature_name', featureName);
+        
+      if (error) throw error;
+    } else {
+      // Create new feature toggle
+      const { error } = await supabase
+        .from('clinic_feature_toggles')
+        .insert({
+          feature_name: featureName,
+          is_enabled: enabled,
+          description: getAllFeatures().find(f => f.key === featureName)?.description || '',
+          modified_by: profile?.user_id
+        });
+        
+      if (error) throw error;
+    }
+  };
+
   const handleCreateFeature = async () => {
-    if (!newFeature.name || !newFeature.description) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!profile?.clinic_id) {
-      toast({
-        title: "Error",
-        description: "Unable to determine clinic ID.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const { error } = await supabase
         .from('clinic_feature_toggles')
         .insert({
-          clinic_id: profile.clinic_id,
-          feature_name: newFeature.name.toLowerCase().replace(/\s+/g, '_'),
+          feature_name: newFeature.name,
           description: newFeature.description,
           is_enabled: newFeature.defaultEnabled,
-          modified_by: profile.user_id
+          modified_by: profile?.user_id
         });
 
       if (error) throw error;
 
       toast({
-        title: "Feature Created",
-        description: "New feature toggle has been created successfully.",
+        title: "Success",
+        description: "Feature created successfully",
       });
 
-      setNewFeature({
-        name: "",
-        description: "",
-        category: "core",
-        defaultEnabled: false
-      });
+      setNewFeature({ name: "", description: "", defaultEnabled: false });
       setShowCreateDialog(false);
-      
-      // Refresh features
       fetchFeatures();
-      
     } catch (error) {
-      console.error('Error creating feature:', error);
       toast({
         title: "Error",
-        description: "Failed to create feature toggle.",
+        description: "Failed to create feature",
         variant: "destructive",
       });
     }
   };
 
-  const getFeatureName = (featureName: string) => {
-    return featureDefinitions[featureName]?.name || featureName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const getAllFeatures = (): FeatureDefinition[] => {
+    return featureGroups.flatMap(group => group.features);
   };
 
-  const getFeatureDescription = (featureName: string, dbDescription?: string) => {
-    return dbDescription || featureDefinitions[featureName]?.description || 'No description available';
+  const isFeatureEnabled = (featureName: string): boolean => {
+    const feature = features.find(f => f.feature_name === featureName);
+    return feature?.is_enabled || false;
   };
 
-  const getFeatureCategory = (featureName: string) => {
-    for (const category of categories) {
-      if (category.features.includes(featureName)) {
-        return category;
-      }
+  const getFeatureStatus = (feature: FeatureDefinition): 'enabled' | 'disabled' | 'unavailable' => {
+    if (feature.dependencies) {
+      const missingDeps = feature.dependencies.filter(dep => !isFeatureEnabled(dep));
+      if (missingDeps.length > 0) return 'unavailable';
     }
-    return categories[0]; // Default to core
+    return isFeatureEnabled(feature.key) ? 'enabled' : 'disabled';
   };
 
-  const getCategoryStats = (categoryId: string) => {
-    const categoryFeatures = filteredFeatures.filter(f => 
-      getFeatureCategory(f.feature_name).id === categoryId
-    );
-    const enabledCount = categoryFeatures.filter(f => f.is_enabled).length;
-    return { total: categoryFeatures.length, enabled: enabledCount };
-  };
+  const filteredGroups = featureGroups.filter(group => {
+    if (!searchTerm) return true;
+    return group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           group.features.some(f => 
+             f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             f.description.toLowerCase().includes(searchTerm.toLowerCase())
+           );
+  });
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="p-6 space-y-6 page-container">
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-medical-blue" />
-          <span className="ml-2">Loading feature toggles...</span>
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 page-container">
+      {/* Header */}
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Feature Toggles</h1>
-          <p className="text-muted-foreground">
-            Manage feature availability and access control
-            {profile?.role === 'super_admin' ? ' across all clinics' : ' for your clinic'}
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">Feature Management</h1>
+          <p className="text-muted-foreground">Control system-wide features and their dependencies</p>
         </div>
+        
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              New Feature Toggle
+              Add Custom Feature
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Feature Toggle</DialogTitle>
+              <DialogTitle>Create New Feature Toggle</DialogTitle>
               <DialogDescription>
-                Add a new feature toggle to control feature availability
+                Add a custom feature toggle for specialized functionality
               </DialogDescription>
             </DialogHeader>
-            
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="featureName">Feature Name *</Label>
+              <div>
+                <Label htmlFor="feature-name">Feature Name</Label>
                 <Input
-                  id="featureName"
-                  placeholder="Advanced Reporting"
+                  id="feature-name"
                   value={newFeature.name}
-                  onChange={(e) => setNewFeature({ ...newFeature, name: e.target.value })}
+                  onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="feature_name"
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="featureDescription">Description *</Label>
+              <div>
+                <Label htmlFor="feature-description">Description</Label>
                 <Textarea
-                  id="featureDescription"
-                  placeholder="Comprehensive analytics and reporting dashboard..."
+                  id="feature-description"
                   value={newFeature.description}
-                  onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
-                  rows={3}
+                  onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe what this feature does..."
                 />
               </div>
-
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="defaultEnabled"
                   checked={newFeature.defaultEnabled}
-                  onCheckedChange={(checked) => setNewFeature({ ...newFeature, defaultEnabled: checked })}
+                  onCheckedChange={(checked) => setNewFeature(prev => ({ ...prev, defaultEnabled: checked }))}
                 />
-                <Label htmlFor="defaultEnabled">Enable by default</Label>
+                <Label>Enable by default</Label>
               </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateFeature}>
-                  Create Feature Toggle
-                </Button>
+                <Button onClick={handleCreateFeature}>Create Feature</Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Search */}
+      <div className="flex items-center space-x-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Search features..."
             value={searchTerm}
@@ -439,201 +479,128 @@ export default function FeatureToggles() {
             className="pl-10"
           />
         </div>
-        <div className="flex gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="enabled">
-                <div className="flex items-center">
-                  <ToggleRight className="w-4 h-4 mr-2 text-green-600" />
-                  Enabled
-                </div>
-              </SelectItem>
-              <SelectItem value="disabled">
-                <div className="flex items-center">
-                  <ToggleLeft className="w-4 h-4 mr-2 text-muted-foreground" />
-                  Disabled
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={tierFilter} onValueChange={setTierFilter}>
-            <SelectTrigger className="w-[130px]">
-              <Star className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Tier" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tiers</SelectItem>
-              <SelectItem value="core">Core</SelectItem>
-              <SelectItem value="premium">Premium</SelectItem>
-              <SelectItem value="integration">Integration</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {profile?.role === 'super_admin' && (
-            <Select value={clinicFilter} onValueChange={setClinicFilter}>
-              <SelectTrigger className="w-[160px]">
-                <Building2 className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Clinic" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clinics</SelectItem>
-                {clinics.map((clinic) => (
-                  <SelectItem key={clinic.id} value={clinic.id}>
-                    {clinic.clinic_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
       </div>
 
-      {/* Category Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {categories.map((category) => {
-          const stats = getCategoryStats(category.id);
-          const Icon = category.icon;
-          
-          return (
-            <Card key={category.id}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.enabled}/{stats.total}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.enabled} enabled features
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Info Alert */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Features are organized by dependencies. Disabling a feature will automatically disable dependent features. 
+          Enable parent features before enabling their dependencies.
+        </AlertDescription>
+      </Alert>
 
-      {/* Feature Toggles by Category */}
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Features ({filteredFeatures.length})</TabsTrigger>
-          {categories.map((category) => {
-            const stats = getCategoryStats(category.id);
-            return (
-              <TabsTrigger key={category.id} value={category.id}>
-                {category.name} ({stats.total})
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-4">
-          <div className="space-y-4">
-            {filteredFeatures.map((feature) => {
-              const category = getFeatureCategory(feature.feature_name);
-              const Icon = category.icon;
-              const featureDef = featureDefinitions[feature.feature_name];
-              
-              return (
-                <Card key={feature.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <Icon className={`w-8 h-8 text-${category.color}-500`} />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold">{getFeatureName(feature.feature_name)}</h3>
-                            <Badge variant={featureDef?.tier === 'premium' ? 'default' : 'secondary'}>
-                              {featureDef?.tier || 'core'}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                            <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
-                            {feature.modified_by && (
-                              <span>by {feature.modified_by}</span>
-                            )}
-                          </div>
+      {/* Feature Groups */}
+      <div className="space-y-6">
+        {filteredGroups.map((group) => (
+          <Card key={group.id} className="glass-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg bg-${group.color}-100 dark:bg-${group.color}-900/20`}>
+                    <group.icon className={`w-5 h-5 text-${group.color}-600 dark:text-${group.color}-400`} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">{group.name}</CardTitle>
+                    <CardDescription>{group.description}</CardDescription>
+                  </div>
+                </div>
+                
+                {group.parentFeature && (
+                  <Badge variant={isFeatureEnabled(group.parentFeature) ? "default" : "secondary"}>
+                    Requires: {group.parentFeature}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="space-y-4">
+                {group.features.map((feature) => {
+                  const status = getFeatureStatus(feature);
+                  const isUnavailable = status === 'unavailable';
+                  
+                  return (
+                    <div
+                      key={feature.key}
+                      className={`flex items-center justify-between p-4 border rounded-lg ${
+                        isUnavailable ? 'opacity-50 bg-muted/20' : ''
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{feature.name}</h4>
+                          {status === 'enabled' && (
+                            <Badge variant="default" className="text-xs">Enabled</Badge>
+                          )}
+                          {status === 'unavailable' && (
+                            <Badge variant="destructive" className="text-xs">Dependencies Missing</Badge>
+                          )}
                         </div>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                        
+                        {feature.dependencies && (
+                          <div className="flex items-center gap-1 mt-2">
+                            <span className="text-xs text-muted-foreground">Requires:</span>
+                            {feature.dependencies.map(dep => (
+                              <Badge 
+                                key={dep} 
+                                variant={isFeatureEnabled(dep) ? "outline" : "destructive"}
+                                className="text-xs"
+                              >
+                                {dep}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <p className="text-sm font-medium">
-                            {feature.is_enabled ? 'Enabled' : 'Disabled'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {feature.is_enabled ? 'Active for users' : 'Hidden from users'}
-                          </p>
-                        </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {isUnavailable && (
+                          <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        )}
                         <Switch
-                          checked={feature.is_enabled}
-                          onCheckedChange={() => handleToggleFeature(feature.id)}
+                          checked={status === 'enabled'}
+                          onCheckedChange={(checked) => handleToggleFeature(feature.key, checked)}
+                          disabled={isUnavailable}
                         />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {categories.map((category) => (
-          <TabsContent key={category.id} value={category.id} className="space-y-4">
-            <div className="space-y-4">
-              {filteredFeatures
-                .filter(feature => getFeatureCategory(feature.feature_name).id === category.id)
-                .map((feature) => {
-                  const Icon = category.icon;
-                  const featureDef = featureDefinitions[feature.feature_name];
-                  
-                  return (
-                    <Card key={feature.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4 flex-1">
-                            <Icon className={`w-8 h-8 text-${category.color}-500`} />
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <h3 className="font-semibold">{getFeatureName(feature.feature_name)}</h3>
-                                <Badge variant={featureDef?.tier === 'premium' ? 'default' : 'secondary'}>
-                                  {featureDef?.tier || 'core'}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                                <span>Modified {new Date(feature.updated_at).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <Switch
-                            checked={feature.is_enabled}
-                            onCheckedChange={() => handleToggleFeature(feature.id)}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
                   );
                 })}
-            </div>
-          </TabsContent>
+              </div>
+            </CardContent>
+          </Card>
         ))}
-      </Tabs>
+      </div>
 
-      {filteredFeatures.length === 0 && !loading && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Settings className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Features Found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm ? "No features match your search criteria." : "No feature toggles have been created yet."}
-            </p>
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create First Feature Toggle
-            </Button>
+      {/* Custom Features */}
+      {features.filter(f => !getAllFeatures().some(def => def.key === f.feature_name)).length > 0 && (
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle>Custom Features</CardTitle>
+            <CardDescription>Additional features not part of standard groups</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {features
+                .filter(f => !getAllFeatures().some(def => def.key === f.feature_name))
+                .map((feature) => (
+                  <div
+                    key={feature.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div>
+                      <h4 className="font-medium">{feature.feature_name}</h4>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                    <Switch
+                      checked={feature.is_enabled}
+                      onCheckedChange={(checked) => handleToggleFeature(feature.feature_name, checked)}
+                    />
+                  </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
       )}
