@@ -389,7 +389,7 @@ export function AppSidebar() {
       '/appointments': 'appointment_booking',
       '/my-appointments': 'appointment_booking', 
       '/walk-ins': 'appointment_booking',
-      '/appointment-settings': 'appointment_booking',
+      '/appointment-settings': 'appointment_settings',
       
       // Queue Management - using database names
       '/queue': 'queue_management',
@@ -397,52 +397,52 @@ export function AppSidebar() {
       '/checkin': 'qr_checkin',
       '/staff-checkin': 'queue_management',
       
-      // Patient Management - using database names
-      '/patient-records': 'patient_profiles',
-      '/patients': 'patient_profiles',
-      '/family-management': 'patient_profiles',
-      '/insurance': 'patient_profiles',
+      // Patient Management - using new database names
+      '/patient-records': 'patient_records',
+      '/patients': 'patient_records',
+      '/family-management': 'family_accounts',
+      '/insurance': 'insurance_management',
       
-      // Digital Forms & Documents - using database names
-      '/esign-forms': 'esign_forms',
-      '/digital-forms': 'esign_forms',
-      '/patient-forms': 'esign_forms',
-      '/form-responses': 'esign_forms',
-      '/dentist-signatures': 'esign_forms',
-      '/documents-uploads': 'esign_forms',
-      '/paperless': 'esign_forms',
+      // Digital Forms & Documents - using new database names
+      '/esign-forms': 'digital_forms',
+      '/digital-forms': 'digital_forms',
+      '/patient-forms': 'digital_forms',
+      '/form-responses': 'digital_forms',
+      '/dentist-signatures': 'digital_forms',
+      '/documents-uploads': 'document_management',
+      '/paperless': 'document_management',
       
-      // Dental Charts & Treatment - using database names
-      '/charts': 'treatment_scheduling',
-      '/odontogram-designs': 'treatment_scheduling',
-      '/treatment-notes': 'treatment_scheduling',
+      // Dental Charts & Treatment - using new database names
+      '/charts': 'dental_charts',
+      '/odontogram-designs': 'dental_charts',
+      '/treatment-notes': 'dental_charts',
       
-      // Billing & Payments - need to add these to database
-      '/billing': 'basic_analytics', // Using available feature for now
-      '/my-billing': 'basic_analytics', // Using available feature for now
-      '/payment-tracking': 'basic_analytics',
-      '/revenue-reports': 'basic_analytics',
+      // Billing & Payments - using new database names
+      '/billing': 'billing_system',
+      '/my-billing': 'billing_system',
+      '/payment-tracking': 'payment_processing',
+      '/revenue-reports': 'billing_system',
       
       // Analytics & Reports - using database names
       '/analytics': 'basic_analytics',
       '/queue-reports': 'basic_analytics',
       '/workload-reports': 'advanced_analytics',
       
-      // Inventory & Operations - need to add these
-      '/inventory': 'role_based_access', // Using available feature for now
+      // Inventory & Operations - using new database names
+      '/inventory': 'inventory_management',
       
-      // Patient Portal & Engagement - using database names
-      '/patient-app': 'online_booking',
-      '/my-profile': 'patient_profiles',
-      '/my-results': 'patient_profiles',
-      '/patient-engagement': 'patient_profiles',
-      '/messages': 'mobile_app',
+      // Patient Portal & Engagement - using new database names
+      '/patient-app': 'patient_portal',
+      '/my-profile': 'patient_portal',
+      '/my-results': 'patient_portal',
+      '/patient-engagement': 'patient_engagement',
+      '/messages': 'patient_engagement',
       '/my-notifications': 'automated_reminders',
       
-      // Staff & User Management - using database names
-      '/staff-management': 'role_based_access',
-      '/services-management': 'role_based_access',
-      '/users': 'role_based_access'
+      // Staff & User Management - using new database names
+      '/staff-management': 'user_management',
+      '/services-management': 'user_management',
+      '/users': 'user_management'
     };
     return featureMap[url] || null;
   };

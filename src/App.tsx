@@ -154,12 +154,12 @@ function AppRoutes() {
           </FeatureProtectedRoute>
         } />
         <Route path="paperless" element={
-          <FeatureProtectedRoute requiredFeature="esign_forms">
+          <FeatureProtectedRoute requiredFeature="document_management">
             <PaperlessSystem />
           </FeatureProtectedRoute>
         } />
         <Route path="digital-forms" element={
-          <FeatureProtectedRoute requiredFeature="esign_forms">
+          <FeatureProtectedRoute requiredFeature="digital_forms">
             <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
               <DigitalForms />
             </ProtectedRoute>
