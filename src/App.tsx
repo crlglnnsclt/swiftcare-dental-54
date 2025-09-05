@@ -142,7 +142,7 @@ function AppRoutes() {
           </FeatureProtectedRoute>
         } />
         <Route path="checkin" element={
-          <FeatureProtectedRoute requiredFeature="qr_checkin">
+          <FeatureProtectedRoute requiredFeature="queue_management">
             <ProtectedRoute requiredRole={['patient']}>
               <PatientCheckIn />
             </ProtectedRoute>

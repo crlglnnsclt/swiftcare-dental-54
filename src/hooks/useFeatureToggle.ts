@@ -44,6 +44,7 @@ export const useFeatureToggle = (featureName?: string): FeatureToggleReturn | Al
         featureMap[feature.feature_name] = feature.is_enabled;
       });
 
+      console.log('useFeatureToggle: Loaded features from database:', featureMap);
       setFeatures(featureMap);
     } catch (error) {
       console.error('Error fetching feature toggles:', error);
@@ -81,7 +82,9 @@ export const useFeatureToggle = (featureName?: string): FeatureToggleReturn | Al
   };
 
   const isFeatureEnabled = (name: string) => {
-    return features[name] || false;
+    const enabled = features[name] || false;
+    console.log(`useFeatureToggle: Feature '${name}' is ${enabled ? 'enabled' : 'disabled'}`);
+    return enabled;
   };
 
   // If a specific feature name is provided, return just that feature's status
