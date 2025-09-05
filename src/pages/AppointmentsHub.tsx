@@ -87,9 +87,9 @@ export default function AppointmentsHub() {
         if (userData) {
           query = query.eq('dentist_id', userData.id);
         }
-      } else if (profile.role === 'clinic_admin') {
-        query = query.eq('clinic_id', profile.clinic_id);
       }
+      // For clinic_admin and other staff roles, show all appointments
+      // since appointments table doesn't have clinic_id column
 
       // Date filtering based on active tab
       const today = new Date();
