@@ -124,11 +124,17 @@ function AppRoutes() {
             <UsersStaff />
           </ProtectedRoute>
         } />
-        <Route path="appointments" element={<AppointmentsHub />} />
+        <Route path="appointments" element={
+          <FeatureProtectedRoute requiredFeature="appointment_booking">
+            <AppointmentsHub />
+          </FeatureProtectedRoute>
+        } />
         <Route path="analytics" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <Analytics />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="basic_analytics">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <Analytics />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="queue" element={
           <FeatureProtectedRoute requiredFeature="queue_management">
@@ -136,71 +142,115 @@ function AppRoutes() {
           </FeatureProtectedRoute>
         } />
         <Route path="checkin" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <PatientCheckIn />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="queue_management">
+            <ProtectedRoute requiredRole={['patient']}>
+              <PatientCheckIn />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
-        <Route path="staff-checkin" element={<SmartCheckIn />} />
-        <Route path="paperless" element={<PaperlessSystem />} />
+        <Route path="staff-checkin" element={
+          <FeatureProtectedRoute requiredFeature="queue_management">
+            <SmartCheckIn />
+          </FeatureProtectedRoute>
+        } />
+        <Route path="paperless" element={
+          <FeatureProtectedRoute requiredFeature="document_management">
+            <PaperlessSystem />
+          </FeatureProtectedRoute>
+        } />
         <Route path="digital-forms" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
-            <DigitalForms />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="digital_forms">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+              <DigitalForms />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="patient-forms" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <PatientForms />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="digital_forms">
+            <ProtectedRoute requiredRole={['patient']}>
+              <PatientForms />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="form-responses" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
-            <FormResponses />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="digital_forms">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+              <FormResponses />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
-        <Route path="messages" element={<Messaging />} />
-        <Route path="charts" element={<DentalCharts />} />
-        <Route path="odontogram-designs" element={<OdontogramDesigns />} />
+        <Route path="messages" element={
+          <FeatureProtectedRoute requiredFeature="patient_engagement">
+            <Messaging />
+          </FeatureProtectedRoute>
+        } />
+        <Route path="charts" element={
+          <FeatureProtectedRoute requiredFeature="dental_charts">
+            <DentalCharts />
+          </FeatureProtectedRoute>
+        } />
+        <Route path="odontogram-designs" element={
+          <FeatureProtectedRoute requiredFeature="dental_charts">
+            <OdontogramDesigns />
+          </FeatureProtectedRoute>
+        } />
         <Route path="patients" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist']}>
-            <PatientRecords />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="patient_records">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist']}>
+              <PatientRecords />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="inventory" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff']}>
-            <InventoryManagement />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="inventory_management">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff']}>
+              <InventoryManagement />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="staff-management" element={
-          <ProtectedRoute requiredRole={['clinic_admin']}>
-            <StaffManagement />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="user_management">
+            <ProtectedRoute requiredRole={['clinic_admin']}>
+              <StaffManagement />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="patient-records" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist']}>
-            <PatientRecords />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="patient_records">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'dentist']}>
+              <PatientRecords />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         
         {/* Patient-specific routes */}
         <Route path="my-appointments" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <PatientAppointments />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="appointment_booking">
+            <ProtectedRoute requiredRole={['patient']}>
+              <PatientAppointments />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="my-profile" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <PatientProfile />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="patient_portal">
+            <ProtectedRoute requiredRole={['patient']}>
+              <PatientProfile />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="my-results" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <PatientResults />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="patient_portal">
+            <ProtectedRoute requiredRole={['patient']}>
+              <PatientResults />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="my-notifications" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <PatientNotifications />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="appointment_reminders">
+            <ProtectedRoute requiredRole={['patient']}>
+              <PatientNotifications />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         
         {/* New Business Features */}
@@ -219,9 +269,11 @@ function AppRoutes() {
           </FeatureProtectedRoute>
         } />
         <Route path="patient-engagement" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
-            <PatientEngagement />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="patient_portal">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+              <PatientEngagement />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         
         <Route path="audit-logs" element={
@@ -234,53 +286,75 @@ function AppRoutes() {
             <VerificationQueue />
           </ProtectedRoute>
         } />
-        <Route path="queue-monitor" element={<QueueMonitor />} />
+        <Route path="queue-monitor" element={
+          <FeatureProtectedRoute requiredFeature="queue_management">
+            <QueueMonitor />
+          </FeatureProtectedRoute>
+        } />
         <Route path="walk-ins" element={
-          <ProtectedRoute requiredRole={['staff', 'clinic_admin', 'super_admin']}>
-            <WalkIns />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="appointment_booking">
+            <ProtectedRoute requiredRole={['staff', 'clinic_admin', 'super_admin']}>
+              <WalkIns />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="appointment-settings" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <AppointmentSettings />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="appointment_settings">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <AppointmentSettings />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="family-management" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
-            <FamilyManagement />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="family_accounts">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+              <FamilyManagement />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="insurance" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
-            <InsuranceHMO />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="insurance_management">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+              <InsuranceHMO />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         
         {/* Additional Pages */}
         <Route path="queue-reports" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <QueueReports />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="basic_analytics">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <QueueReports />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="revenue-reports" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <RevenueReports />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="billing_system">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <RevenueReports />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="workload-reports" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <WorkloadReports />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="basic_analytics">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <WorkloadReports />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="treatment-notes" element={
-          <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'super_admin']}>
-            <TreatmentNotes />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="dental_charts">
+            <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'super_admin']}>
+              <TreatmentNotes />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="services-management" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <ServicesManagement />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="user_management">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <ServicesManagement />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="clinic-branding" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
@@ -306,12 +380,22 @@ function AppRoutes() {
         } />
         
         {/* Paperless Records Routes */}
-        <Route path="esign-forms" element={<ESignForms />} />
-        <Route path="documents-uploads" element={<DocumentsUploads />} />
+        <Route path="esign-forms" element={
+          <FeatureProtectedRoute requiredFeature="digital_forms">
+            <ESignForms />
+          </FeatureProtectedRoute>
+        } />
+        <Route path="documents-uploads" element={
+          <FeatureProtectedRoute requiredFeature="document_management">
+            <DocumentsUploads />
+          </FeatureProtectedRoute>
+        } />
         <Route path="dentist-signatures" element={
-          <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'staff']}>
-            <DentistStaffSignatures />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="digital_forms">
+            <ProtectedRoute requiredRole={['dentist', 'clinic_admin', 'staff']}>
+              <DentistStaffSignatures />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
       </Route>
       

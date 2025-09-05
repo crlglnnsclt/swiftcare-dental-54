@@ -382,25 +382,67 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
-  // Map routes to required features
+  // Map routes to required features - comprehensive mapping
   const getFeatureRequirement = (url: string): string | null => {
     const featureMap: Record<string, string> = {
+      // Appointments & Scheduling
       '/appointments': 'appointment_booking',
+      '/my-appointments': 'appointment_booking',
+      '/walk-ins': 'appointment_booking',
+      '/appointment-settings': 'appointment_settings',
+      
+      // Queue Management
       '/queue': 'queue_management',
       '/queue-monitor': 'queue_management',
-      '/appointment-settings': 'appointment_settings',
+      '/checkin': 'queue_management',
+      '/staff-checkin': 'queue_management',
+      
+      // Patient Management
       '/patient-records': 'patient_records',
+      '/patients': 'patient_records',
       '/family-management': 'family_accounts',
       '/insurance': 'insurance_management',
+      
+      // Digital Forms & Documents
       '/esign-forms': 'digital_forms',
+      '/digital-forms': 'digital_forms',
+      '/patient-forms': 'digital_forms',
+      '/form-responses': 'digital_forms',
+      '/dentist-signatures': 'digital_forms',
       '/documents-uploads': 'document_management',
-      '/dental-charts': 'dental_charts',
+      '/paperless': 'document_management',
+      
+      // Dental Charts & Treatment
+      '/charts': 'dental_charts',
+      '/odontogram-designs': 'dental_charts',
+      '/treatment-notes': 'dental_charts',
+      
+      // Billing & Payments
       '/billing': 'billing_system',
+      '/my-billing': 'billing_system',
       '/payment-tracking': 'payment_processing',
-      '/inventory': 'inventory_management',
+      '/revenue-reports': 'billing_system',
+      
+      // Analytics & Reports
       '/analytics': 'basic_analytics',
+      '/queue-reports': 'basic_analytics',
+      '/workload-reports': 'basic_analytics',
+      
+      // Inventory & Operations
+      '/inventory': 'inventory_management',
+      
+      // Patient Portal & Engagement
       '/patient-app': 'patient_portal',
-      '/patient-booking': 'online_booking'
+      '/my-profile': 'patient_portal',
+      '/my-results': 'patient_portal',
+      '/patient-engagement': 'patient_portal',
+      '/messages': 'patient_engagement',
+      '/my-notifications': 'appointment_reminders',
+      
+      // Staff & User Management
+      '/staff-management': 'user_management',
+      '/services-management': 'user_management',
+      '/users': 'user_management'
     };
     return featureMap[url] || null;
   };
@@ -412,6 +454,11 @@ export function AppSidebar() {
     // Check feature requirements
     const featureRequired = getFeatureRequirement(item.url);
     const hasFeature = !featureRequired || isFeatureEnabled(featureRequired);
+    
+    // Debug logging
+    if (featureRequired) {
+      console.log(`Sidebar: ${item.title} (${item.url}) requires ${featureRequired}: ${hasFeature}`);
+    }
     
     return hasRole && hasFeature;
   });
