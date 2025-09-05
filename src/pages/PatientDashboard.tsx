@@ -83,39 +83,47 @@ export function PatientDashboard() {
       // Mock incomplete forms data
       const incompleteForms: any[] = [];
 
-      // Check for overdue payments
-      const { data: overduePayments, error: paymentsError } = await supabase
-        .from('payments')
-        .select('id, amount, created_at')
-        .eq('patient_id', profile?.id)
-        .eq('payment_status', 'pending');
+      // Check for overdue payments only if billing is enabled
+      let overduePayments: any[] = [];
+      if (isFeatureEnabled('billing_system')) {
+        const { data: paymentsData, error: paymentsError } = await supabase
+          .from('payments')
+          .select('id, amount, created_at')
+          .eq('patient_id', profile?.id)
+          .eq('payment_status', 'pending');
 
-      if (paymentsError) throw paymentsError;
+        if (paymentsError) throw paymentsError;
+        overduePayments = paymentsData || [];
+      }
 
       const tasks: PendingTask[] = [];
 
-      // Add form completion tasks
-      incompleteForms?.forEach((appointment: any) => {
-        tasks.push({
-          id: `form-${appointment.id}`,
-          type: 'form',
-          title: 'Complete Required Forms',
-          description: `Complete forms for your ${new Date(appointment.appointment_date).toLocaleDateString()} appointment`,
-          priority: 'high',
-          due_date: appointment.appointment_date
+      // Add form completion tasks only if digital forms are enabled
+      if (isFeatureEnabled('digital_forms')) {
+        incompleteForms?.forEach((appointment: any) => {
+          tasks.push({
+            id: `form-${appointment.id}`,
+            type: 'form',
+            title: 'Complete Required Forms',
+            description: `Complete forms for your ${new Date(appointment.appointment_date).toLocaleDateString()} appointment`,
+            priority: 'high',
+            due_date: appointment.appointment_date
+          });
         });
-      });
+      }
 
-      // Add payment tasks
-      overduePayments?.forEach((result: any) => {
-        tasks.push({
-          id: `payment-${result.id}`,
-          type: 'payment',
-          title: 'Payment Required',
-          description: `Payment required to view results: ${result.title}`,
-          priority: 'medium'
+      // Add payment tasks only if billing is enabled
+      if (isFeatureEnabled('billing_system')) {
+        overduePayments?.forEach((result: any) => {
+          tasks.push({
+            id: `payment-${result.id}`,
+            type: 'payment',
+            title: 'Payment Required',
+            description: `Payment required to view results: ${result.title}`,
+            priority: 'medium'
+          });
         });
-      });
+      }
 
       setPendingTasks(tasks);
     } catch (error) {

@@ -13,10 +13,13 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
+import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 
 export function QuickActions() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
 
   interface QuickAction {
     title: string;
@@ -26,6 +29,7 @@ export function QuickActions() {
     variant: "default" | "outline";
     badge: string | null;
     adminOnly?: boolean;
+    featureRequired?: string;
   }
 
   const actions: QuickAction[] = [
@@ -35,7 +39,8 @@ export function QuickActions() {
       icon: Calendar,
       action: () => navigate("/appointment-scheduling"),
       variant: "default",
-      badge: null
+      badge: null,
+      featureRequired: "appointment_booking"
     },
     {
       title: "Patient Check-in",
@@ -43,7 +48,8 @@ export function QuickActions() {
       icon: Users,
       action: () => navigate("/smart-check-in"),
       variant: "outline",
-      badge: null
+      badge: null,
+      featureRequired: "queue_management"
     },
     {
       title: "View Queue",
@@ -51,7 +57,8 @@ export function QuickActions() {
       icon: Activity,
       action: () => navigate("/queue-monitor"),
       variant: "outline",
-      badge: "Live"
+      badge: "Live",
+      featureRequired: "queue_management"
     },
     {
       title: "Patient Records",
@@ -59,7 +66,8 @@ export function QuickActions() {
       icon: FileText,
       action: () => navigate("/patient-records"),
       variant: "outline",
-      badge: null
+      badge: null,
+      featureRequired: "patient_records"
     },
     {
       title: "Quick Search",
@@ -67,7 +75,8 @@ export function QuickActions() {
       icon: Search,
       action: () => navigate("/patient-app"),
       variant: "outline",
-      badge: null
+      badge: null,
+      featureRequired: "patient_portal"
     },
     {
       title: "System Settings",
@@ -88,7 +97,8 @@ export function QuickActions() {
         icon: FileText,
         action: () => navigate("/treatment-notes"),
         variant: "outline" as const,
-        badge: null
+        badge: null,
+        featureRequired: "dental_charts"
       }
     ] : []),
     ...(profile?.role === 'staff' || profile?.role === 'receptionist' ? [
@@ -98,7 +108,8 @@ export function QuickActions() {
         icon: Plus,
         action: () => navigate("/walk-ins"),
         variant: "outline" as const,
-        badge: null
+        badge: null,
+        featureRequired: "appointment_booking"
       }
     ] : []),
     ...(profile?.role === 'clinic_admin' || profile?.role === 'super_admin' ? [
@@ -108,14 +119,17 @@ export function QuickActions() {
         icon: Users,
         action: () => navigate("/staff-management"),
         variant: "outline" as const,
-        badge: null
+        badge: null,
+        featureRequired: "user_management"
       }
     ] : [])
   ];
 
-  const allActions = [...actions, ...roleBasedActions].filter(action => 
-    !action.adminOnly || ['clinic_admin', 'super_admin'].includes(profile?.role || '')
-  );
+  const allActions = [...actions, ...roleBasedActions].filter(action => {
+    const hasRole = !action.adminOnly || ['clinic_admin', 'super_admin'].includes(profile?.role || '');
+    const hasFeature = !action.featureRequired || isFeatureEnabled(action.featureRequired);
+    return hasRole && hasFeature;
+  });
 
   return (
     <Card>
