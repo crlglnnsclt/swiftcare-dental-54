@@ -23,6 +23,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BranchAssignment } from '@/components/BranchAssignment';
 import { ClinicBrandingManager } from '@/components/ClinicBrandingManager';
+import N8nIntegrationControl from '@/components/N8nIntegrationControl';
 import { useToast } from '@/hooks/use-toast';
 
 export default function SuperAdmin() {
@@ -315,51 +316,18 @@ export default function SuperAdmin() {
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
+          {/* n8n Integration Control Component */}
+          <N8nIntegrationControl />
+          
           <Card className="glass-card card-3d">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="w-5 h-5" />
-                System Settings
+                Additional System Settings
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* n8n Integration Toggle */}
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium mb-2 flex items-center gap-2">
-                        <Workflow className="w-4 h-4" />
-                        n8n Workflow Integration
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Enable advanced n8n automation workflows for enhanced AI-powered processes
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {n8nIntegrationEnabled ? (
-                        <ToggleRight className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <ToggleLeft className="w-5 h-5 text-gray-400" />
-                      )}
-                      <Switch
-                        checked={n8nIntegrationEnabled}
-                        onCheckedChange={toggleN8nIntegration}
-                        disabled={loadingN8nToggle}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <Badge variant={n8nIntegrationEnabled ? "default" : "secondary"}>
-                      {n8nIntegrationEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                    {n8nIntegrationEnabled && (
-                      <Badge variant="outline" className="text-green-600">
-                        Active Workflows: 12
-                      </Badge>
-                    )}
-                  </div>
-                </div>
 
                 <div className="p-4 border rounded-lg">
                   <h3 className="font-medium mb-2">Backup Configuration</h3>

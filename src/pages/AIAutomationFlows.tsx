@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { 
   Bot, 
   Clock, 
@@ -24,7 +23,9 @@ import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 
 const AIAutomationFlows = () => {
   const [activeFlow, setActiveFlow] = useState("overview");
-  const isN8nEnabled = useFeatureToggle("n8n_integration");
+  
+  // Check if n8n integration is enabled
+  const { isEnabled: n8nEnabled } = useFeatureToggle('n8n_integration') as { isEnabled: boolean };
 
   const automationFlows = [
     {
@@ -81,7 +82,11 @@ const AIAutomationFlows = () => {
   };
 
   const handleN8nIntegration = () => {
-    toast.success("Opening n8n workflow integration panel");
+    if (n8nEnabled) {
+      toast.success("Opening n8n workflow integration panel");
+    } else {
+      toast.error("n8n Integration is disabled by administrator");
+    }
   };
 
   return (
@@ -99,7 +104,7 @@ const AIAutomationFlows = () => {
             Complete AI automation documentation with interactive flows, user journeys, and implementation roadmaps
           </p>
           <div className="flex justify-center gap-4">
-            {isN8nEnabled ? (
+            {n8nEnabled ? (
               <Button onClick={handleN8nIntegration} className="gap-2">
                 <Zap className="h-4 w-4" />
                 n8n Integration Dashboard
@@ -162,9 +167,10 @@ const AIAutomationFlows = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeFlow} onValueChange={setActiveFlow} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${n8nEnabled ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="workflows">AI Workflows</TabsTrigger>
+            {n8nEnabled && <TabsTrigger value="n8n">n8n Dashboard</TabsTrigger>}
             <TabsTrigger value="documentation">Documentation</TabsTrigger>
           </TabsList>
 
@@ -256,13 +262,11 @@ const AIAutomationFlows = () => {
                         <Button 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => isN8nEnabled 
-                            ? toast.success(`Opening n8n workflow for ${flow.name}`)
-                            : toast.error("n8n Integration is disabled by administrator")
-                          }
-                          disabled={!isN8nEnabled}
+                          onClick={handleN8nIntegration}
+                          disabled={!n8nEnabled}
+                          variant={n8nEnabled ? "default" : "secondary"}
                         >
-                          n8n Setup
+                          {n8nEnabled ? "n8n Setup" : "n8n Disabled"}
                         </Button>
                       </div>
                     </div>
@@ -271,6 +275,23 @@ const AIAutomationFlows = () => {
               ))}
             </div>
           </TabsContent>
+
+          {/* n8n Dashboard Tab - Only show if enabled */}
+          {n8nEnabled && (
+            <TabsContent value="n8n" className="space-y-6">
+              <div className="text-center py-12">
+                <Zap className="h-16 w-16 mx-auto text-primary mb-4" />
+                <h3 className="text-2xl font-bold mb-2">n8n Workflow Dashboard</h3>
+                <p className="text-muted-foreground mb-6">
+                  Advanced workflow automation with real-time monitoring
+                </p>
+                <Button onClick={() => toast.success("Opening n8n workflow dashboard")}>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Access n8n Dashboard
+                </Button>
+              </div>
+            </TabsContent>
+          )}
 
           {/* Documentation Tab */}
           <TabsContent value="documentation" className="space-y-6">
@@ -302,7 +323,7 @@ const AIAutomationFlows = () => {
                     Interactive Dashboard
                   </CardTitle>
                   <CardDescription>
-                    6 interactive tabs with real-time metrics and visualizations
+                    Real-time metrics and visualizations
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -320,27 +341,27 @@ const AIAutomationFlows = () => {
                   <CardTitle className="flex items-center gap-2">
                     <Zap className="h-5 w-5" />
                     n8n Workflow Library
-                    {!isN8nEnabled && (
+                    {!n8nEnabled && (
                       <Badge variant="secondary" className="ml-2">
                         Disabled
                       </Badge>
                     )}
                   </CardTitle>
                   <CardDescription>
-                    Complete library of 12 AI automation workflows
-                    {!isN8nEnabled && " (Feature disabled by administrator)"}
+                    {n8nEnabled 
+                      ? "Complete library of 12 AI automation workflows"
+                      : "Advanced workflows (Feature disabled by administrator)"
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
                     className="w-full" 
-                    onClick={isN8nEnabled 
-                      ? handleN8nIntegration 
-                      : () => toast.error("n8n Integration is disabled by administrator")
-                    }
-                    disabled={!isN8nEnabled}
+                    onClick={handleN8nIntegration}
+                    disabled={!n8nEnabled}
+                    variant={n8nEnabled ? "default" : "secondary"}
                   >
-                    {isN8nEnabled ? "Access Workflows" : "Feature Disabled"}
+                    {n8nEnabled ? "Access Workflows" : "Feature Disabled"}
                   </Button>
                 </CardContent>
               </Card>

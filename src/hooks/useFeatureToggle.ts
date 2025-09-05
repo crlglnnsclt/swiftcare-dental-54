@@ -1,63 +1,105 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface FeatureToggle {
-  feature_name: string;
-  is_enabled: boolean;
+interface FeatureToggleState {
+  [key: string]: boolean;
 }
 
-export const useFeatureToggle = (featureName: string): boolean => {
-  const [isEnabled, setIsEnabled] = useState(false);
+interface FeatureToggleReturn {
+  isEnabled: boolean;
+  loading: boolean;
+  toggleFeature: (featureName: string, enabled: boolean) => Promise<boolean>;
+  refresh: () => Promise<void>;
+}
+
+interface AllFeaturesReturn {
+  features: FeatureToggleState;
+  loading: boolean;
+  isFeatureEnabled: (name: string) => boolean;
+  toggleFeature: (featureName: string, enabled: boolean) => Promise<boolean>;
+  refresh: () => Promise<void>;
+}
+
+export const useFeatureToggle = (featureName?: string): FeatureToggleReturn | AllFeaturesReturn => {
+  const [features, setFeatures] = useState<FeatureToggleState>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFeatureToggle = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('feature_toggles')
-          .select('is_enabled')
-          .eq('feature_name', featureName)
-          .single();
+    fetchFeatureToggles();
+  }, []);
 
-        if (error) {
-          console.warn(`Feature toggle ${featureName} not found, defaulting to false`);
-          setIsEnabled(false);
-        } else {
-          setIsEnabled(data.is_enabled);
-        }
-      } catch (error) {
-        console.error(`Error fetching feature toggle ${featureName}:`, error);
-        setIsEnabled(false);
-      } finally {
-        setLoading(false);
+  const fetchFeatureToggles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feature_toggles')
+        .select('feature_name, is_enabled');
+
+      if (error) {
+        console.error('Error fetching feature toggles:', error);
+        return;
       }
-    };
 
-    fetchFeatureToggle();
+      const featureMap: FeatureToggleState = {};
+      data?.forEach(feature => {
+        featureMap[feature.feature_name] = feature.is_enabled;
+      });
 
-    // Set up real-time subscription for feature toggle changes
-    const channel = supabase
-      .channel(`feature_toggle_${featureName}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'feature_toggles',
-          filter: `feature_name=eq.${featureName}`,
-        },
-        (payload) => {
-          if (payload.new) {
-            setIsEnabled((payload.new as FeatureToggle).is_enabled);
-          }
-        }
-      )
-      .subscribe();
+      setFeatures(featureMap);
+    } catch (error) {
+      console.error('Error fetching feature toggles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [featureName]);
+  const toggleFeature = async (featureName: string, enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('feature_toggles')
+        .update({ 
+          is_enabled: enabled,
+          updated_at: new Date().toISOString()
+        })
+        .eq('feature_name', featureName);
 
-  return loading ? false : isEnabled;
+      if (error) {
+        console.error('Error updating feature toggle:', error);
+        return false;
+      }
+
+      // Update local state
+      setFeatures(prev => ({
+        ...prev,
+        [featureName]: enabled
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('Error updating feature toggle:', error);
+      return false;
+    }
+  };
+
+  const isFeatureEnabled = (name: string) => {
+    return features[name] || false;
+  };
+
+  // If a specific feature name is provided, return just that feature's status
+  if (featureName) {
+    return {
+      isEnabled: isFeatureEnabled(featureName),
+      loading,
+      toggleFeature,
+      refresh: fetchFeatureToggles
+    } as FeatureToggleReturn;
+  }
+
+  // Otherwise return all features
+  return {
+    features,
+    loading,
+    isFeatureEnabled,
+    toggleFeature,
+    refresh: fetchFeatureToggles
+  } as AllFeaturesReturn;
 };
