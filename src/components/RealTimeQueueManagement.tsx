@@ -101,19 +101,24 @@ export function RealTimeQueueManagement() {
     fetchQueueData();
     calculateWaitTimes();
     
-    // Refresh data every 30 seconds
+    // Refresh data every 60 seconds for better performance
     const interval = setInterval(() => {
       if (isLive) {
         fetchQueueData();
         calculateWaitTimes();
       }
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, [isLive]);
 
   const fetchQueueData = async () => {
     try {
+      // Get today's date range for better performance
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+      
       // Fetch queue items with appointment and patient details
       const { data: queueData, error: queueError } = await supabase
         .from('appointments')
@@ -130,7 +135,10 @@ export function RealTimeQueueManagement() {
           users!dentist_id(full_name)
         `)
         .in('status', ['checked_in', 'in_progress'])
-        .order('scheduled_time');
+        .gte('scheduled_time', startOfDay)
+        .lt('scheduled_time', endOfDay)
+        .order('scheduled_time')
+        .limit(50); // Limit for performance
 
       if (queueError) throw queueError;
 
