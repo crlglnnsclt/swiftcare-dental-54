@@ -97,8 +97,8 @@ export default function FeatureToggles() {
     },
     {
       id: "appointments",
-      name: "Appointments",
-      description: "Scheduling and queue management",
+      name: "Appointments & Queue",
+      description: "Scheduling, queue management, and AI optimization",
       icon: Calendar,
       color: "green",
       features: [
@@ -120,18 +120,34 @@ export default function FeatureToggles() {
         },
         {
           key: "appointment_reminders",
-          name: "Reminders",
+          name: "Appointment Reminders",
           description: "Automated email and SMS reminders",
           dependencies: ["appointment_booking"],
           category: "appointments",
           priority: "medium"
+        },
+        {
+          key: "appointment_settings",
+          name: "Appointment Settings",
+          description: "Configure appointment slots, duration, and booking rules",
+          dependencies: ["appointment_booking"],
+          category: "appointments",
+          priority: "medium"
+        },
+        {
+          key: "ai_queueing",
+          name: "AI Queue Optimization",
+          description: "AI-powered queue optimization and predictions",
+          dependencies: ["queue_management"],
+          category: "appointments",
+          priority: "low"
         }
       ]
     },
     {
       id: "digital_health",
       name: "Digital Records",
-      description: "Paperless documentation",
+      description: "Paperless documentation and charting",
       icon: FileText,
       color: "purple",
       features: [
@@ -154,17 +170,25 @@ export default function FeatureToggles() {
         {
           key: "dental_charts",
           name: "Dental Charts",
-          description: "Interactive dental charting",
+          description: "Interactive dental charting and odontograms",
           dependencies: ["patient_records"],
           category: "digital_health",
           priority: "medium"
+        },
+        {
+          key: "teledentistry",
+          name: "Teledentistry",
+          description: "Remote consultation and tele-dentistry features",
+          dependencies: ["digital_forms", "patient_records"],
+          category: "digital_health",
+          priority: "low"
         }
       ]
     },
     {
       id: "financial",
       name: "Billing & Payments",
-      description: "Financial management",
+      description: "Financial management and insurance",
       icon: CreditCard,
       color: "orange",
       features: [
@@ -173,6 +197,14 @@ export default function FeatureToggles() {
           name: "Billing System",
           description: "Invoice generation and payment tracking",
           dependencies: ["patient_records"],
+          category: "financial",
+          priority: "high"
+        },
+        {
+          key: "billing_integration",
+          name: "Billing Integration",
+          description: "Integrated billing and payment processing",
+          dependencies: ["billing_system"],
           category: "financial",
           priority: "high"
         },
@@ -189,6 +221,14 @@ export default function FeatureToggles() {
           name: "Insurance Management",
           description: "Insurance verification and claims",
           dependencies: ["billing_system"],
+          category: "financial",
+          priority: "medium"
+        },
+        {
+          key: "insurance_integration",
+          name: "Insurance Integration",
+          description: "Insurance claim processing and verification",
+          dependencies: ["insurance_management"],
           category: "financial",
           priority: "medium"
         }
@@ -221,7 +261,7 @@ export default function FeatureToggles() {
     {
       id: "patient_engagement",
       name: "Patient Portal",
-      description: "Patient self-service",
+      description: "Patient self-service and family management",
       icon: Users,
       color: "indigo",
       features: [
@@ -240,30 +280,62 @@ export default function FeatureToggles() {
           dependencies: ["appointment_booking", "patient_portal"],
           category: "patient_engagement",
           priority: "medium"
+        },
+        {
+          key: "family_accounts",
+          name: "Family Accounts",
+          description: "Family account management and linking",
+          dependencies: ["patient_portal"],
+          category: "patient_engagement",
+          priority: "medium"
         }
       ]
     },
     {
       id: "analytics",
-      name: "Analytics",
-      description: "Business intelligence",
+      name: "Analytics & Reporting",
+      description: "Business intelligence and reporting",
       icon: BarChart3,
       color: "pink",
       features: [
         {
-          key: "basic_analytics",
+          key: "analytics",
           name: "Basic Analytics",
-          description: "Essential clinic metrics",
+          description: "Essential clinic metrics and dashboards",
           dependencies: ["appointment_booking"],
           category: "analytics",
           priority: "medium"
         },
         {
-          key: "advanced_analytics",
+          key: "analytics_reporting",
           name: "Advanced Analytics",
-          description: "Comprehensive business intelligence",
-          dependencies: ["basic_analytics", "billing_system"],
+          description: "Advanced analytics and comprehensive reporting",
+          dependencies: ["analytics", "billing_system"],
           category: "analytics",
+          priority: "medium"
+        },
+        {
+          key: "advanced_analytics",
+          name: "Business Intelligence",
+          description: "Comprehensive business intelligence and forecasting",
+          dependencies: ["analytics_reporting"],
+          category: "analytics",
+          priority: "low"
+        }
+      ]
+    },
+    {
+      id: "system",
+      name: "System Features",
+      description: "Multi-language and system-wide features",
+      icon: Settings,
+      color: "gray",
+      features: [
+        {
+          key: "multi_language",
+          name: "Multi-Language Support",
+          description: "Support for multiple languages and localization",
+          category: "system",
           priority: "low"
         }
       ]
@@ -452,6 +524,12 @@ export default function FeatureToggles() {
            );
   });
 
+  // Get features from database that aren't in predefined groups
+  const getOtherFeatures = (): FeatureToggle[] => {
+    const predefinedKeys = getAllFeatures().map(f => f.key);
+    return features.filter(f => !predefinedKeys.includes(f.feature_name));
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'enabled':
@@ -624,6 +702,53 @@ export default function FeatureToggles() {
           );
         })}
       </div>
+
+      {/* Other Features - Show any features from database not in predefined groups */}
+      {getOtherFeatures().length > 0 && (
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              Other Features
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Additional features found in database
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {getOtherFeatures().map((feature) => (
+                <div
+                  key={feature.id}
+                  className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/50 transition-all gap-3"
+                >
+                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                    {feature.is_enabled ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-sm sm:text-base truncate capitalize">
+                        {feature.feature_name.replace(/_/g, ' ')}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {feature.description || 'No description available'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Switch
+                      checked={feature.is_enabled}
+                      onCheckedChange={(checked) => handleToggleFeature(feature.feature_name, checked)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
