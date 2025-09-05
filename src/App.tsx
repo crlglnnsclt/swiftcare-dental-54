@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { FeatureProtectedRoute } from "@/components/auth/FeatureProtectedRoute";
 import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -129,7 +130,11 @@ function AppRoutes() {
             <Analytics />
           </ProtectedRoute>
         } />
-        <Route path="queue" element={<QueueManagement />} />
+        <Route path="queue" element={
+          <FeatureProtectedRoute requiredFeature="queue_management">
+            <QueueManagement />
+          </FeatureProtectedRoute>
+        } />
         <Route path="checkin" element={
           <ProtectedRoute requiredRole={['patient']}>
             <PatientCheckIn />
@@ -200,14 +205,18 @@ function AppRoutes() {
         
         {/* New Business Features */}
         <Route path="billing" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <Billing />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="billing_system">
+            <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
+              <Billing />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="payment-tracking" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
-            <PaymentTracking />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="payment_processing">
+            <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
+              <PaymentTracking />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         <Route path="patient-engagement" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'staff', 'super_admin']}>
@@ -289,9 +298,11 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         <Route path="my-billing" element={
-          <ProtectedRoute requiredRole={['patient']}>
-            <MyBilling />
-          </ProtectedRoute>
+          <FeatureProtectedRoute requiredFeature="billing_system">
+            <ProtectedRoute requiredRole={['patient']}>
+              <MyBilling />
+            </ProtectedRoute>
+          </FeatureProtectedRoute>
         } />
         
         {/* Paperless Records Routes */}

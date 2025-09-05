@@ -10,13 +10,24 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentProofUpload from "@/components/PaymentProofUpload";
 import PaymentVerificationManager from "@/components/PaymentVerificationManager";
+import { useFeatureToggle } from "@/hooks/useFeatureToggle";
+import { Navigate } from "react-router-dom";
 
 export default function MyBilling() {
   const { toast } = useToast();
+  const featureToggle = useFeatureToggle();
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Check if billing feature is enabled
+  console.log('MyBilling: Checking billing feature toggle...', isFeatureEnabled('billing_system'));
+  if (!isFeatureEnabled('billing_system')) {
+    console.log('MyBilling: Billing feature disabled, redirecting to dashboard');
+    return <Navigate to="/dashboard" replace />;
+  }
 
   useEffect(() => {
     const getCurrentUserRole = async () => {
