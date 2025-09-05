@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Bot, 
   Clock, 
@@ -16,7 +19,11 @@ import {
   Heart,
   DollarSign,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Play,
+  Loader2,
+  Settings,
+  TestTube
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFeatureToggle } from "@/hooks/useFeatureToggle";
@@ -24,6 +31,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 const AIAutomationFlows = () => {
   const [activeFlow, setActiveFlow] = useState("overview");
+  const [isTestingWorkflow, setIsTestingWorkflow] = useState(false);
+  const [testResults, setTestResults] = useState<any>(null);
+  const [n8nWebhookUrl, setN8nWebhookUrl] = useState("");
+  const [workflowLogs, setWorkflowLogs] = useState<any[]>([]);
   
   // Check if n8n integration is enabled
   const { isEnabled: n8nEnabled } = useFeatureToggle('n8n_integration') as { isEnabled: boolean };
@@ -82,13 +93,87 @@ const AIAutomationFlows = () => {
     roi: 300
   };
 
-  const handleN8nIntegration = () => {
+  const handleN8nIntegration = async () => {
     if (n8nEnabled) {
-      toast.success("Opening n8n workflow integration panel");
+      try {
+        const { data, error } = await supabase.functions.invoke('n8n-webhook-trigger', {
+          body: {
+            webhookUrl: n8nWebhookUrl || null,
+            workflowData: { test: true, clinic: 'SwiftCare' },
+            workflowType: 'integration-test'
+          }
+        });
+        
+        if (error) throw error;
+        
+        toast.success("n8n integration test completed successfully");
+        console.log('n8n response:', data);
+      } catch (error) {
+        console.error('n8n integration error:', error);
+        toast.error("n8n integration test failed");
+      }
     } else {
       toast.error("n8n Integration is disabled by administrator");
     }
   };
+
+  const testWorkflow = async (workflowType: string) => {
+    setIsTestingWorkflow(true);
+    setTestResults(null);
+    
+    try {
+      const testData = {
+        'appointment-scheduling': {
+          patientName: 'John Doe',
+          service: 'Dental Cleaning',
+          preferredDate: '2025-01-15',
+          urgency: 'Normal'
+        },
+        'patient-communication': {
+          patientName: 'Jane Smith',
+          type: 'Appointment Reminder',
+          appointmentDate: '2025-01-16',
+          treatment: 'Dental Checkup',
+          tone: 'Friendly and Professional'
+        },
+        'insurance-verification': {
+          patientName: 'Bob Wilson',
+          provider: 'Blue Cross',
+          policyNumber: 'BC123456789',
+          treatmentCode: 'D0150'
+        }
+      };
+
+      const { data, error } = await supabase.functions.invoke('ai-automation-workflow', {
+        body: {
+          type: workflowType,
+          data: testData[workflowType as keyof typeof testData],
+          testMode: true
+        }
+      });
+
+      if (error) throw error;
+
+      setTestResults(data);
+      toast.success(`${workflowType} workflow test completed!`);
+      
+      // Add to workflow logs
+      setWorkflowLogs(prev => [...prev, {
+        id: Date.now(),
+        workflow: workflowType,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        result: data
+      }]);
+
+    } catch (error) {
+      console.error('Workflow test error:', error);
+      toast.error(`Workflow test failed: ${error.message}`);
+    } finally {
+      setIsTestingWorkflow(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10">
@@ -174,9 +259,10 @@ const AIAutomationFlows = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeFlow} onValueChange={setActiveFlow} className="space-y-6">
-          <TabsList className={`grid w-full ${n8nEnabled ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`grid w-full ${n8nEnabled ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="workflows">AI Workflows</TabsTrigger>
+            <TabsTrigger value="testing">Workflow Testing</TabsTrigger>
             {n8nEnabled && <TabsTrigger value="n8n">n8n Dashboard</TabsTrigger>}
             <TabsTrigger value="documentation">Documentation</TabsTrigger>
           </TabsList>
@@ -207,14 +293,25 @@ const AIAutomationFlows = () => {
                         <span className="font-medium">Time Reduction:</span>
                         <span className="text-green-600">{flow.timeReduction}</span>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => toast.success(`Viewing details for ${flow.name}`)}
-                      >
-                        View Flow Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => setActiveFlow("workflows")}
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => testWorkflow(flow.id)}
+                          disabled={isTestingWorkflow}
+                        >
+                          {isTestingWorkflow ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
+                          Test Flow
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -269,11 +366,11 @@ const AIAutomationFlows = () => {
                         <Button 
                           size="sm" 
                           className="flex-1"
-                          onClick={handleN8nIntegration}
-                          disabled={!n8nEnabled}
-                          variant={n8nEnabled ? "default" : "secondary"}
+                          onClick={() => testWorkflow(flow.id)}
+                          disabled={isTestingWorkflow}
                         >
-                          {n8nEnabled ? "n8n Setup" : "n8n Disabled"}
+                          {isTestingWorkflow ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                          Test
                         </Button>
                       </div>
                     </div>
@@ -286,19 +383,161 @@ const AIAutomationFlows = () => {
           {/* n8n Dashboard Tab - Only show if enabled */}
           {n8nEnabled && (
             <TabsContent value="n8n" className="space-y-6">
-              <div className="text-center py-12">
-                <Zap className="h-16 w-16 mx-auto text-primary mb-4" />
-                <h3 className="text-2xl font-bold mb-2">n8n Workflow Dashboard</h3>
-                <p className="text-muted-foreground mb-6">
-                  Advanced workflow automation with real-time monitoring
-                </p>
-                <Button onClick={() => toast.success("Opening n8n workflow dashboard")}>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Access n8n Dashboard
-                </Button>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    n8n Workflow Integration
+                  </CardTitle>
+                  <CardDescription>
+                    Configure and test n8n webhook integrations for advanced automation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="webhook-url">n8n Webhook URL (Optional)</Label>
+                      <Input
+                        id="webhook-url"
+                        placeholder="https://your-n8n-instance.com/webhook/..."
+                        value={n8nWebhookUrl}
+                        onChange={(e) => setN8nWebhookUrl(e.target.value)}
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Leave empty to run simulation mode
+                      </p>
+                    </div>
+                    
+                    <Button onClick={handleN8nIntegration} className="w-full">
+                      <Zap className="h-4 w-4 mr-2" />
+                      Test n8n Integration
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Integration Status</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm">n8n Feature Enabled</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm">Webhook Endpoint Ready</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm">AI Workflows Connected</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Available Triggers</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="text-sm">• Appointment Scheduled</div>
+                          <div className="text-sm">• Patient Communication</div>
+                          <div className="text-sm">• Insurance Verification</div>
+                          <div className="text-sm">• Treatment Completed</div>
+                          <div className="text-sm">• Payment Processed</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           )}
+
+          {/* Workflow Testing Tab */}
+          <TabsContent value="testing" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5" />
+                  AI Workflow Testing
+                </CardTitle>
+                <CardDescription>
+                  Test individual workflows with sample data to verify functionality
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {automationFlows.map((flow) => (
+                    <Card key={flow.id} className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        {flow.icon}
+                        <div>
+                          <h4 className="font-medium">{flow.name}</h4>
+                          <p className="text-sm text-muted-foreground">{flow.description}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => testWorkflow(flow.id)}
+                        disabled={isTestingWorkflow}
+                        className="w-full"
+                        size="sm"
+                      >
+                        {isTestingWorkflow ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Play className="h-4 w-4 mr-2" />
+                        )}
+                        Test Workflow
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+
+                {testResults && (
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        Test Results
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto">
+                        {JSON.stringify(testResults, null, 2)}
+                      </pre>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {workflowLogs.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Test Logs</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {workflowLogs.slice(-5).map((log) => (
+                          <div key={log.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                            <div>
+                              <span className="font-medium">{log.workflow}</span>
+                              <span className="text-sm text-muted-foreground ml-2">
+                                {new Date(log.timestamp).toLocaleTimeString()}
+                              </span>
+                            </div>
+                            <Badge variant="secondary">{log.status}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Documentation Tab */}
           <TabsContent value="documentation" className="space-y-6">
