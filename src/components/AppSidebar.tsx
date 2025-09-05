@@ -321,8 +321,8 @@ const moduleNavigation: NavItem[] = [
     title: "AI Automation Flows",
     url: "/ai-automation-flows",
     icon: Bot,
-    roles: ["clinic_admin", "super_admin"],
-    module: "reports"
+    roles: ["super_admin"],
+    module: "super_admin"
   },
 
   // 👨‍⚕️ Patient Portal
