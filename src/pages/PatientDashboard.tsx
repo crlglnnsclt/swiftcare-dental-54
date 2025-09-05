@@ -53,6 +53,7 @@ export function PatientDashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      // Fetch data in parallel for better performance
       await Promise.all([
         fetchPatientData(),
         fetchUpcomingAppointments(),
@@ -68,10 +69,12 @@ export function PatientDashboard() {
 
   const fetchPatientData = async () => {
     try {
+      if (!user?.id) return;
+      
       const { data, error } = await supabase
         .from('patients')
-        .select('*')
-        .eq('user_id', user?.id)
+        .select('id, full_name, email, contact_number, date_of_birth')
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
@@ -83,32 +86,20 @@ export function PatientDashboard() {
 
   const fetchUpcomingAppointments = async () => {
     try {
-      if (!patientData && !user?.id) return;
+      if (!user?.id) return;
 
-      let patientId = patientData?.id;
-      
-      if (!patientId) {
-        const { data: patient } = await supabase
-          .from('patients')
-          .select('id')
-          .eq('user_id', user?.id)
-          .maybeSingle();
-        
-        patientId = patient?.id;
-      }
-
-      if (!patientId) {
-        console.log('No patient record found');
-        return;
-      }
-
+      // Single optimized query using direct user lookup
       const { data, error } = await supabase
         .from('appointments')
         .select(`
-          *,
-          users!dentist_id(full_name)
+          id,
+          scheduled_time,
+          status,
+          notes,
+          users!dentist_id(full_name),
+          patients!inner(user_id)
         `)
-        .eq('patient_id', patientId)
+        .eq('patients.user_id', user.id)
         .gte('scheduled_time', new Date().toISOString())
         .order('scheduled_time')
         .limit(3);

@@ -27,13 +27,9 @@ export default function QueueMonitor() {
   useEffect(() => {
     fetchQueueData();
     
-    const interval = setInterval(() => {
-      fetchQueueData();
-    }, 60000); // Refresh every minute
-
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    // Reduce refresh frequency for better performance
+    const interval = setInterval(fetchQueueData, 30000); // 30 seconds
+    const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000);
 
     return () => {
       clearInterval(interval);
@@ -47,7 +43,7 @@ export default function QueueMonitor() {
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
       
-      // Fetch directly from appointments table
+      // Single optimized query
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -55,16 +51,14 @@ export default function QueueMonitor() {
           scheduled_time,
           status,
           booking_type,
-          duration_minutes,
-          notes,
-          patients!inner(full_name, contact_number),
+          patients!inner(full_name),
           users!dentist_id(full_name)
         `)
         .in('status', ['checked_in', 'in_progress'])
         .gte('scheduled_time', startOfDay)
         .lt('scheduled_time', endOfDay)
         .order('scheduled_time')
-        .limit(20);
+        .limit(10);
 
       if (error) throw error;
 
@@ -73,7 +67,7 @@ export default function QueueMonitor() {
         position: index + 1,
         patient_name: item.patients?.full_name || 'Unknown Patient',
         appointment_time: new Date(item.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        estimated_wait_minutes: index * 30,
+        estimated_wait_minutes: index * 15, // Reduced for realistic estimates
         priority: item.booking_type === 'emergency' ? 'emergency' : 
                   item.booking_type === 'walk_in' ? 'walk_in' : 'online',
         status: item.status === 'in_progress' ? 'in_treatment' : 'waiting',
