@@ -77,6 +77,14 @@ interface FormResponse {
   ai_confidence_score?: number;
   ai_suggested_fields?: any;
   requires_manual_review?: boolean;
+  form?: {
+    name: string;
+    category: string;
+  };
+  patient?: {
+    full_name: string;
+    email: string;
+  };
 }
 
 interface PatientDocument {
@@ -91,9 +99,11 @@ interface PatientDocument {
   verification_status: string;
   created_at: string;
   updated_at: string;
-  ai_extracted_data?: any;
-  ai_category_confidence?: number;
-  requires_manual_review?: boolean;
+  metadata?: any;
+  patient?: {
+    full_name: string;
+    email: string;
+  };
 }
 
 export const AIEnhancedPaperlessSystem: React.FC = () => {

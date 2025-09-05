@@ -31,19 +31,25 @@ export function useDashboardStats() {
       const today = new Date().toISOString().split('T')[0];
 
       // Get today's appointments
-      let appointmentsQuery = supabase
-        .from('appointments')
-        .select('*')
-        .gte('scheduled_time', `${today}T00:00:00`)
-        .lt('scheduled_time', `${today}T23:59:59`);
+      // Build filter conditions
+      const filters: any = {
+        scheduled_time: {
+          gte: `${today}T00:00:00`,
+          lt: `${today}T23:59:59`
+        }
+      };
 
       if (profile.role === 'dentist') {
-        appointmentsQuery = appointmentsQuery.eq('dentist_id', profile.id);
+        filters.dentist_id = profile.id;
       } else if (profile.role !== 'super_admin' && profile.clinic_id) {
-        appointmentsQuery = appointmentsQuery.eq('clinic_id', profile.clinic_id);
+        filters.clinic_id = profile.clinic_id;
       }
 
-      const { data: todayAppointments } = await appointmentsQuery;
+      const { data: todayAppointments } = await supabase
+        .from('appointments')
+        .select('*')
+        .gte('scheduled_time', filters.scheduled_time.gte)
+        .lt('scheduled_time', filters.scheduled_time.lt);
 
       // Get today's payments for revenue calculation
       let paymentsQuery = supabase

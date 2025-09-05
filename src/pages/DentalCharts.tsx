@@ -143,18 +143,17 @@ export default function DentalCharts() {
 
   const fetchPatients = async () => {
     try {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('id, full_name, email')
-        .eq('clinic_id', profile?.clinic_id)
-        .order('full_name');
-
-      if (error) throw error;
-      setPatients(data || []);
+      const clinicId = profile?.clinic_id;
+      if (!clinicId) return;
+      
+      const result = await supabase.from('patients').select('id, full_name, email');
+      
+      if (result.error) throw result.error;
+      setPatients(result.data || []);
       
       // Auto-select first patient if available
-      if (data && data.length > 0 && !selectedPatient) {
-        setSelectedPatient(data[0].id);
+      if (result.data && result.data.length > 0 && !selectedPatient) {
+        setSelectedPatient(result.data[0].id);
       }
     } catch (error) {
       console.error('Error fetching patients:', error);

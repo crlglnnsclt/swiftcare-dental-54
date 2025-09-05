@@ -44,7 +44,7 @@ interface QueueItem {
   dentist_name: string;
   treatment_type: string;
   priority: 'emergency' | 'scheduled' | 'walk_in';
-  status: 'waiting' | 'called' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'waiting' | 'called' | 'completed' | 'skipped';
   position: number;
   manual_order?: number;
   estimated_wait_minutes: number;
@@ -132,7 +132,7 @@ export const AIEnhancedQueueManagement: React.FC = () => {
         `)
         .gte('appointment.scheduled_time', today + 'T00:00:00')
         .lte('appointment.scheduled_time', today + 'T23:59:59')
-        .in('status', ['waiting', 'called', 'in_progress'])
+        .in('status', ['waiting', 'called'])
         .order('position', { ascending: true });
 
       if (error) throw error;
@@ -153,9 +153,9 @@ export const AIEnhancedQueueManagement: React.FC = () => {
         scheduled_time: item.appointment.scheduled_time,
         contact_number: item.appointment.patient.contact_number,
         notes: item.appointment.notes,
-        ai_optimization_score: item.ai_optimization_score,
-        ai_predicted_duration: item.ai_predicted_duration,
-        ai_priority_adjustment: item.ai_priority_adjustment
+        ai_optimization_score: (item as any).ai_optimization_score,
+        ai_predicted_duration: (item as any).ai_predicted_duration,
+        ai_priority_adjustment: (item as any).ai_priority_adjustment
       }));
 
       setQueueItems(mappedData);
@@ -176,7 +176,7 @@ export const AIEnhancedQueueManagement: React.FC = () => {
 
   const calculateWaitTimeStats = (items: QueueItem[]) => {
     const waitingItems = items.filter(item => item.status === 'waiting');
-    const inProgressItems = items.filter(item => item.status === 'in_progress');
+    const calledItems = items.filter(item => item.status === 'called');
     
     const stats: WaitTimeStats = {
       average_wait: waitingItems.length > 0 
@@ -310,7 +310,7 @@ export const AIEnhancedQueueManagement: React.FC = () => {
     }
   };
 
-  const updateQueueStatus = async (itemId: string, newStatus: string) => {
+  const updateQueueStatus = async (itemId: string, newStatus: 'waiting' | 'called' | 'completed' | 'skipped') => {
     try {
       const { error } = await supabase
         .from('queue')
@@ -388,15 +388,15 @@ export const AIEnhancedQueueManagement: React.FC = () => {
     const styles = {
       waiting: 'bg-yellow-100 text-yellow-800',
       called: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-green-100 text-green-800',
-      completed: 'bg-gray-100 text-gray-800'
+      completed: 'bg-green-100 text-green-800',
+      skipped: 'bg-gray-100 text-gray-800'
     };
 
     const icons = {
       waiting: Clock,
       called: Phone,
-      in_progress: Activity,
-      completed: CheckCircle
+      completed: CheckCircle,
+      skipped: AlertTriangle
     };
 
     const Icon = icons[status] || Clock;
@@ -631,7 +631,7 @@ export const AIEnhancedQueueManagement: React.FC = () => {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="waiting">Waiting</SelectItem>
                 <SelectItem value="called">Called</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>
 
@@ -751,25 +751,14 @@ export const AIEnhancedQueueManagement: React.FC = () => {
                         <Button
                           variant="default"
                           size="sm"
-                          onClick={() => updateQueueStatus(item.id, 'in_progress')}
+                          onClick={() => updateQueueStatus(item.id, 'completed')}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <Play className="h-4 w-4 mr-1" />
-                          Start
+                          Start Treatment
                         </Button>
                       )}
                       
-                      {item.status === 'in_progress' && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => updateQueueStatus(item.id, 'completed')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Complete
-                        </Button>
-                      )}
 
                       {/* Queue Reordering */}
                       {item.status === 'waiting' && (
