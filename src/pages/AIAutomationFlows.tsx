@@ -24,34 +24,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 const AIAutomationFlows = () => {
   const [activeFlow, setActiveFlow] = useState("overview");
-  const [hasOpenAIKey, setHasOpenAIKey] = useState(false);
   
   // Check if n8n integration is enabled
   const { isEnabled: n8nEnabled } = useFeatureToggle('n8n_integration') as { isEnabled: boolean };
-
-  // Check if OpenAI API key exists
-  const checkOpenAIKey = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('check-openai-key');
-      if (!error && data?.hasKey) {
-        setHasOpenAIKey(true);
-      }
-    } catch (error) {
-      console.log('OpenAI key check failed:', error);
-    }
-  };
-
-  // Add OpenAI API key
-  const handleAddOpenAIKey = async () => {
-    try {
-      // This will trigger the secret addition flow
-      window.dispatchEvent(new CustomEvent('add-secret', { 
-        detail: { secretName: 'OPENAI_API_KEY' } 
-      }));
-    } catch (error) {
-      toast.error('Failed to add OpenAI API key');
-    }
-  };
 
   const automationFlows = [
     {
@@ -130,19 +105,12 @@ const AIAutomationFlows = () => {
             Complete AI automation documentation with interactive flows, user journeys, and implementation roadmaps
           </p>
           <div className="flex justify-center gap-4 flex-wrap">
-            {!hasOpenAIKey ? (
-              <Button onClick={handleAddOpenAIKey} className="gap-2" variant="default">
-                <Bot className="h-4 w-4" />
-                Add OpenAI API Key
-              </Button>
-            ) : (
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-green-700">
-                  OpenAI API Key configured
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="text-sm text-green-700">
+                OpenAI API Key configured
+              </span>
+            </div>
             {n8nEnabled ? (
               <Button onClick={handleN8nIntegration} className="gap-2">
                 <Zap className="h-4 w-4" />
