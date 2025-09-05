@@ -4,12 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Search, Plus, Settings, Shield, Zap, Star, Users, BarChart3, Loader2, AlertTriangle, Info } from "lucide-react";
+import { 
+  Search, 
+  Plus, 
+  Settings, 
+  Shield, 
+  Zap, 
+  Star, 
+  Users, 
+  BarChart3, 
+  Loader2, 
+  AlertTriangle, 
+  Info,
+  Calendar,
+  FileText,
+  CreditCard,
+  Package,
+  Activity,
+  CheckCircle,
+  XCircle,
+  Clock
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,22 +43,22 @@ interface FeatureToggle {
   modified_by?: string;
 }
 
-interface FeatureGroup {
-  id: string;
-  name: string;
-  description: string;
-  icon: any;
-  color: string;
-  parentFeature?: string; // If this group depends on another feature
-  features: FeatureDefinition[];
-}
-
 interface FeatureDefinition {
   key: string;
   name: string;
   description: string;
-  dependencies?: string[]; // Features this depends on
-  dependents?: string[]; // Features that depend on this
+  dependencies?: string[];
+  category: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface FeatureGroup {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ComponentType<any>;
+  color: string;
+  features: FeatureDefinition[];
 }
 
 export default function FeatureToggles() {
@@ -55,10 +74,10 @@ export default function FeatureToggles() {
     defaultEnabled: false
   });
 
-  // Organized feature groups with dependencies
+  // Consolidated feature definitions without duplicates
   const featureGroups: FeatureGroup[] = [
     {
-      id: "core_system",
+      id: "core",
       name: "Core System",
       description: "Essential clinic management features",
       icon: Settings,
@@ -67,162 +86,236 @@ export default function FeatureToggles() {
         {
           key: "user_management",
           name: "User Management",
-          description: "Manage staff and patient accounts",
-        },
-        {
-          key: "appointment_system",
-          name: "Appointment System",
-          description: "Basic appointment scheduling and management",
+          description: "Manage staff accounts, roles, and permissions",
+          category: "core",
+          priority: "high"
         },
         {
           key: "patient_records",
           name: "Patient Records",
-          description: "Basic patient information and medical history",
+          description: "Patient information management and medical history",
+          category: "core",
+          priority: "high"
+        },
+        {
+          key: "clinic_branding",
+          name: "Clinic Branding",
+          description: "Custom clinic branding and theming",
+          category: "core",
+          priority: "medium"
         }
       ]
     },
     {
-      id: "queue_management",
-      name: "Queue Management",
-      description: "Patient queue and waiting system",
-      icon: Users,
+      id: "appointments",
+      name: "Appointments & Scheduling",
+      description: "Appointment management and scheduling system",
+      icon: Calendar,
       color: "green",
-      parentFeature: "appointment_system",
       features: [
         {
-          key: "basic_queue",
-          name: "Basic Queue System",
-          description: "Patient check-in and basic queue management",
-          dependencies: ["appointment_system"]
+          key: "appointment_booking",
+          name: "Appointment Booking",
+          description: "Basic appointment scheduling and management",
+          dependencies: ["user_management", "patient_records"],
+          category: "appointments",
+          priority: "high"
         },
         {
-          key: "queue_analytics",
-          name: "Queue Analytics",
-          description: "Queue performance metrics and reporting",
-          dependencies: ["basic_queue"]
+          key: "queue_management",
+          name: "Queue Management",
+          description: "Patient check-in and queue tracking",
+          dependencies: ["appointment_booking"],
+          category: "appointments",
+          priority: "high"
         },
         {
-          key: "smart_queue",
-          name: "Smart Queue Optimization",
-          description: "AI-powered queue optimization and predictions",
-          dependencies: ["basic_queue", "queue_analytics"]
+          key: "appointment_reminders",
+          name: "Appointment Reminders",
+          description: "Automated email and SMS appointment reminders",
+          dependencies: ["appointment_booking"],
+          category: "appointments",
+          priority: "medium"
+        },
+        {
+          key: "smart_scheduling",
+          name: "Smart Scheduling",
+          description: "AI-powered appointment optimization",
+          dependencies: ["appointment_booking", "queue_management"],
+          category: "appointments",
+          priority: "low"
         }
       ]
     },
     {
-      id: "digital_forms",
-      name: "Digital Forms & Documents",
-      description: "Paperless documentation system",
-      icon: Shield,
+      id: "digital_health",
+      name: "Digital Health Records",
+      description: "Paperless documentation and forms",
+      icon: FileText,
       color: "purple",
-      parentFeature: "patient_records",
       features: [
         {
-          key: "basic_forms",
+          key: "digital_forms",
           name: "Digital Forms",
           description: "Electronic forms and basic e-signatures",
-          dependencies: ["patient_records"]
+          dependencies: ["patient_records"],
+          category: "digital_health",
+          priority: "high"
         },
         {
-          key: "advanced_signatures",
-          name: "Advanced E-Signatures",
-          description: "Advanced digital signatures with verification",
-          dependencies: ["basic_forms"]
+          key: "document_management",
+          name: "Document Management",
+          description: "Upload, store, and manage patient documents",
+          dependencies: ["digital_forms"],
+          category: "digital_health",
+          priority: "high"
         },
         {
-          key: "document_automation",
-          name: "Document Automation",
-          description: "Automated form filling and document generation",
-          dependencies: ["basic_forms", "advanced_signatures"]
+          key: "dental_charts",
+          name: "Digital Dental Charts",
+          description: "Interactive dental charting and treatment planning",
+          dependencies: ["patient_records"],
+          category: "digital_health",
+          priority: "medium"
+        },
+        {
+          key: "treatment_notes",
+          name: "Treatment Notes",
+          description: "Digital treatment notes and progress tracking",
+          dependencies: ["patient_records"],
+          category: "digital_health",
+          priority: "medium"
         }
       ]
     },
     {
-      id: "billing_payment",
-      name: "Billing & Payments",
-      description: "Financial management system",
-      icon: BarChart3,
+      id: "financial",
+      name: "Financial Management",
+      description: "Billing, payments, and financial tracking",
+      icon: CreditCard,
       color: "orange",
-      parentFeature: "appointment_system",
       features: [
         {
-          key: "basic_billing",
-          name: "Basic Billing",
+          key: "billing_system",
+          name: "Billing System",
           description: "Invoice generation and payment tracking",
-          dependencies: ["appointment_system"]
+          dependencies: ["patient_records"],
+          category: "financial",
+          priority: "high"
         },
         {
-          key: "payment_integration",
-          name: "Payment Gateway Integration",
-          description: "Online payment processing",
-          dependencies: ["basic_billing"]
+          key: "payment_processing",
+          name: "Payment Processing",
+          description: "Online payment gateway integration",
+          dependencies: ["billing_system"],
+          category: "financial",
+          priority: "medium"
         },
         {
-          key: "insurance_claims",
-          name: "Insurance Claims",
-          description: "Insurance verification and claim processing",
-          dependencies: ["basic_billing"]
+          key: "insurance_management",
+          name: "Insurance Management",
+          description: "Insurance verification and claims processing",
+          dependencies: ["billing_system"],
+          category: "financial",
+          priority: "medium"
         },
         {
           key: "financial_reporting",
           name: "Financial Reporting",
           description: "Revenue analytics and financial reports",
-          dependencies: ["basic_billing"]
+          dependencies: ["billing_system"],
+          category: "financial",
+          priority: "low"
+        }
+      ]
+    },
+    {
+      id: "operations",
+      name: "Clinical Operations",
+      description: "Inventory and operational management",
+      icon: Package,
+      color: "teal",
+      features: [
+        {
+          key: "inventory_management",
+          name: "Inventory Management",
+          description: "Track supplies, equipment, and consumables",
+          category: "operations",
+          priority: "medium"
+        },
+        {
+          key: "staff_scheduling",
+          name: "Staff Scheduling",
+          description: "Staff work schedules and shift management",
+          dependencies: ["user_management"],
+          category: "operations",
+          priority: "medium"
         }
       ]
     },
     {
       id: "patient_engagement",
       name: "Patient Engagement",
-      description: "Patient communication and portal",
-      icon: Zap,
-      color: "teal",
-      parentFeature: "patient_records",
+      description: "Patient communication and self-service",
+      icon: Users,
+      color: "indigo",
       features: [
         {
           key: "patient_portal",
           name: "Patient Portal",
-          description: "Patient self-service portal",
-          dependencies: ["patient_records"]
+          description: "Patient self-service portal and account access",
+          dependencies: ["patient_records"],
+          category: "patient_engagement",
+          priority: "medium"
         },
         {
-          key: "appointment_reminders",
-          name: "Appointment Reminders",
-          description: "Automated email and SMS reminders",
-          dependencies: ["appointment_system"]
+          key: "online_booking",
+          name: "Online Booking",
+          description: "Patient self-scheduling through website",
+          dependencies: ["appointment_booking", "patient_portal"],
+          category: "patient_engagement",
+          priority: "medium"
         },
         {
           key: "telemedicine",
           name: "Telemedicine",
           description: "Virtual consultations and remote care",
-          dependencies: ["patient_portal", "appointment_system"]
+          dependencies: ["patient_portal", "appointment_booking"],
+          category: "patient_engagement",
+          priority: "low"
         }
       ]
     },
     {
-      id: "analytics_reporting",
+      id: "analytics",
       name: "Analytics & Reporting",
       description: "Business intelligence and insights",
-      icon: Star,
-      color: "indigo",
+      icon: BarChart3,
+      color: "pink",
       features: [
         {
           key: "basic_analytics",
           name: "Basic Analytics",
           description: "Essential clinic performance metrics",
-          dependencies: ["appointment_system"]
+          dependencies: ["appointment_booking"],
+          category: "analytics",
+          priority: "medium"
         },
         {
           key: "advanced_analytics",
           name: "Advanced Analytics",
-          description: "Comprehensive business intelligence",
-          dependencies: ["basic_analytics", "basic_billing"]
+          description: "Comprehensive business intelligence and custom reports",
+          dependencies: ["basic_analytics", "billing_system"],
+          category: "analytics",
+          priority: "low"
         },
         {
           key: "predictive_analytics",
           name: "Predictive Analytics",
           description: "AI-powered insights and forecasting",
-          dependencies: ["advanced_analytics"]
+          dependencies: ["advanced_analytics"],
+          category: "analytics",
+          priority: "low"
         }
       ]
     }
@@ -240,6 +333,7 @@ export default function FeatureToggles() {
       if (error) throw error;
       setFeatures(data || []);
     } catch (error) {
+      console.error('Error fetching features:', error);
       toast({
         title: "Error",
         description: "Failed to load feature toggles.",
@@ -256,6 +350,53 @@ export default function FeatureToggles() {
     }
   }, [profile]);
 
+  const getAllFeatures = (): FeatureDefinition[] => {
+    return featureGroups.flatMap(group => group.features);
+  };
+
+  const isFeatureEnabled = (featureName: string): boolean => {
+    const feature = features.find(f => f.feature_name === featureName);
+    return feature?.is_enabled || false;
+  };
+
+  const getFeatureStatus = (feature: FeatureDefinition): 'enabled' | 'disabled' | 'unavailable' => {
+    if (feature.dependencies) {
+      const missingDeps = feature.dependencies.filter(dep => !isFeatureEnabled(dep));
+      if (missingDeps.length > 0) return 'unavailable';
+    }
+    return isFeatureEnabled(feature.key) ? 'enabled' : 'disabled';
+  };
+
+  const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
+    const existingFeature = features.find(f => f.feature_name === featureName);
+    
+    if (existingFeature) {
+      const { error } = await supabase
+        .from('clinic_feature_toggles')
+        .update({ 
+          is_enabled: enabled,
+          updated_at: new Date().toISOString(),
+          modified_by: profile?.user_id
+        })
+        .eq('feature_name', featureName);
+        
+      if (error) throw error;
+    } else {
+      // Create new feature toggle
+      const featureDefinition = getAllFeatures().find(f => f.key === featureName);
+      const { error } = await supabase
+        .from('clinic_feature_toggles')
+        .insert({
+          feature_name: featureName,
+          is_enabled: enabled,
+          description: featureDefinition?.description || '',
+          modified_by: profile?.user_id
+        });
+        
+      if (error) throw error;
+    }
+  };
+
   const handleToggleFeature = async (featureName: string, enabled: boolean) => {
     try {
       // Check dependencies before enabling
@@ -267,9 +408,12 @@ export default function FeatureToggles() {
           );
           
           if (missingDeps.length > 0) {
+            const missingNames = missingDeps.map(dep => 
+              getAllFeatures().find(f => f.key === dep)?.name || dep
+            );
             toast({
               title: "Dependencies Required",
-              description: `Please enable these features first: ${missingDeps.join(', ')}`,
+              description: `Please enable these features first: ${missingNames.join(', ')}`,
               variant: "destructive",
             });
             return;
@@ -300,11 +444,12 @@ export default function FeatureToggles() {
       
       toast({
         title: "Success",
-        description: `Feature ${enabled ? 'enabled' : 'disabled'} successfully`,
+        description: `${getAllFeatures().find(f => f.key === featureName)?.name} ${enabled ? 'enabled' : 'disabled'} successfully`,
       });
       
       fetchFeatures();
     } catch (error) {
+      console.error('Error toggling feature:', error);
       toast({
         title: "Error",
         description: "Failed to update feature toggle",
@@ -313,41 +458,21 @@ export default function FeatureToggles() {
     }
   };
 
-  const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
-    const existingFeature = features.find(f => f.feature_name === featureName);
-    
-    if (existingFeature) {
-      const { error } = await supabase
-        .from('clinic_feature_toggles')
-        .update({ 
-          is_enabled: enabled,
-          updated_at: new Date().toISOString(),
-          modified_by: profile?.user_id
-        })
-        .eq('feature_name', featureName);
-        
-      if (error) throw error;
-    } else {
-      // Create new feature toggle
-      const { error } = await supabase
-        .from('clinic_feature_toggles')
-        .insert({
-          feature_name: featureName,
-          is_enabled: enabled,
-          description: getAllFeatures().find(f => f.key === featureName)?.description || '',
-          modified_by: profile?.user_id
-        });
-        
-      if (error) throw error;
-    }
-  };
-
   const handleCreateFeature = async () => {
+    if (!newFeature.name.trim() || !newFeature.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide both name and description",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('clinic_feature_toggles')
         .insert({
-          feature_name: newFeature.name,
+          feature_name: newFeature.name.toLowerCase().replace(/\s+/g, '_'),
           description: newFeature.description,
           is_enabled: newFeature.defaultEnabled,
           modified_by: profile?.user_id
@@ -357,36 +482,20 @@ export default function FeatureToggles() {
 
       toast({
         title: "Success",
-        description: "Feature created successfully",
+        description: "Custom feature created successfully",
       });
 
       setNewFeature({ name: "", description: "", defaultEnabled: false });
       setShowCreateDialog(false);
       fetchFeatures();
     } catch (error) {
+      console.error('Error creating feature:', error);
       toast({
         title: "Error",
         description: "Failed to create feature",
         variant: "destructive",
       });
     }
-  };
-
-  const getAllFeatures = (): FeatureDefinition[] => {
-    return featureGroups.flatMap(group => group.features);
-  };
-
-  const isFeatureEnabled = (featureName: string): boolean => {
-    const feature = features.find(f => f.feature_name === featureName);
-    return feature?.is_enabled || false;
-  };
-
-  const getFeatureStatus = (feature: FeatureDefinition): 'enabled' | 'disabled' | 'unavailable' => {
-    if (feature.dependencies) {
-      const missingDeps = feature.dependencies.filter(dep => !isFeatureEnabled(dep));
-      if (missingDeps.length > 0) return 'unavailable';
-    }
-    return isFeatureEnabled(feature.key) ? 'enabled' : 'disabled';
   };
 
   const filteredGroups = featureGroups.filter(group => {
@@ -397,6 +506,33 @@ export default function FeatureToggles() {
              f.description.toLowerCase().includes(searchTerm.toLowerCase())
            );
   });
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'enabled':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'disabled':
+        return <XCircle className="w-4 h-4 text-gray-400" />;
+      case 'unavailable':
+        return <Clock className="w-4 h-4 text-orange-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const variants = {
+      high: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300",
+      medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
+      low: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+    };
+    
+    return (
+      <Badge className={variants[priority as keyof typeof variants] || variants.medium}>
+        {priority}
+      </Badge>
+    );
+  };
 
   if (loading) {
     return (
@@ -426,7 +562,7 @@ export default function FeatureToggles() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Feature Toggle</DialogTitle>
+              <DialogTitle>Create Custom Feature</DialogTitle>
               <DialogDescription>
                 Add a custom feature toggle for specialized functionality
               </DialogDescription>
@@ -438,7 +574,7 @@ export default function FeatureToggles() {
                   id="feature-name"
                   value={newFeature.name}
                   onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="feature_name"
+                  placeholder="My Custom Feature"
                 />
               </div>
               <div>
@@ -473,7 +609,7 @@ export default function FeatureToggles() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="Search features..."
+            placeholder="Search features and groups..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -492,93 +628,103 @@ export default function FeatureToggles() {
 
       {/* Feature Groups */}
       <div className="space-y-6">
-        {filteredGroups.map((group) => (
-          <Card key={group.id} className="glass-card">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg bg-${group.color}-100 dark:bg-${group.color}-900/20`}>
-                    <group.icon className={`w-5 h-5 text-${group.color}-600 dark:text-${group.color}-400`} />
+        {filteredGroups.map((group) => {
+          const IconComponent = group.icon;
+          
+          return (
+            <Card key={group.id} className="glass-card">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <IconComponent className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{group.name}</CardTitle>
+                      <CardDescription>{group.description}</CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">{group.name}</CardTitle>
-                    <CardDescription>{group.description}</CardDescription>
-                  </div>
-                </div>
-                
-                {group.parentFeature && (
-                  <Badge variant={isFeatureEnabled(group.parentFeature) ? "default" : "secondary"}>
-                    Requires: {group.parentFeature}
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-            
-            <CardContent>
-              <div className="space-y-4">
-                {group.features.map((feature) => {
-                  const status = getFeatureStatus(feature);
-                  const isUnavailable = status === 'unavailable';
                   
-                  return (
-                    <div
-                      key={feature.key}
-                      className={`flex items-center justify-between p-4 border rounded-lg ${
-                        isUnavailable ? 'opacity-50 bg-muted/20' : ''
-                      }`}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium">{feature.name}</h4>
-                          {status === 'enabled' && (
-                            <Badge variant="default" className="text-xs">Enabled</Badge>
+                  <Badge variant="outline">
+                    {group.features.filter(f => isFeatureEnabled(f.key)).length} / {group.features.length} enabled
+                  </Badge>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-4">
+                  {group.features.map((feature) => {
+                    const status = getFeatureStatus(feature);
+                    const isUnavailable = status === 'unavailable';
+                    
+                    return (
+                      <div
+                        key={feature.key}
+                        className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
+                          isUnavailable ? 'opacity-50 bg-muted/20' : 'hover:bg-muted/50'
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {getStatusIcon(status)}
+                            <h4 className="font-medium">{feature.name}</h4>
+                            {getPriorityBadge(feature.priority)}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
+                          
+                          {feature.dependencies && (
+                            <div className="flex items-center gap-1 mb-2">
+                              <span className="text-xs text-muted-foreground">Dependencies:</span>
+                              <div className="flex gap-1 flex-wrap">
+                                {feature.dependencies.map(dep => {
+                                  const depFeature = getAllFeatures().find(f => f.key === dep);
+                                  return (
+                                    <Badge 
+                                      key={dep} 
+                                      variant={isFeatureEnabled(dep) ? "default" : "destructive"}
+                                      className="text-xs"
+                                    >
+                                      {depFeature?.name || dep}
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           )}
+                          
                           {status === 'unavailable' && (
-                            <Badge variant="destructive" className="text-xs">Dependencies Missing</Badge>
+                            <div className="flex items-center gap-1 text-xs text-orange-600">
+                              <AlertTriangle className="w-3 h-3" />
+                              Enable dependencies first
+                            </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{feature.description}</p>
                         
-                        {feature.dependencies && (
-                          <div className="flex items-center gap-1 mt-2">
-                            <span className="text-xs text-muted-foreground">Requires:</span>
-                            {feature.dependencies.map(dep => (
-                              <Badge 
-                                key={dep} 
-                                variant={isFeatureEnabled(dep) ? "outline" : "destructive"}
-                                className="text-xs"
-                              >
-                                {dep}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={status === 'enabled'}
+                            onCheckedChange={(checked) => handleToggleFeature(feature.key, checked)}
+                            disabled={isUnavailable}
+                          />
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {isUnavailable && (
-                          <AlertTriangle className="w-4 h-4 text-orange-500" />
-                        )}
-                        <Switch
-                          checked={status === 'enabled'}
-                          onCheckedChange={(checked) => handleToggleFeature(feature.key, checked)}
-                          disabled={isUnavailable}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Custom Features */}
       {features.filter(f => !getAllFeatures().some(def => def.key === f.feature_name)).length > 0 && (
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Custom Features</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-primary" />
+              Custom Features
+            </CardTitle>
             <CardDescription>Additional features not part of standard groups</CardDescription>
           </CardHeader>
           <CardContent>
@@ -588,11 +734,18 @@ export default function FeatureToggles() {
                 .map((feature) => (
                   <div
                     key={feature.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-all"
                   >
-                    <div>
-                      <h4 className="font-medium">{feature.feature_name}</h4>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    <div className="flex items-center gap-3">
+                      {feature.is_enabled ? (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-gray-400" />
+                      )}
+                      <div>
+                        <h4 className="font-medium">{feature.feature_name}</h4>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      </div>
                     </div>
                     <Switch
                       checked={feature.is_enabled}
