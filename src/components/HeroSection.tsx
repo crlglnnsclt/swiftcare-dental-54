@@ -1,12 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play, Smartphone, Users, Calendar, BarChart3 } from 'lucide-react';
+import { ArrowRight, Phone, MapPin, Clock, Star, Award, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import heroImage from '@/assets/dental-hero.jpg';
-import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 const HeroSection = () => {
-  const { stats, loading } = useDashboardStats();
-  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with gradient overlay */}
@@ -16,7 +13,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src={heroImage} 
-          alt="Modern dental clinic"
+          alt="Swift Care Dental Clinic - Modern dental office"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-medical-blue/80 via-dental-mint/60 to-professional-navy/80"></div>
@@ -26,37 +23,37 @@ const HeroSection = () => {
       <div className="relative z-10 container mx-auto px-4 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           
-          {/* Left Column - Text Content */}
+          {/* Left Column - Main Content */}
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 mb-6 animate-fade-in-up">
-              <span className="text-white/90 text-sm font-medium">🦷 Next-Gen Dental Management</span>
+              <span className="text-white/90 text-sm font-medium">🦷 Your Smile is Our Priority</span>
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              SwiftCare
+              Swift Care
               <span className="block bg-gradient-to-r from-dental-mint-light to-white bg-clip-text text-transparent">
-                Dental Management
+                Dental Clinic
               </span>
             </h1>
 
             <p className="text-xl text-white/90 mb-8 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              Paperless, AI-assisted dental clinic management system. Multi-branch support, 
-              intelligent queueing, e-signature forms, and comprehensive patient care workflows.
+              Experience exceptional dental care with our state-of-the-art facility and compassionate team. 
+              We provide comprehensive dental services to keep your smile healthy and bright.
             </p>
 
-            {/* Feature Pills */}
+            {/* Trust Indicators */}
             <div className="flex flex-wrap gap-3 mb-8 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-                <Smartphone className="w-4 h-4 text-dental-mint-light" />
-                <span className="text-white/90 text-sm font-medium">Mobile-First</span>
+                <Star className="w-4 h-4 text-dental-mint-light" />
+                <span className="text-white/90 text-sm font-medium">5-Star Rated</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-                <Users className="w-4 h-4 text-dental-mint-light" />
-                <span className="text-white/90 text-sm font-medium">Multi-Branch</span>
+                <Award className="w-4 h-4 text-dental-mint-light" />
+                <span className="text-white/90 text-sm font-medium">Award Winning</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-                <Calendar className="w-4 h-4 text-dental-mint-light" />
-                <span className="text-white/90 text-sm font-medium">Smart Queue</span>
+                <Shield className="w-4 h-4 text-dental-mint-light" />
+                <span className="text-white/90 text-sm font-medium">Safe & Sterile</span>
               </div>
             </div>
 
@@ -69,74 +66,74 @@ const HeroSection = () => {
                 </Link>
               </Button>
               <Button asChild size="lg" className="bg-dental-mint text-white hover:bg-dental-mint/90 btn-3d text-lg px-8 py-6">
-                <Link to="/auth">
-                  Staff Login
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                <a href="tel:+1234567890">
+                  <Phone className="mr-2 w-5 h-5" />
+                  Call Now
+                </a>
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
                 className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm btn-3d text-lg px-8 py-6"
                 onClick={() => {
-                  const featuresSection = document.getElementById('features');
-                  featuresSection?.scrollIntoView({ behavior: 'smooth' });
+                  const servicesSection = document.getElementById('services');
+                  servicesSection?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                <Play className="mr-2 w-5 h-5" />
-                About Clinic
+                Our Services
               </Button>
             </div>
           </div>
 
-          {/* Right Column - Floating Cards */}
+          {/* Right Column - Clinic Info Cards */}
           <div className="relative hidden lg:block animate-slide-in-right">
-            {/* Dashboard Card */}
+            {/* Hours Card */}
             <div className="glass-card p-6 max-w-sm ml-auto mb-8 animate-float">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground">Today's Queue</h3>
-                <BarChart3 className="w-5 h-5 text-medical-blue" />
+                <h3 className="font-semibold text-foreground">Office Hours</h3>
+                <Clock className="w-5 h-5 text-medical-blue" />
               </div>
-               <div className="space-y-3">
-                {loading ? (
-                  <div className="text-sm text-muted-foreground">Loading...</div>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">In Queue</span>
-                      <span className="px-2 py-1 rounded-full bg-warning/20 text-warning text-xs font-medium">
-                        {stats?.queueCount || 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Today's Patients</span>
-                      <span className="px-2 py-1 rounded-full bg-medical-blue/20 text-medical-blue text-xs font-medium">
-                        {stats?.todayPatients || 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Appointments</span>
-                      <span className="px-2 py-1 rounded-full bg-success/20 text-success text-xs font-medium">
-                        {stats?.todayAppointments || 0}
-                      </span>
-                    </div>
-                  </>
-                )}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Monday - Friday</span>
+                  <span className="text-sm font-medium">8:00 AM - 6:00 PM</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Saturday</span>
+                  <span className="text-sm font-medium">9:00 AM - 4:00 PM</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Sunday</span>
+                  <span className="text-sm font-medium">Emergency Only</span>
+                </div>
+                <div className="mt-4 p-3 bg-medical-blue/10 rounded-lg">
+                  <p className="text-xs text-medical-blue font-medium">
+                    Emergency appointments available 24/7
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Patient Card */}
+            {/* Location Card */}
             <div className="glass-card p-6 max-w-sm animate-float" style={{ animationDelay: '1s' }}>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-medical-blue to-dental-mint"></div>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-medical-blue to-dental-mint flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
                 <div>
-                  <p className="font-medium text-foreground">Sarah Johnson</p>
-                  <p className="text-sm text-muted-foreground">Routine Checkup</p>
+                  <p className="font-medium text-foreground">Visit Us Today</p>
+                  <p className="text-sm text-muted-foreground">Downtown Location</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Next in queue</span>
-                <span className="px-2 py-1 rounded-full bg-success/20 text-success text-xs font-medium">Ready</span>
+              <div className="text-sm text-muted-foreground">
+                <p>123 Main Street</p>
+                <p>Downtown District</p>
+                <p>City, State 12345</p>
+              </div>
+              <div className="mt-4">
+                <Button variant="outline" size="sm" className="w-full">
+                  Get Directions
+                </Button>
               </div>
             </div>
           </div>
