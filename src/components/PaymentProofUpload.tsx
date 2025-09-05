@@ -112,7 +112,7 @@ export default function PaymentProofUpload({ invoice, onSuccess }: PaymentProofU
       // Get patient ID from patients table
       const { data: patients, error: patientError } = await supabase
         .from('patients')
-        .select('id, clinic_id')
+        .select('id')
         .eq('user_id', user.id)
         .single();
 
@@ -126,7 +126,6 @@ export default function PaymentProofUpload({ invoice, onSuccess }: PaymentProofU
         .insert({
           invoice_id: invoice.id,
           patient_id: patients.id,
-          clinic_id: patients.clinic_id,
           payment_method: formData.paymentMethod,
           amount: parseFloat(formData.amount),
           proof_file_url: filePath,

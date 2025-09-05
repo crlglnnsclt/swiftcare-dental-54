@@ -18,19 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 
-interface TodayAppointment {
-  id: string;
-  scheduled_time: string;
-  status: string;
-  notes?: string;
-  duration_minutes?: number;
-  patient_id: string;
-  dentist_id?: string;
-  clinic_id: string;
-  dentist?: {
-    full_name: string;
-  };
-}
+import { TodayAppointment } from '@/lib/types';
 
 export default function QRCheckIn() {
   const { profile } = useAuth();
@@ -101,7 +89,7 @@ export default function QRCheckIn() {
       setTodayAppointments((data || []).map(item => ({
         ...item,
         dentist: item.users ? { full_name: item.users.full_name } : undefined
-      })));
+      })) as any);
     } catch (error) {
       console.error('Error fetching today appointments:', error);
       toast.error('Failed to load appointments');

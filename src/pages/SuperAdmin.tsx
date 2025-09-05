@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { BranchAssignment } from '@/components/BranchAssignment';
+
 import { ClinicBrandingManager } from '@/components/ClinicBrandingManager';
 import N8nIntegrationControl from '@/components/N8nIntegrationControl';
 import { useToast } from '@/hooks/use-toast';
@@ -308,7 +308,10 @@ export default function SuperAdmin() {
         </TabsContent>
 
         <TabsContent value="assignments">
-          <BranchAssignment />
+          <div className="text-center py-8">
+            <h3 className="text-lg font-medium text-muted-foreground">Branch assignments have been removed</h3>
+            <p className="text-sm text-muted-foreground">This feature is no longer available in single-clinic mode</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="branding">

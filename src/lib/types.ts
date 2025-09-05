@@ -102,6 +102,9 @@ export interface TodayAppointment {
   users: {
     full_name: string;
   };
+  dentist?: {
+    full_name: string;
+  };
 }
 
 export interface ClinicFeature {
