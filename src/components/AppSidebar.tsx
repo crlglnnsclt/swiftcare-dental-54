@@ -379,134 +379,100 @@ export function AppSidebar() {
   const { profile } = useAuth();
   const featureToggle = useFeatureToggle();
   
-  // Safely extract feature checking function and loading state
-  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
-  const loading = 'loading' in featureToggle ? featureToggle.loading : false;
-  const features = 'features' in featureToggle ? featureToggle.features : {};
-  
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
+  
+  // Wait for features to load
+  if ('loading' in featureToggle && featureToggle.loading) {
+    return (
+      <Sidebar className="w-64 border-r">
+        <SidebarContent className="bg-card p-4">
+          <div className="text-sm text-muted-foreground">Loading...</div>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
-  // Map routes to required features - using ACTUAL database feature names
+  // Get feature checking function
+  const isFeatureEnabled = 'isFeatureEnabled' in featureToggle ? featureToggle.isFeatureEnabled : () => false;
+
+  // Map routes to required features
   const getFeatureRequirement = (url: string): string | null => {
     const featureMap: Record<string, string> = {
-      // Appointments & Scheduling
       '/appointments': 'appointment_booking',
       '/my-appointments': 'appointment_booking', 
       '/walk-ins': 'appointment_booking',
       '/appointment-settings': 'appointment_settings',
-      
-      // Queue Management
       '/queue': 'queue_management',
       '/queue-monitor': 'queue_management',
       '/checkin': 'qr_checkin',
-      '/staff-checkin': 'queue_management',
-      
-      // Patient Management
       '/patient-records': 'patient_records',
-      '/patients': 'patient_records',
       '/family-management': 'family_accounts',
       '/insurance': 'insurance_management',
       '/verification-queue': 'patient_records',
-      
-      // Digital Forms & Documents
       '/esign-forms': 'digital_forms',
       '/digital-forms': 'digital_forms',
       '/patient-forms': 'digital_forms',
-      '/form-responses': 'digital_forms',
       '/dentist-signatures': 'digital_forms',
       '/documents-uploads': 'document_management',
       '/paperless': 'document_management',
-      
-      // Dental Charts & Treatment
       '/charts': 'dental_charts',
-      '/odontogram-designs': 'dental_charts',
       '/treatment-notes': 'dental_charts',
-      
-      // Billing & Payments
       '/billing': 'billing_system',
       '/my-billing': 'billing_system',
       '/payment-tracking': 'payment_processing',
       '/revenue-reports': 'billing_system',
-      
-      // Analytics & Reports
       '/analytics': 'basic_analytics',
       '/queue-reports': 'basic_analytics',
       '/workload-reports': 'advanced_analytics',
       '/enhanced-analytics': 'advanced_analytics',
-      
-      // Inventory & Operations
       '/inventory': 'inventory_management',
       '/services-management': 'user_management',
-      
-      // Patient Portal & Engagement
       '/patient-app': 'patient_portal',
       '/my-profile': 'patient_portal',
-      '/my-results': 'patient_portal',
       '/patient-engagement': 'patient_engagement',
-      '/messages': 'patient_engagement',
-      '/my-notifications': 'automated_reminders',
-      
-      // Staff & User Management
-      '/staff-management': 'user_management',
       '/users-staff': 'user_management',
       '/user-roles': 'role_based_access',
-      
-      // Administration
       '/clinic-branding': 'clinic_customization',
       '/audit-logs': 'audit_logging'
     };
     return featureMap[url] || null;
   };
 
-  // Filter navigation items based on user role and feature toggles
-  const allowedItems = useMemo(() => {
+  // Filter items based on role AND feature toggles
+  const getVisibleItems = () => {
     return moduleNavigation.filter(item => {
+      // Check role permission
       const hasRole = profile?.role && item.roles.includes(profile.role);
+      if (!hasRole) return false;
       
-      // Check feature requirements
-      const featureRequired = getFeatureRequirement(item.url);
-      const hasFeature = !featureRequired || isFeatureEnabled(featureRequired);
-      
-      // Debug logging for disabled features
-      if (featureRequired && !isFeatureEnabled(featureRequired)) {
-        console.log(`🚫 HIDDEN: ${item.title} (feature '${featureRequired}' is disabled)`);
+      // Check feature requirement
+      const requiredFeature = getFeatureRequirement(item.url);
+      if (requiredFeature) {
+        const featureEnabled = isFeatureEnabled(requiredFeature);
+        if (!featureEnabled) {
+          console.log(`🚫 HIDING: ${item.title} - feature '${requiredFeature}' is disabled`);
+          return false;
+        }
       }
       
-      return hasRole && hasFeature;
+      return true;
     });
-  }, [profile?.role, features, isFeatureEnabled]);
-
-  // For super admin, show only system management related features (but still respect feature toggles)
-  const getFilteredItems = () => {
-    if (profile?.role === 'super_admin') {
-      // Filter allowedItems (which already respects feature toggles) further for super admin
-      return allowedItems.filter(item => 
-        item.module === 'super_admin' || 
-        item.module === 'administration' || 
-        item.module === 'settings' ||
-        item.url === '/dashboard' ||
-        item.url === '/users-staff' ||
-        item.url === '/clinic-branding'
-      );
-    }
-    // For all other roles, use the allowedItems (which already respects both role and feature toggles)
-    return allowedItems;
   };
 
-  const filteredItems = getFilteredItems();
+  const visibleItems = getVisibleItems();
 
-  // Group items by modules
-  const dashboardItems = filteredItems.filter(item => item.module === "dashboard");
-  const appointmentItems = filteredItems.filter(item => item.module === "appointments");
-  const patientItems = filteredItems.filter(item => item.module === "patients");
-  const paperlessItems = filteredItems.filter(item => item.module === "paperless");
-  const treatmentItems = filteredItems.filter(item => item.module === "treatment");
-  const reportsItems = filteredItems.filter(item => item.module === "reports");
-  const adminItems = filteredItems.filter(item => item.module === "administration");
-  const superAdminItems = filteredItems.filter(item => item.module === "super_admin");
-  const patientPortalItems = filteredItems.filter(item => item.module === "patient_portal");
-  const settingsItems = filteredItems.filter(item => item.module === "settings");
+  // Group visible items by modules
+  const dashboardItems = visibleItems.filter(item => item.module === "dashboard");
+  const appointmentItems = visibleItems.filter(item => item.module === "appointments");
+  const patientItems = visibleItems.filter(item => item.module === "patients");
+  const paperlessItems = visibleItems.filter(item => item.module === "paperless");
+  const treatmentItems = visibleItems.filter(item => item.module === "treatment");
+  const reportsItems = visibleItems.filter(item => item.module === "reports");
+  const adminItems = visibleItems.filter(item => item.module === "administration");
+  const superAdminItems = visibleItems.filter(item => item.module === "super_admin");
+  const patientPortalItems = visibleItems.filter(item => item.module === "patient_portal");
+  const settingsItems = visibleItems.filter(item => item.module === "settings");
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -541,17 +507,6 @@ export function AppSidebar() {
       </SidebarGroup>
     );
   };
-
-  // Don't render sidebar until features are loaded
-  if (loading) {
-    return (
-      <Sidebar className="w-64 border-r">
-        <SidebarContent className="bg-card p-4">
-          <div className="text-sm text-muted-foreground">Loading...</div>
-        </SidebarContent>
-      </Sidebar>
-    );
-  }
 
   return (
     <Sidebar
