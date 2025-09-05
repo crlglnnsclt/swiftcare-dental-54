@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Search, 
   Settings, 
-  Star, 
   Users, 
   BarChart3, 
   Loader2, 
@@ -283,7 +282,6 @@ export default function FeatureToggles() {
       if (error) throw error;
       setFeatures(data || []);
     } catch (error) {
-      // Error fetching features
       toast({
         title: "Error",
         description: "Failed to load feature toggles.",
@@ -305,7 +303,6 @@ export default function FeatureToggles() {
   };
 
   const isFeatureEnabled = (featureName: string): boolean => {
-    // Get all features with this name and check if any are enabled
     const featuresWithName = features.filter(f => f.feature_name === featureName);
     return featuresWithName.some(f => f.is_enabled);
   };
@@ -320,7 +317,6 @@ export default function FeatureToggles() {
 
   const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
     try {
-      // First, try to update existing records
       const { error: updateError } = await supabase
         .from('clinic_feature_toggles')
         .update({ 
@@ -331,7 +327,6 @@ export default function FeatureToggles() {
         .eq('feature_name', featureName);
         
       if (updateError) {
-        // If update fails, try to insert a new record
         const featureDefinition = getAllFeatures().find(f => f.key === featureName);
         const { error: insertError } = await supabase
           .from('clinic_feature_toggles')
@@ -345,7 +340,6 @@ export default function FeatureToggles() {
         if (insertError) throw insertError;
       }
       
-      // Clean up duplicates after update/insert
       await cleanupDuplicates();
     } catch (error) {
       throw error;
@@ -354,13 +348,11 @@ export default function FeatureToggles() {
 
   const cleanupDuplicates = async () => {
     try {
-      // Get all features grouped by name
       const featureNames = [...new Set(features.map(f => f.feature_name))];
       
       for (const featureName of featureNames) {
         const duplicates = features.filter(f => f.feature_name === featureName);
         if (duplicates.length > 1) {
-          // Keep the most recent one, delete the rest
           const mostRecent = duplicates.sort((a, b) => 
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           )[0];
@@ -384,7 +376,6 @@ export default function FeatureToggles() {
 
   const handleToggleFeature = async (featureName: string, enabled: boolean) => {
     try {
-      // Check dependencies before enabling
       if (enabled) {
         const feature = getAllFeatures().find(f => f.key === featureName);
         if (feature?.dependencies) {
@@ -406,14 +397,12 @@ export default function FeatureToggles() {
         }
       }
 
-      // Check dependents before disabling
       if (!enabled) {
         const dependents = getAllFeatures().filter(f => 
           f.dependencies?.includes(featureName) && isFeatureEnabled(f.key)
         );
         
         if (dependents.length > 0) {
-          // Auto-disable dependents
           for (const dependent of dependents) {
             await updateFeatureInDatabase(dependent.key, false);
           }
@@ -434,7 +423,6 @@ export default function FeatureToggles() {
       
       fetchFeatures();
     } catch (error) {
-      // Error toggling feature
       toast({
         title: "Error",
         description: "Failed to update feature toggle",
@@ -442,7 +430,6 @@ export default function FeatureToggles() {
       });
     }
   };
-
 
   const toggleGroupExpansion = (groupId: string) => {
     setExpandedGroups(prev => {
@@ -491,7 +478,6 @@ export default function FeatureToggles() {
     }
   };
 
-
   if (loading) {
     return (
       <div className="p-4 sm:p-6 space-y-6 page-container">
@@ -504,7 +490,6 @@ export default function FeatureToggles() {
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 page-container">
-      {/* Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div>
@@ -513,7 +498,6 @@ export default function FeatureToggles() {
           </div>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
@@ -524,7 +508,6 @@ export default function FeatureToggles() {
           />
         </div>
 
-        {/* Info Alert */}
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription className="text-sm">
@@ -533,7 +516,6 @@ export default function FeatureToggles() {
         </Alert>
       </div>
 
-      {/* Feature Groups */}
       <div className="space-y-4">
         {filteredGroups.map((group) => {
           const IconComponent = group.icon;
@@ -642,7 +624,6 @@ export default function FeatureToggles() {
           );
         })}
       </div>
-
     </div>
   );
 }
