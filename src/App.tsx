@@ -70,6 +70,7 @@ import AIAutomationFlows from "./pages/AIAutomationFlows";
 import PatientRegistration from "./pages/PatientRegistration";
 import AppointmentsHub from "./pages/AppointmentsHub";
 import { PatientCheckIn } from "./pages/PatientCheckIn";
+import SystemTestSuite from "./pages/SystemTestSuite";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,11 @@ function AppRoutes() {
         <Route path="system-health" element={
           <ProtectedRoute requiredRole={['super_admin']}>
             <SystemHealth />
+          </ProtectedRoute>
+        } />
+        <Route path="system-test-suite" element={
+          <ProtectedRoute requiredRole={['super_admin']}>
+            <SystemTestSuite />
           </ProtectedRoute>
         } />
         <Route path="enhanced-analytics" element={

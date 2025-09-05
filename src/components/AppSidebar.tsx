@@ -312,6 +312,13 @@ const moduleNavigation: NavItem[] = [
     module: "super_admin"
   },
   {
+    title: "System Test Suite",
+    url: "/system-test-suite",
+    icon: Bot,
+    roles: ["super_admin"],
+    module: "super_admin"
+  },
+  {
     title: "Enhanced Analytics",
     url: "/enhanced-analytics",
     icon: BarChart3,
