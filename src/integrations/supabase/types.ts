@@ -1928,6 +1928,7 @@ export type Database = {
           appointment_id: string
           created_at: string
           estimated_wait_minutes: number | null
+          estimated_wait_time: number | null
           id: string
           manual_order: number | null
           override_reason: string | null
@@ -1942,6 +1943,7 @@ export type Database = {
           appointment_id: string
           created_at?: string
           estimated_wait_minutes?: number | null
+          estimated_wait_time?: number | null
           id?: string
           manual_order?: number | null
           override_reason?: string | null
@@ -1956,6 +1958,7 @@ export type Database = {
           appointment_id?: string
           created_at?: string
           estimated_wait_minutes?: number | null
+          estimated_wait_time?: number | null
           id?: string
           manual_order?: number | null
           override_reason?: string | null
