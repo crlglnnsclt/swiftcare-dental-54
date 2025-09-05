@@ -318,8 +318,9 @@ export default function FeatureToggles() {
   };
 
   const isFeatureEnabled = (featureName: string): boolean => {
-    const feature = features.find(f => f.feature_name === featureName);
-    return feature?.is_enabled || false;
+    // Get all features with this name and check if any are enabled
+    const featuresWithName = features.filter(f => f.feature_name === featureName);
+    return featuresWithName.some(f => f.is_enabled);
   };
 
   const getFeatureStatus = (feature: FeatureDefinition): 'enabled' | 'disabled' | 'unavailable' => {
@@ -331,19 +332,37 @@ export default function FeatureToggles() {
   };
 
   const updateFeatureInDatabase = async (featureName: string, enabled: boolean) => {
-    const existingFeature = features.find(f => f.feature_name === featureName);
+    // Get all existing features with this name
+    const existingFeatures = features.filter(f => f.feature_name === featureName);
     
-    if (existingFeature) {
-      const { error } = await supabase
+    if (existingFeatures.length > 0) {
+      // Update the most recent one and delete duplicates
+      const mostRecent = existingFeatures.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
+      
+      const { error: updateError } = await supabase
         .from('clinic_feature_toggles')
         .update({ 
           is_enabled: enabled,
           updated_at: new Date().toISOString(),
           modified_by: profile?.user_id
         })
-        .eq('feature_name', featureName);
+        .eq('id', mostRecent.id);
         
-      if (error) throw error;
+      if (updateError) throw updateError;
+      
+      // Delete duplicates
+      const duplicateIds = existingFeatures
+        .filter(f => f.id !== mostRecent.id)
+        .map(f => f.id);
+        
+      if (duplicateIds.length > 0) {
+        await supabase
+          .from('clinic_feature_toggles')
+          .delete()
+          .in('id', duplicateIds);
+      }
     } else {
       // Create new feature toggle
       const featureDefinition = getAllFeatures().find(f => f.key === featureName);
