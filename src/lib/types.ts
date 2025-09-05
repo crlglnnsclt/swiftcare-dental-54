@@ -3,7 +3,6 @@ export interface Appointment {
   id: string;
   patient_id: string;
   dentist_id: string | null;
-  clinic_id: string;
   scheduled_time: string;
   duration_minutes: number | null;
   status: string;
@@ -19,7 +18,6 @@ export interface SimpleAppointment {
   id: string;
   patient_id: string;
   dentist_id: string | null;
-  clinic_id: string;
   scheduled_time: string;
   duration_minutes: number | null;
   status: string;
@@ -36,7 +34,6 @@ export interface Treatment {
   default_price: number | null;
   default_duration_minutes: number | null;
   is_active: boolean;
-  clinic_id: string;
 }
 
 export interface Patient {
@@ -45,7 +42,6 @@ export interface Patient {
   email?: string;
   contact_number?: string;
   date_of_birth?: string;
-  clinic_id: string;
   user_id?: string;
 }
 
@@ -59,7 +55,6 @@ export interface InventoryItem {
   unit_cost: number;
   unit_type: string;
   category_id?: string;
-  clinic_id: string;
   is_active: boolean;
   supplier_name?: string;
   supplier_contact?: string;
@@ -72,14 +67,12 @@ export interface InventoryCategory {
   id: string;
   name: string;
   description?: string;
-  clinic_id: string;
   is_active: boolean;
 }
 
 export interface InventoryTransaction {
   id: string;
   item_id: string;
-  clinic_id: string;
   transaction_type: 'in' | 'out' | 'adjustment';
   quantity: number;
   unit_cost?: number;
@@ -90,4 +83,33 @@ export interface InventoryTransaction {
   performed_by: string;
   item_name?: string;
   performer_name?: string;
+}
+
+export interface TodayAppointment {
+  id: string;
+  patient_id: string;
+  dentist_id: string | null;
+  scheduled_time: string;
+  duration_minutes: number | null;
+  status: string;
+  booking_type: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  patients: {
+    full_name: string;
+  };
+  users: {
+    full_name: string;
+  };
+}
+
+export interface ClinicFeature {
+  id: string;
+  feature_name: string;
+  description: string;
+  is_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+  modified_by: string;
 }

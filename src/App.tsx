@@ -13,7 +13,7 @@ import BookingConfirmation from "./pages/BookingConfirmation";
 import PatientApp from "./pages/PatientApp";
 import Dashboard from "./pages/Dashboard";
 import UserSettings from "./pages/UserSettings";
-import BranchManagementMerged from "./pages/BranchManagementMerged";
+
 import QueueManagement from "./pages/QueueManagement";
 import SmartCheckIn from "./pages/SmartCheckIn";
 import PatientAppointments from "./pages/PatientAppointments";
@@ -31,14 +31,14 @@ import { Analytics } from "./pages/Analytics";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
 import ProfileSwitcher from "./pages/ProfileSwitcher";
 import NotFound from "./pages/NotFound";
-import BranchSelection from "./pages/BranchSelection";
+
 import SuperAdmin from "./pages/SuperAdmin";
 import PaperlessSystem from "./pages/PaperlessSystem";
 import SystemAnalytics from "./pages/SystemAnalytics";
 import Billing from "./pages/Billing";
 import PatientEngagement from "./pages/PatientEngagement";
 import UsersStaff from "./pages/UsersStaff";
-import BranchSettings from "./pages/BranchSettings";
+
 import Messaging from "./pages/Messaging";
 import DentalCharts from "./pages/DentalCharts";
 import OdontogramDesigns from "./pages/OdontogramDesigns";
@@ -58,8 +58,6 @@ import PaymentTracking from "./pages/PaymentTracking";
 import ClinicBranding from "./pages/ClinicBranding";
 import FeatureToggles from "./pages/FeatureToggles";
 import UserRoles from "./pages/UserRoles";
-import { BranchSharingManager } from "./components/BranchSharingManager";
-import { DataSharingAuditLogs } from "./components/DataSharingAuditLogs";
 import MyBilling from "./pages/MyBilling";
 import AppointmentSettings from "./pages/AppointmentSettings";
 import DentistStaffSignatures from "./pages/DentistStaffSignatures";
@@ -83,7 +81,7 @@ function AppRoutes() {
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <PatientRegistration />} />
-      <Route path="/branch-selection" element={user ? <BranchSelection /> : <Navigate to="/auth" replace />} />
+      
       <Route path="/profile-switcher" element={<ProfileSwitcher />} />
       
       
@@ -95,11 +93,6 @@ function AppRoutes() {
       }>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="settings" element={<UserSettings />} />
-        <Route path="branches" element={
-          <ProtectedRoute requiredRole={['super_admin']}>
-            <BranchManagementMerged />
-          </ProtectedRoute>
-        } />
         <Route path="super-admin" element={
           <ProtectedRoute requiredRole={['super_admin']}>
             <SuperAdmin />
@@ -128,11 +121,6 @@ function AppRoutes() {
         <Route path="users" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <UsersStaff />
-          </ProtectedRoute>
-        } />
-        <Route path="branch-settings" element={
-          <ProtectedRoute requiredRole={['super_admin']}>
-            <BranchManagementMerged />
           </ProtectedRoute>
         } />
         <Route path="appointments" element={<AppointmentsHub />} />
@@ -298,16 +286,6 @@ function AppRoutes() {
         <Route path="user-roles" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
             <UserRoles />
-          </ProtectedRoute>
-        } />
-        <Route path="branch-sharing" element={
-          <ProtectedRoute requiredRole={['clinic_admin']}>
-            <BranchSharingManager />
-          </ProtectedRoute>
-        } />
-        <Route path="data-sharing-audit" element={
-          <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <DataSharingAuditLogs />
           </ProtectedRoute>
         } />
         <Route path="my-billing" element={
