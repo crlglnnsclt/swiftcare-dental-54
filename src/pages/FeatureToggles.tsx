@@ -327,10 +327,17 @@ export default function FeatureToggles() {
     {
       id: "system",
       name: "System Features",
-      description: "Multi-language and system-wide features",
+      description: "Multi-language and advanced system features",
       icon: Settings,
       color: "gray",
       features: [
+        {
+          key: "ai_automation_flows",
+          name: "AI Automation Flows",
+          description: "Advanced AI-powered workflow automation and n8n integration (Super Admin Only)",
+          category: "system",
+          priority: "low"
+        },
         {
           key: "multi_language",
           name: "Multi-Language Support",
