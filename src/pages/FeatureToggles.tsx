@@ -508,9 +508,11 @@ export default function FeatureToggles() {
     }
   };
 
-  // Get only truly custom features (not in predefined groups)
-  const customFeatures = features.filter(f => 
-    !getAllFeatures().some(def => def.key === f.feature_name)
+  // Get only truly custom features (not in predefined groups) and remove duplicates
+  const predefinedFeatureKeys = getAllFeatures().map(f => f.key);
+  const customFeatures = features.filter((f, index, self) => 
+    !predefinedFeatureKeys.includes(f.feature_name) &&
+    self.findIndex(item => item.feature_name === f.feature_name) === index
   );
 
   if (loading) {
