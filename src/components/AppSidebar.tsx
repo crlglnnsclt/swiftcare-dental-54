@@ -385,25 +385,26 @@ export function AppSidebar() {
   // Map routes to required features - using ACTUAL database feature names
   const getFeatureRequirement = (url: string): string | null => {
     const featureMap: Record<string, string> = {
-      // Appointments & Scheduling - using database names
+      // Appointments & Scheduling
       '/appointments': 'appointment_booking',
       '/my-appointments': 'appointment_booking', 
       '/walk-ins': 'appointment_booking',
       '/appointment-settings': 'appointment_settings',
       
-      // Queue Management - using database names
+      // Queue Management
       '/queue': 'queue_management',
       '/queue-monitor': 'queue_management',
       '/checkin': 'qr_checkin',
       '/staff-checkin': 'queue_management',
       
-      // Patient Management - using new database names
+      // Patient Management
       '/patient-records': 'patient_records',
       '/patients': 'patient_records',
       '/family-management': 'family_accounts',
       '/insurance': 'insurance_management',
+      '/verification-queue': 'patient_records',
       
-      // Digital Forms & Documents - using new database names
+      // Digital Forms & Documents
       '/esign-forms': 'digital_forms',
       '/digital-forms': 'digital_forms',
       '/patient-forms': 'digital_forms',
@@ -412,26 +413,28 @@ export function AppSidebar() {
       '/documents-uploads': 'document_management',
       '/paperless': 'document_management',
       
-      // Dental Charts & Treatment - using new database names
+      // Dental Charts & Treatment
       '/charts': 'dental_charts',
       '/odontogram-designs': 'dental_charts',
       '/treatment-notes': 'dental_charts',
       
-      // Billing & Payments - using new database names
+      // Billing & Payments
       '/billing': 'billing_system',
       '/my-billing': 'billing_system',
       '/payment-tracking': 'payment_processing',
       '/revenue-reports': 'billing_system',
       
-      // Analytics & Reports - using database names
+      // Analytics & Reports
       '/analytics': 'basic_analytics',
       '/queue-reports': 'basic_analytics',
       '/workload-reports': 'advanced_analytics',
+      '/enhanced-analytics': 'advanced_analytics',
       
-      // Inventory & Operations - using new database names
+      // Inventory & Operations
       '/inventory': 'inventory_management',
+      '/services-management': 'user_management',
       
-      // Patient Portal & Engagement - using new database names
+      // Patient Portal & Engagement
       '/patient-app': 'patient_portal',
       '/my-profile': 'patient_portal',
       '/my-results': 'patient_portal',
@@ -439,10 +442,14 @@ export function AppSidebar() {
       '/messages': 'patient_engagement',
       '/my-notifications': 'automated_reminders',
       
-      // Staff & User Management - using new database names
+      // Staff & User Management
       '/staff-management': 'user_management',
-      '/services-management': 'user_management',
-      '/users': 'user_management'
+      '/users-staff': 'user_management',
+      '/user-roles': 'role_based_access',
+      
+      // Administration
+      '/clinic-branding': 'clinic_customization',
+      '/audit-logs': 'audit_logging'
     };
     return featureMap[url] || null;
   };
