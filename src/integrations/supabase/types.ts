@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_form_assistance: {
+        Row: {
+          assistance_type: string
+          confidence_score: number | null
+          created_at: string | null
+          form_id: string | null
+          helpful_rating: number | null
+          id: string
+          patient_id: string | null
+          query: string | null
+          response: string | null
+        }
+        Insert: {
+          assistance_type: string
+          confidence_score?: number | null
+          created_at?: string | null
+          form_id?: string | null
+          helpful_rating?: number | null
+          id?: string
+          patient_id?: string | null
+          query?: string | null
+          response?: string | null
+        }
+        Update: {
+          assistance_type?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          form_id?: string | null
+          helpful_rating?: number | null
+          id?: string
+          patient_id?: string | null
+          query?: string | null
+          response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_form_assistance_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "digital_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_form_assistance_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_metrics: {
         Row: {
           created_at: string
@@ -645,7 +696,10 @@ export type Database = {
       }
       digital_forms: {
         Row: {
+          ai_assistance_enabled: boolean | null
           category: string
+          clinic_branding: Json | null
+          compliance_settings: Json | null
           created_at: string
           description: string | null
           form_fields: Json
@@ -653,13 +707,19 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          notification_settings: Json | null
+          pdf_template: Json | null
           requires_signature: boolean | null
+          rich_content: Json | null
           template_data: Json | null
           updated_at: string
           version: number | null
         }
         Insert: {
+          ai_assistance_enabled?: boolean | null
           category: string
+          clinic_branding?: Json | null
+          compliance_settings?: Json | null
           created_at?: string
           description?: string | null
           form_fields?: Json
@@ -667,13 +727,19 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          notification_settings?: Json | null
+          pdf_template?: Json | null
           requires_signature?: boolean | null
+          rich_content?: Json | null
           template_data?: Json | null
           updated_at?: string
           version?: number | null
         }
         Update: {
+          ai_assistance_enabled?: boolean | null
           category?: string
+          clinic_branding?: Json | null
+          compliance_settings?: Json | null
           created_at?: string
           description?: string | null
           form_fields?: Json
@@ -681,7 +747,10 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          notification_settings?: Json | null
+          pdf_template?: Json | null
           requires_signature?: boolean | null
+          rich_content?: Json | null
           template_data?: Json | null
           updated_at?: string
           version?: number | null
@@ -921,8 +990,129 @@ export type Database = {
           },
         ]
       }
+      form_audit_logs: {
+        Row: {
+          action_type: string
+          compliance_hash: string | null
+          form_response_id: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          performed_by: string | null
+          timestamp: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          compliance_hash?: string | null
+          form_response_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          performed_by?: string | null
+          timestamp?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          compliance_hash?: string | null
+          form_response_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          performed_by?: string | null
+          timestamp?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_audit_logs_form_response_id_fkey"
+            columns: ["form_response_id"]
+            isOneToOne: false
+            referencedRelation: "form_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_notifications: {
+        Row: {
+          appointment_id: string | null
+          clicked_at: string | null
+          content: Json | null
+          created_at: string | null
+          form_id: string | null
+          id: string
+          metadata: Json | null
+          notification_type: string
+          opened_at: string | null
+          patient_id: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          clicked_at?: string | null
+          content?: Json | null
+          created_at?: string | null
+          form_id?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          opened_at?: string | null
+          patient_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          clicked_at?: string | null
+          content?: Json | null
+          created_at?: string | null
+          form_id?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          opened_at?: string | null
+          patient_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_notifications_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_notifications_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "digital_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_notifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_responses: {
         Row: {
+          ai_assistance_used: boolean | null
+          appointment_id: string | null
+          compliance_metadata: Json | null
           created_at: string
           dentist_signature_data: string | null
           dentist_signed_at: string | null
@@ -932,20 +1122,28 @@ export type Database = {
           id: string
           ip_address: unknown | null
           is_visible_to_patient: boolean | null
+          notification_sent_at: string | null
           patient_id: string | null
+          pdf_generated_at: string | null
+          pdf_storage_path: string | null
           rejection_reason: string | null
+          reminder_count: number | null
           requires_dentist_signature: boolean | null
           responses: Json
           signature_data: string | null
           signed_at: string | null
           signed_by: string | null
           status: string | null
+          treatment_id: string | null
           updated_at: string
           verification_status: string | null
           verified_at: string | null
           verified_by: string | null
         }
         Insert: {
+          ai_assistance_used?: boolean | null
+          appointment_id?: string | null
+          compliance_metadata?: Json | null
           created_at?: string
           dentist_signature_data?: string | null
           dentist_signed_at?: string | null
@@ -955,20 +1153,28 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           is_visible_to_patient?: boolean | null
+          notification_sent_at?: string | null
           patient_id?: string | null
+          pdf_generated_at?: string | null
+          pdf_storage_path?: string | null
           rejection_reason?: string | null
+          reminder_count?: number | null
           requires_dentist_signature?: boolean | null
           responses?: Json
           signature_data?: string | null
           signed_at?: string | null
           signed_by?: string | null
           status?: string | null
+          treatment_id?: string | null
           updated_at?: string
           verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
         Update: {
+          ai_assistance_used?: boolean | null
+          appointment_id?: string | null
+          compliance_metadata?: Json | null
           created_at?: string
           dentist_signature_data?: string | null
           dentist_signed_at?: string | null
@@ -978,20 +1184,32 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           is_visible_to_patient?: boolean | null
+          notification_sent_at?: string | null
           patient_id?: string | null
+          pdf_generated_at?: string | null
+          pdf_storage_path?: string | null
           rejection_reason?: string | null
+          reminder_count?: number | null
           requires_dentist_signature?: boolean | null
           responses?: Json
           signature_data?: string | null
           signed_at?: string | null
           signed_by?: string | null
           status?: string | null
+          treatment_id?: string | null
           updated_at?: string
           verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "form_responses_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "form_responses_form_id_fkey"
             columns: ["form_id"]
@@ -1011,6 +1229,13 @@ export type Database = {
             columns: ["signed_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_responses_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "treatments"
             referencedColumns: ["id"]
           },
         ]
@@ -1923,6 +2148,48 @@ export type Database = {
           },
         ]
       }
+      procedure_form_requirements: {
+        Row: {
+          created_at: string | null
+          form_id: string | null
+          id: string
+          is_mandatory: boolean | null
+          treatment_id: string | null
+          trigger_timing: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          form_id?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          treatment_id?: string | null
+          trigger_timing?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          form_id?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          treatment_id?: string | null
+          trigger_timing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedure_form_requirements_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "digital_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedure_form_requirements_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "treatments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       queue: {
         Row: {
           appointment_id: string
@@ -2257,9 +2524,13 @@ export type Database = {
           created_by_super_admin: boolean | null
           default_duration_minutes: number | null
           default_price: number | null
+          description: string | null
           id: string
           is_global_template: boolean | null
           name: string
+          price: number | null
+          requires_consent: boolean | null
+          risk_level: string | null
           service_code: string | null
           updated_at: string
         }
@@ -2269,9 +2540,13 @@ export type Database = {
           created_by_super_admin?: boolean | null
           default_duration_minutes?: number | null
           default_price?: number | null
+          description?: string | null
           id?: string
           is_global_template?: boolean | null
           name: string
+          price?: number | null
+          requires_consent?: boolean | null
+          risk_level?: string | null
           service_code?: string | null
           updated_at?: string
         }
@@ -2281,9 +2556,13 @@ export type Database = {
           created_by_super_admin?: boolean | null
           default_duration_minutes?: number | null
           default_price?: number | null
+          description?: string | null
           id?: string
           is_global_template?: boolean | null
           name?: string
+          price?: number | null
+          requires_consent?: boolean | null
+          risk_level?: string | null
           service_code?: string | null
           updated_at?: string
         }
