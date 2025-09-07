@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { User, FileText, Activity, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import InteractiveDentalChart from '@/components/InteractiveDentalChart';
 import { toast } from 'sonner';
 import swiftCareLogo from '@/assets/swift-care-logo-correct.png';
-import { Plus, Palette, User, FileText, Activity } from 'lucide-react';
 import { useOdontogramPreference } from '@/hooks/useOdontogramPreference';
 
 interface ToothCondition {
@@ -37,10 +37,11 @@ export default function DentalCharts() {
   const { profile } = useAuth();
   const { selectedDesign, updateDesignPreference } = useOdontogramPreference();
 
-  const [selectedPatient, setSelectedPatient] = useState('');
   const [patients, setPatients] = useState<any[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<string>('');
   const [currentPatientData, setCurrentPatientData] = useState<any>(null);
   const [showDesignSelector, setShowDesignSelector] = useState(false);
+  const [odontogramKey, setOdontogramKey] = useState(0);
 
   const [teethConditions, setTeethConditions] = useState<ToothCondition[]>([]);
   const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([]);
@@ -53,17 +54,22 @@ export default function DentalCharts() {
 
   const fetchPatients = async () => {
     try {
-      const clinicId = profile?.clinic_id;
-      if (!clinicId) return;
-
       const { data, error } = await supabase
         .from('patients')
-        .select('id, full_name, email');
+        .select('id, full_name, email, contact_number, date_of_birth')
+        .order('full_name', { ascending: true });
 
       if (error) throw error;
-      setPatients(data || []);
 
-      if (data && data.length > 0 && !selectedPatient) {
+      if (!data || data.length === 0) {
+        toast.error('No patients found');
+        setPatients([]);
+        return;
+      }
+
+      setPatients(data);
+
+      if (!selectedPatient) {
         setSelectedPatient(data[0].id);
       }
     } catch (error) {
@@ -81,7 +87,7 @@ export default function DentalCharts() {
 
   const fetchPatientData = async (patientId: string) => {
     try {
-      // Patient info
+      // Fetch patient info
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('*')
@@ -91,55 +97,40 @@ export default function DentalCharts() {
       if (patientError) throw patientError;
       setCurrentPatientData(patientData);
 
-      // Fetch all patient-specific data
-      await Promise.all([
-        fetchTeethConditions(patientId),
-        fetchProgressNotes(patientId)
-      ]);
+      // Fetch patient-specific teeth conditions
+      const { data: teethData, error: teethError } = await supabase
+        .from('teeth_conditions')
+        .select('*')
+        .eq('patient_id', patientId);
+
+      if (teethError) throw teethError;
+      setTeethConditions(teethData || []);
+
+      // Fetch patient-specific progress notes
+      const { data: notesData, error: notesError } = await supabase
+        .from('progress_notes')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('date', { ascending: false });
+
+      if (notesError) throw notesError;
+      setProgressNotes(notesData || []);
     } catch (error) {
       console.error(error);
       toast.error('Failed to load patient data');
     }
   };
 
-  const fetchTeethConditions = async (patientId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('teeth_conditions')
-        .select('*')
-        .eq('patient_id', patientId);
-
-      if (error) throw error;
-      setTeethConditions(data || []);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to load teeth conditions');
-    }
-  };
-
-  const fetchProgressNotes = async (patientId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('progress_notes')
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-      setProgressNotes(data || []);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to load progress notes');
-    }
-  };
-
   const handleDesignChange = (newDesign: any) => {
     updateDesignPreference(newDesign);
+    setOdontogramKey(prev => prev + 1);
+    setShowDesignSelector(false);
     toast.success(`Switched to ${newDesign} design`);
   };
 
   const addProgressNote = () => {
     if (!newNote.trim()) return;
+
     const note: ProgressNote = {
       id: Date.now().toString(),
       patient_id: selectedPatient,
@@ -149,6 +140,7 @@ export default function DentalCharts() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
     setProgressNotes([note, ...progressNotes]);
     setNewNote('');
     toast.success('Progress note added');
@@ -224,11 +216,15 @@ export default function DentalCharts() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <InteractiveDentalChart teethConditions={teethConditions} />
+          <InteractiveDentalChart
+            key={odontogramKey}
+            teethConditions={teethConditions}
+            patientId={selectedPatient}
+          />
         </CardContent>
       </Card>
 
-      {/* Patient Info & Notes */}
+      {/* Patient Info & Progress Notes */}
       {currentPatientData && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
@@ -261,9 +257,7 @@ export default function DentalCharts() {
                   onChange={(e) => setNewNote(e.target.value)}
                   className="flex-1"
                 />
-                <Button onClick={addProgressNote}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Button onClick={addProgressNote}>Add</Button>
               </div>
 
               <div className="space-y-2 max-h-40 overflow-y-auto">
