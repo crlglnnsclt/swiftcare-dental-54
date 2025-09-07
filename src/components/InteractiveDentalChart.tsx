@@ -124,11 +124,17 @@ function IconButton({ title, onClick, children }) {
 // -----------------------------
 // Tooth Component
 // -----------------------------
+// -----------------------------
+// Tooth Component (Circle with 5 Surfaces)
+// -----------------------------
 function ToothSVG({ toothId, entry, selected, onSelect, onSurfaceClick }) {
   const surfaces = entry.surfaces;
   const isMissing = entry.whole === "extracted";
+
   const getFill = (surface) =>
-    surfaces[surface] ? CONDITION_LOOKUP[surfaces[surface].conditionId]?.color : "#ffffff";
+    surfaces[surface]
+      ? CONDITION_LOOKUP[surfaces[surface].conditionId]?.color
+      : "#ffffff";
 
   return (
     <motion.div
@@ -139,35 +145,96 @@ function ToothSVG({ toothId, entry, selected, onSelect, onSurfaceClick }) {
         selected && "ring-2 ring-blue-400"
       )}
     >
-      <svg viewBox="0 0 50 60" className={classNames("w-12 h-14", isMissing ? "opacity-40" : "")}>
-        {/* Crown top */}
-        <path d="M5 20 Q25 0 45 20 L45 30 Q25 40 5 30 Z"
-          fill={getFill("O")} stroke="#333" strokeWidth="1"
-          onClick={(e) => { e.stopPropagation(); onSurfaceClick(toothId, "O"); }} />
-        {/* Mesial */}
-        <path d="M5 20 L5 30 Q25 40 25 20 Z"
-          fill={getFill("M")} stroke="#333" strokeWidth="0.5"
-          onClick={(e) => { e.stopPropagation(); onSurfaceClick(toothId, "M"); }} />
-        {/* Distal */}
-        <path d="M45 20 L45 30 Q25 40 25 20 Z"
-          fill={getFill("D")} stroke="#333" strokeWidth="0.5"
-          onClick={(e) => { e.stopPropagation(); onSurfaceClick(toothId, "D"); }} />
-        {/* Buccal */}
-        <path d="M5 20 Q25 0 45 20 Q25 25 5 20 Z"
-          fill={getFill("B")} stroke="#333" strokeWidth="0.5"
-          onClick={(e) => { e.stopPropagation(); onSurfaceClick(toothId, "B"); }} />
-        {/* Lingual */}
-        <path d="M5 30 Q25 40 45 30 Q25 35 5 30 Z"
-          fill={getFill("L")} stroke="#333" strokeWidth="0.5"
-          onClick={(e) => { e.stopPropagation(); onSurfaceClick(toothId, "L"); }} />
+      <svg
+        width="60"
+        height="60"
+        viewBox="-30 -30 60 60"
+        className={classNames("w-12 h-12", isMissing ? "opacity-40" : "")}
+      >
+        {/* Outer ring */}
+        <circle
+          cx="0"
+          cy="0"
+          r="25"
+          fill="none"
+          stroke="gray"
+          strokeWidth="1.5"
+        />
+
+        {/* Inner circle (Occlusal) */}
+        <circle
+          cx="0"
+          cy="0"
+          r="10"
+          fill={getFill("O")}
+          stroke="gray"
+          strokeWidth="1.5"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSurfaceClick(toothId, "O");
+          }}
+        />
+
+        {/* 4 Outer surfaces (M, D, B, L) */}
+        <g transform="rotate(45)">
+          {/* Top-right (Buccal) */}
+          <path
+            d="M 0 -25 A 25 25 0 0 1 25 0 L 10 0 A 10 10 0 0 0 0 -10 Z"
+            fill={getFill("B")}
+            stroke="gray"
+            strokeWidth="1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSurfaceClick(toothId, "B");
+            }}
+          />
+          {/* Bottom-right (Distal) */}
+          <path
+            d="M 25 0 A 25 25 0 0 1 0 25 L 0 10 A 10 10 0 0 0 10 0 Z"
+            fill={getFill("D")}
+            stroke="gray"
+            strokeWidth="1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSurfaceClick(toothId, "D");
+            }}
+          />
+          {/* Bottom-left (Lingual) */}
+          <path
+            d="M 0 25 A 25 25 0 0 1 -25 0 L -10 0 A 10 10 0 0 0 0 10 Z"
+            fill={getFill("L")}
+            stroke="gray"
+            strokeWidth="1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSurfaceClick(toothId, "L");
+            }}
+          />
+          {/* Top-left (Mesial) */}
+          <path
+            d="M -25 0 A 25 25 0 0 1 0 -25 L 0 -10 A 10 10 0 0 0 -10 0 Z"
+            fill={getFill("M")}
+            stroke="gray"
+            strokeWidth="1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSurfaceClick(toothId, "M");
+            }}
+          />
+        </g>
       </svg>
+
+      {/* Tooth label + extracted note */}
       <div className="text-xs text-center mt-1">{toothId}</div>
       {entry.whole && (
-        <div className="text-[10px] text-gray-500">{CONDITION_LOOKUP[entry.whole]?.label}</div>
+        <div className="text-[10px] text-gray-500">
+          {CONDITION_LOOKUP[entry.whole]?.label}
+        </div>
       )}
     </motion.div>
   );
 }
+
 
 // -----------------------------
 // Main Component
