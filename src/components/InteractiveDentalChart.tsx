@@ -355,84 +355,170 @@ export default function InteractiveDentalChart() {
     pdf.save(`dental-chart-${state.patientId}.pdf`);
   }
 
-  // Split helper (upper vs lower arch)
-  function split(teethArr) {
-    return [teethArr.slice(0, 16), teethArr.slice(16, 32)];
+  function splitUpperLower(list) {
+    // For simplicity, split halves for universal; for FDI we already ordered as upper then lower
+    if (state.numbering === 'universal') {
+      if (state.dentition === 'primary') {
+        const upper = list.slice(0, 10); // A..J
+        const lower = list.slice(10);    // K..T
+        return [upper, lower];
+      } else {
+        const upper = list.slice(0, 16); // 1..16
+        const lower = list.slice(16);    // 17..32
+        return [upper, lower];
+      }
+    } else {
+      // FDI arrays already upper then lower in NUMBERING
+      const upperLen = state.dentition === 'primary' ? 10 : 16;
+      return [list.slice(0, upperLen), list.slice(upperLen)];
+    }
   }
 
+  const [upper, lower] = splitUpperLower(orderedTeeth);
+
+  const filtered = useMemo(() => {
+    if (!query) return orderedTeeth;
+    const q = query.toString().toLowerCase();
+    return orderedTeeth.filter(t => t.toString().toLowerCase().includes(q));
+  }, [orderedTeeth, query]);
+
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-xl font-bold text-center">Interactive Dental Chart</h2>
+    <div className="w-full p-4 md:p-6 lg:p-8 bg-gradient-to-b from-white to-slate-50 text-slate-900">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
+        <div className="flex items-center gap-2 pr-3 mr-2 border-r">
+          <Stethoscope className="w-5 h-5" />
+          <TextInput placeholder="Patient ID" value={state.patientId} onChange={e => setState(s => ({ ...s, patientId: e.target.value }))} />
+          <IconButton title="Save" onClick={() => saveChart(state)}><Save className="w-5 h-5" /></IconButton>
+          <IconButton title="Load" onClick={async () => {
+            const loaded = await loadChart(state.patientId);
+            if (loaded) setState(loaded);
+          }}><Upload className="w-5 h-5" /></IconButton>
+        </div>
 
-      {/* Chart container for PDF export */}
-      <div ref={chartRef}>
-        <Card>
-          <CardContent className="flex flex-col items-center space-y-6 p-6">
-            {/* Upper arch */}
-            <div className="flex justify-center space-x-1">
-              {split(Object.keys(state.teeth))[0].map((toothId) => (
-                <ToothSVG
-                  key={toothId}
-                  toothId={toothId}
-                  entry={state.teeth[toothId] || EMPTY_TOOTH(toothId)}
-                  selected={selectedTooth === toothId}
-                  onSelect={(id) => setSelectedTooth(id)}
-                  onSurfaceClick={(id, surf) => handleSurfaceApply(id, surf)}
-                />
-              ))}
-            </div>
-            {/* Lower arch */}
-            <div className="flex justify-center space-x-1">
-              {split(Object.keys(state.teeth))[1].map((toothId) => (
-                <ToothSVG
-                  key={toothId}
-                  toothId={toothId}
-                  entry={state.teeth[toothId] || EMPTY_TOOTH(toothId)}
-                  selected={selectedTooth === toothId}
-                  onSelect={(id) => setSelectedTooth(id)}
-                  onSurfaceClick={(id, surf) => handleSurfaceApply(id, surf)}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 pr-3 mr-2 border-r">
+          <Settings className="w-5 h-5" />
+          <Select value={state.dentition} onChange={(v) => setState(s => ({ ...s, dentition: v, teeth: makeInitialTeeth(v === 'primary' ? NUMBERING.universalPrimary : NUMBERING.universalPermanent) }))}>
+            <option value="permanent">Permanent (1–32)</option>
+            <option value="primary">Primary (A–T)</option>
+          </Select>
+          <Select value={state.numbering} onChange={(v) => setState(s => ({ ...s, numbering: v }))}>
+            <option value="universal">Universal</option>
+            <option value="fdi">FDI</option>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2 pr-3 mr-2 border-r">
+          <Search className="w-5 h-5" />
+          <TextInput placeholder="Find tooth…" value={query} onChange={e => setQuery(e.target.value)} />
+        </div>
+
+        <div className="flex items-center gap-2 pr-3 mr-2 border-r">
+          <StickyNote className="w-5 h-5" />
+          <TextInput placeholder="Clinician (optional)" value={clinician} onChange={e => setClinician(e.target.value)} />
+          <TextInput placeholder="Note (optional)" value={note} onChange={e => setNote(e.target.value)} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <IconButton title="Undo" onClick={undo}><RotateCcw className="w-5 h-5" /></IconButton>
+          <IconButton title="Redo" onClick={redo}><RotateCw className="w-5 h-5" /></IconButton>
+          <IconButton title="Export PDF" onClick={exportPDF}><Download className="w-5 h-5" /></IconButton>
+          <IconButton title="Print" onClick={() => window.print()}><Printer className="w-5 h-5" /></IconButton>
+        </div>
       </div>
 
-      {/* Legend (interactive) */}
-      <div className="flex flex-wrap justify-center gap-4 border-t pt-4">
-        {[
-          { label: "Healthy", id: "healthy", color: "bg-white border border-gray-400" },
-          { label: "Caries", id: "caries", color: "bg-red-400" },
-          { label: "Filling", id: "filling", color: "bg-blue-400" },
-          { label: "Crown", id: "crown", color: "bg-yellow-400" },
-          { label: "Extracted", id: "extracted", color: "bg-gray-400" },
-          { label: "Implant", id: "implant", color: "bg-green-400" },
-        ].map(({ label, id, color }) => (
-          <div
-            key={id}
-            onClick={() => setSelectedCondition(id)}
-            className={`flex items-center cursor-pointer space-x-2 hover:scale-105 transition ${
-              selectedCondition === id ? "ring-2 ring-indigo-500 rounded" : ""
-            }`}
-          >
-            <div className={`w-5 h-5 rounded ${color}`} />
-            <span className="text-sm">{label}</span>
+      {/* Condition Picker */}
+      <div className="mb-3">
+        <ConditionPicker selectedId={selectedCondition} setSelectedId={setSelectedCondition} />
+      </div>
+
+      {/* Legend */}
+      <div className="mb-4"><Legend selectedId={selectedCondition} setSelectedId={setSelectedCondition} /></div>
+
+      {/* Chart */}
+      <div ref={chartRef} className="rounded-3xl border bg-white p-4 shadow-md">
+        {/* Upper arch */}
+        <div className="mb-4">
+          <div className="text-sm font-medium mb-2">Upper Arch</div>
+          <div className="grid grid-cols-8 md:grid-cols-16 gap-2">
+            {upper.filter(t => filtered.includes(t)).map(t => (
+              <ToothSVG
+                key={t}
+                toothId={t}
+                entry={state.teeth[t] || EMPTY_TOOTH(t)}
+                selected={selectedTooth === t}
+                onSelect={(id) => setSelectedTooth(id)}
+                onSurfaceClick={(id, surf) => handleSurfaceApply(id, surf)}
+              />
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Lower arch */}
+        <div>
+          <div className="text-sm font-medium mb-2">Lower Arch</div>
+          <div className="grid grid-cols-8 md:grid-cols-16 gap-2">
+            {lower.filter(t => filtered.includes(t)).map(t => (
+              <ToothSVG
+                key={t}
+                toothId={t}
+                entry={state.teeth[t] || EMPTY_TOOTH(t)}
+                selected={selectedTooth === t}
+                onSelect={(id) => setSelectedTooth(id)}
+                onSurfaceClick={(id, surf) => handleSurfaceApply(id, surf)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex justify-center space-x-3">
-        <Button onClick={undo} disabled={!undoStack.length}>
-          Undo
-        </Button>
-        <Button onClick={redo} disabled={!redoStack.length}>
-          Redo
-        </Button>
-        <Button onClick={exportPDF}>Export PDF</Button>
-        <Button onClick={() => handleClear(selectedTooth)} disabled={!selectedTooth}>
-          Clear Tooth
-        </Button>
+      {/* Selected tooth actions + history */}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 p-4 rounded-2xl border bg-white shadow-sm">
+          <div className="flex items-center gap-2 mb-3"><FileSignature className="w-5 h-5" /><span className="font-medium">Quick Actions</span></div>
+          {selectedTooth ? (
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Whole-tooth quick actions */}
+              {["extracted", "implant", "rct", "crown"].map(cid => (
+                <button key={cid} onClick={() => handleWholeApply(selectedTooth, cid)}
+                        className="px-3 py-2 rounded-xl border shadow-sm hover:bg-gray-50">
+                  {CONDITION_LOOKUP[cid]?.label}
+                </button>
+              ))}
+              <button onClick={() => handleClear(selectedTooth)} className="px-3 py-2 rounded-xl border shadow-sm hover:bg-gray-50">Clear Tooth</button>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">Select a tooth to use quick actions.</div>
+          )}
+        </div>
+
+        <div className="p-4 rounded-2xl border bg-white shadow-sm">
+          <div className="flex items-center gap-2 mb-3"><HistoryIcon className="w-5 h-5" /><span className="font-medium">Tooth History</span></div>
+          {selectedTooth ? (
+            <div className="max-h-72 overflow-auto text-sm">
+              {(state.teeth[selectedTooth]?.history || []).slice().reverse().map((h, idx) => (
+                <div key={idx} className="flex items-start gap-2 py-1">
+                  <span className="mt-0.5 inline-flex w-2 h-2 rounded-full" style={{ backgroundColor: CONDITION_LOOKUP[h.conditionId]?.color }} />
+                  <div>
+                    <div className="text-xs text-gray-500">{new Date(h.at).toLocaleString()} {h.by ? `· ${h.by}` : ""}</div>
+                    <div>
+                      <strong>{CONDITION_LOOKUP[h.conditionId]?.label}</strong> on <strong>{h.scope === 'surface' ? h.surface : 'Tooth'}</strong>
+                      {h.note ? <> — <em className="text-gray-600">{h.note}</em></> : null}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">Select a tooth to view its history.</div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer meta */}
+      <div className="mt-6 text-xs text-gray-500 flex items-center justify-between">
+        <div>Updated: {new Date(state.updatedAt).toLocaleString()}</div>
+        <div>Tip: Click a surface to apply the selected condition; use Quick Actions for whole-tooth changes.</div>
       </div>
     </div>
   );
