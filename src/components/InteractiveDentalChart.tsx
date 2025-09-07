@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { Download, History as HistoryIcon, RotateCcw, RotateCw, Save, Upload, FileSignature, Settings, Search, Stethoscope, StickyNote, Printer } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // -----------------------------
 // Constants & Utilities
@@ -369,24 +371,26 @@ export default function InteractiveDentalChart() {
             {/* Upper arch */}
             <div className="flex justify-center space-x-1">
               {split(Object.keys(state.teeth))[0].map((toothId) => (
-                <Tooth
+                <ToothSVG
                   key={toothId}
-                  number={toothId}
-                  data={state.teeth[toothId]}
-                  onSelectSurface={(t, s) => handleSurfaceApply(t, s, activeCondition)}
-                  onSelectTooth={(t) => handleWholeApply(t, activeCondition)}
+                  toothId={toothId}
+                  entry={state.teeth[toothId] || EMPTY_TOOTH(toothId)}
+                  selected={selectedTooth === toothId}
+                  onSelect={(id) => setSelectedTooth(id)}
+                  onSurfaceClick={(id, surf) => handleSurfaceApply(id, surf)}
                 />
               ))}
             </div>
             {/* Lower arch */}
             <div className="flex justify-center space-x-1">
               {split(Object.keys(state.teeth))[1].map((toothId) => (
-                <Tooth
+                <ToothSVG
                   key={toothId}
-                  number={toothId}
-                  data={state.teeth[toothId]}
-                  onSelectSurface={(t, s) => handleSurfaceApply(t, s, activeCondition)}
-                  onSelectTooth={(t) => handleWholeApply(t, activeCondition)}
+                  toothId={toothId}
+                  entry={state.teeth[toothId] || EMPTY_TOOTH(toothId)}
+                  selected={selectedTooth === toothId}
+                  onSelect={(id) => setSelectedTooth(id)}
+                  onSurfaceClick={(id, surf) => handleSurfaceApply(id, surf)}
                 />
               ))}
             </div>
@@ -406,9 +410,9 @@ export default function InteractiveDentalChart() {
         ].map(({ label, id, color }) => (
           <div
             key={id}
-            onClick={() => setActiveCondition(id)}
+            onClick={() => setSelectedCondition(id)}
             className={`flex items-center cursor-pointer space-x-2 hover:scale-105 transition ${
-              activeCondition === id ? "ring-2 ring-indigo-500 rounded" : ""
+              selectedCondition === id ? "ring-2 ring-indigo-500 rounded" : ""
             }`}
           >
             <div className={`w-5 h-5 rounded ${color}`} />
