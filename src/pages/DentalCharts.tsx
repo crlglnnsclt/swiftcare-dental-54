@@ -5,12 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { User, FileText, Activity, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
 import InteractiveDentalChart from '@/components/InteractiveDentalChart';
 import { toast } from 'sonner';
 import swiftCareLogo from '@/assets/swift-care-logo-correct.png';
-import { PatientProvider } from '@/context/PatientContext'; // new
 import { useOdontogramPreference } from '@/hooks/useOdontogramPreference';
+import { usePatient, PatientProvider } from '@/lib/PatientContext';
 
 interface ProgressNote {
   id: string;
@@ -22,13 +21,20 @@ interface ProgressNote {
   updated_at: string;
 }
 
-export default function DentalCharts() {
-  const { profile } = useAuth();
+export default function DentalChartsWrapper() {
+  // Wrap with PatientProvider
+  return (
+    <PatientProvider>
+      <DentalCharts />
+    </PatientProvider>
+  );
+}
+
+function DentalCharts() {
+  const { selectedPatient, setSelectedPatient } = usePatient();
   const { selectedDesign, updateDesignPreference } = useOdontogramPreference();
 
   const [patients, setPatients] = useState<any[]>([]);
-  const [selectedPatient, setSelectedPatient] = useState<string>('');
-  const [currentPatientData, setCurrentPatientData] = useState<any>(null);
   const [showDesignSelector, setShowDesignSelector] = useState(false);
   const [odontogramKey, setOdontogramKey] = useState(0);
   const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([]);
@@ -47,6 +53,7 @@ export default function DentalCharts() {
         .order('full_name', { ascending: true });
 
       if (error) throw error;
+
       if (!data || data.length === 0) {
         toast.error('No patients found');
         setPatients([]);
@@ -54,62 +61,46 @@ export default function DentalCharts() {
       }
 
       setPatients(data);
-      if (!selectedPatient) setSelectedPatient(data[0].id);
+
+      if (!selectedPatient) {
+        setSelectedPatient(data[0]);
+      }
     } catch (error) {
       console.error(error);
       toast.error('Failed to load patients');
     }
   };
 
-  // --- Fetch Patient Data ---
+  // --- Fetch Progress Notes ---
   useEffect(() => {
-    if (selectedPatient) fetchPatientData(selectedPatient);
+    if (selectedPatient) fetchProgressNotes(selectedPatient.id);
   }, [selectedPatient]);
 
-  const fetchPatientData = async (patientId: string) => {
+  const fetchProgressNotes = async (patientId: string) => {
     try {
-      // Fetch patient info
-      const { data: patientData, error: patientError } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('id', patientId)
-        .single();
-      if (patientError) throw patientError;
-      setCurrentPatientData(patientData);
-
-      // Fetch patient progress notes
-      const { data: notesData, error: notesError } = await supabase
+      const { data, error } = await supabase
         .from('progress_notes')
         .select('*')
         .eq('patient_id', patientId)
         .order('date', { ascending: false });
-      if (notesError) throw notesError;
-      setProgressNotes(notesData || []);
 
-      // Trigger re-render of the dental chart for the new patient
-      setOdontogramKey(prev => prev + 1);
+      if (error) throw error;
+      setProgressNotes(data || []);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to load patient data');
+      toast.error('Failed to load progress notes');
     }
   };
 
-  const handleDesignChange = (newDesign: any) => {
-    updateDesignPreference(newDesign);
-    setOdontogramKey(prev => prev + 1);
-    setShowDesignSelector(false);
-    toast.success(`Switched to ${newDesign} design`);
-  };
-
   const addProgressNote = () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim() || !selectedPatient) return;
 
     const note: ProgressNote = {
       id: Date.now().toString(),
-      patient_id: selectedPatient,
+      patient_id: selectedPatient.id,
       date: new Date().toISOString(),
       note: newNote,
-      written_by: profile?.full_name || 'Current User',
+      written_by: selectedPatient.full_name || 'Current User',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -117,6 +108,13 @@ export default function DentalCharts() {
     setProgressNotes([note, ...progressNotes]);
     setNewNote('');
     toast.success('Progress note added');
+  };
+
+  const handleDesignChange = (newDesign: any) => {
+    updateDesignPreference(newDesign);
+    setOdontogramKey((prev) => prev + 1);
+    setShowDesignSelector(false);
+    toast.success(`Switched to ${newDesign} design`);
   };
 
   return (
@@ -130,7 +128,13 @@ export default function DentalCharts() {
           </div>
 
           {/* Patient Selector */}
-          <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+          <Select
+            value={selectedPatient?.id || ''}
+            onValueChange={(id) => {
+              const patient = patients.find((p) => p.id === id);
+              if (patient) setSelectedPatient(patient);
+            }}
+          >
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Select a patient" />
             </SelectTrigger>
@@ -163,87 +167,72 @@ export default function DentalCharts() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {['traditional', 'anatomical', 'interactive', 'minimalist', 'clinical'].map((design) => (
-                <Button
-                  key={design}
-                  variant={selectedDesign === design ? 'default' : 'outline'}
-                  onClick={() => handleDesignChange(design)}
-                  className="h-20"
-                >
-                  <div className="text-center">
-                    <div className="text-sm font-medium capitalize">{design}</div>
-                  </div>
-                </Button>
-              ))}
+              {['traditional', 'anatomical', 'interactive', 'minimalist', 'clinical'].map(
+                (design) => (
+                  <Button
+                    key={design}
+                    variant={selectedDesign === design ? 'default' : 'outline'}
+                    onClick={() => handleDesignChange(design)}
+                    className="h-20"
+                  >
+                    <div className="text-center">
+                      <div className="text-sm font-medium capitalize">{design}</div>
+                    </div>
+                  </Button>
+                )
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Interactive Dental Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Interactive Dental Chart
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PatientProvider value={{ patientId: selectedPatient }}>
+      {selectedPatient && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Interactive Dental Chart
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <InteractiveDentalChart key={odontogramKey} />
-          </PatientProvider>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Patient Info & Progress Notes */}
-      {currentPatientData && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Patient Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div><strong>Name:</strong> {currentPatientData.full_name}</div>
-              <div><strong>Email:</strong> {currentPatientData.email}</div>
-              <div><strong>Contact:</strong> {currentPatientData.contact_number}</div>
-              <div><strong>Date of Birth:</strong> {currentPatientData.date_of_birth}</div>
-            </CardContent>
-          </Card>
+      {/* Progress Notes */}
+      {selectedPatient && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Progress Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="Add a progress note..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={addProgressNote}>Add</Button>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Progress Notes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Textarea
-                  placeholder="Add a progress note..."
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  className="flex-1"
-                />
-                <Button onClick={addProgressNote}>Add</Button>
-              </div>
-
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {progressNotes.map((note) => (
-                  <div key={note.id} className="p-2 bg-gray-50 rounded">
-                    <div className="text-xs text-gray-500 mb-1">
-                      {new Date(note.date).toLocaleDateString()} - {note.written_by}
-                    </div>
-                    <div className="text-sm">{note.note}</div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {progressNotes.map((note) => (
+                <div key={note.id} className="p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">
+                    {new Date(note.date).toLocaleDateString()} - {note.written_by}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  <div className="text-sm">{note.note}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
