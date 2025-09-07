@@ -2190,6 +2190,44 @@ export type Database = {
           },
         ]
       }
+      progress_notes: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          note: string
+          patient_id: string
+          updated_at: string
+          written_by: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          note: string
+          patient_id: string
+          updated_at?: string
+          written_by: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string
+          patient_id?: string
+          updated_at?: string
+          written_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       queue: {
         Row: {
           appointment_id: string
@@ -2424,6 +2462,100 @@ export type Database = {
             columns: ["clinic_affected"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teeth_conditions: {
+        Row: {
+          condition: string
+          created_at: string
+          date: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          tooth_number: number
+          treatment: string | null
+          updated_at: string
+        }
+        Insert: {
+          condition: string
+          created_at?: string
+          date?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          tooth_number: number
+          treatment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          condition?: string
+          created_at?: string
+          date?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          tooth_number?: number
+          treatment?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teeth_conditions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treatment_plans: {
+        Row: {
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          patient_name: string
+          priority: string
+          procedure: string
+          scheduled_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          patient_name: string
+          priority?: string
+          procedure: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          patient_name?: string
+          priority?: string
+          procedure?: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
