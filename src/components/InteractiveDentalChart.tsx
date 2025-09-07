@@ -14,7 +14,7 @@ import jsPDF from "jspdf";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@supabase/supabase-js";
-import { usePatient } from "@/context/PatientContext"; // Shared patient context
+import { usePatient } from "@/lib/PatientContext"; // <- shared context
 
 // -----------------------------
 // Supabase
@@ -50,7 +50,6 @@ const CONDITIONS = [
 ];
 
 const CONDITION_LOOKUP = Object.fromEntries(CONDITIONS.map(c => [c.id, c]));
-
 const nowISO = () => new Date().toISOString();
 function classNames(...xs) { return xs.filter(Boolean).join(" "); }
 
@@ -138,7 +137,9 @@ function ToothSVG({ toothId, entry, selected, onSelect, onSurfaceClick }) {
 // Main Component
 // -----------------------------
 export default function InteractiveDentalChart() {
-  const { patientId, setPatientId } = usePatient();
+  const { selectedPatient } = usePatient(); // <- shared patient context
+  const patientId = selectedPatient?.id || "";
+
   const [state, setState] = useState(() => ({ ...DEFAULT_CHART, patientId }));
   const [selectedTooth, setSelectedTooth] = useState(null);
   const [selectedCondition, setSelectedCondition] = useState("caries");
@@ -223,7 +224,7 @@ export default function InteractiveDentalChart() {
       <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
         <div className="flex items-center gap-2 pr-3 mr-2 border-r">
           <Stethoscope className="w-5 h-5"/>
-          <input type="text" placeholder="Patient ID" value={state.patientId} onChange={e => setPatientId(e.target.value)} className="rounded-xl border px-3 py-2 shadow-sm bg-white"/>
+          <input type="text" placeholder="Patient ID" value={state.patientId} onChange={e => setState(s => ({ ...s, patientId: e.target.value }))} className="rounded-xl border px-3 py-2 shadow-sm bg-white"/>
           <Button onClick={()=>saveChart(state)}>Save</Button>
           <Button onClick={async()=>{ const loaded = await loadChart(patientId); if(loaded) setState(loaded); }}>Load</Button>
         </div>
