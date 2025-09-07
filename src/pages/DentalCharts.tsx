@@ -14,6 +14,7 @@ import { OdontogramRenderer } from '@/components/OdontogramRenderer';
 import { useOdontogramPreference } from '@/hooks/useOdontogramPreference';
 import { DrawingCanvas } from '@/components/DrawingCanvas';
 import { DrawableSwiftChart } from '@/components/DrawableSwiftChart';
+import InteractiveDentalChart from '@/components/InteractiveDentalChart';
 import { toast } from 'sonner';
 import swiftCareLogo from '@/assets/swift-care-logo-correct.png';
 import { 
@@ -539,8 +540,9 @@ export default function DentalCharts() {
       )}
 
       <Tabs defaultValue="chart" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="chart">Digital Chart</TabsTrigger>
+          <TabsTrigger value="interactive">Interactive Chart</TabsTrigger>
           <TabsTrigger value="swift-template">Swift Care Template</TabsTrigger>
           <TabsTrigger value="drawing">Drawing Canvas</TabsTrigger>
           <TabsTrigger value="notes">Progress Notes</TabsTrigger>
@@ -748,6 +750,17 @@ export default function DentalCharts() {
             </CardContent>
           </Card>
         </div>
+      </TabsContent>
+
+      <TabsContent value="interactive">
+        <Card>
+          <CardHeader>
+            <CardTitle>Interactive Dental Chart</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <InteractiveDentalChart />
+          </CardContent>
+        </Card>
       </TabsContent>
 
       <TabsContent value="swift-template">
