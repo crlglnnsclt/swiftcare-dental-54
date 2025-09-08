@@ -33,6 +33,7 @@ import {
   DEFAULT_CHART,
   nowISO,
   classNames,
+  createInitialTeeth,
 } from "@/lib/dentalChartConstants";
 
 // -----------------------------
@@ -348,12 +349,11 @@ export default function InteractiveDentalChart() {
               setState((s) => ({
                 ...s,
                 dentition: e.target.value,
-                teeth: (() => {
-                  const numbering = e.target.value === "primary"
+                teeth: createInitialTeeth(
+                  e.target.value === "primary"
                     ? NUMBERING.universalPrimary
-                    : NUMBERING.universalPermanent;
-                  return Object.fromEntries(numbering.map(t => [t, EMPTY_TOOTH(t)]));
-                })(),
+                    : NUMBERING.universalPermanent
+                ),
               }))
             }
             className="rounded-xl border px-3 py-2 shadow-sm bg-white"
