@@ -1,0 +1,158 @@
+---
+title: SwiftCare Dental Clinic - Patient Status Flow
+---
+flowchart TD
+    %% Define swimlanes with subgraphs
+    subgraph Patient["👤 PATIENT"]
+        P1[Book Appointment]
+        P2[Arrive at Clinic]
+        P3[Cancel Appointment]
+        P4[Complete Payment]
+        P5[Leave Clinic]
+    end
+    
+    subgraph Staff["👥 STAFF"]
+        S1[Check-in Patient]
+        S2[Move to Waiting]
+        S3[Process Billing]
+        S4[Mark No-Show]
+        S5[Handle Cancellation]
+        S6[Reschedule]
+    end
+    
+    subgraph Dentist["🦷 DENTIST"]
+        D1[Call Patient]
+        D2[Start Procedure]
+        D3[Complete Procedure]
+        D4[Add Treatment Notes]
+        D5[Approve Billing]
+    end
+    
+    subgraph Admin["⚙️ ADMIN (CLINIC)"]
+        A1[Override Status]
+        A2[Manage Schedule]
+        A3[Handle Disputes]
+        A4[Generate Reports]
+        A5[Bulk Operations]
+    end
+    
+    subgraph SuperAdmin["🔧 SUPER ADMIN"]
+        SA1[System Override]
+        SA2[Emergency Changes]
+        SA3[Data Recovery]
+        SA4[Audit Trail]
+    end
+    
+    subgraph System["🤖 SYSTEM"]
+        SY1[Auto No-Show Timer]
+        SY2[Send Notifications]
+        SY3[Update Status]
+        SY4[Log Activities]
+        SY5[Validate Transitions]
+    end
+    
+    %% Patient States
+    subgraph States["PATIENT STATES"]
+        ST1[SCHEDULED/BOOKED]
+        ST2[CHECKED-IN]
+        ST3[WAITING]
+        ST4[IN PROCEDURE]
+        ST5[BILLING]
+        ST6[COMPLETED]
+        ST7[CANCELLED]
+        ST8[NO-SHOW]
+    end
+    
+    %% Main Flow Transitions
+    P1 --> ST1
+    ST1 -.->|Patient arrives| P2
+    P2 --> S1
+    S1 --> ST2
+    ST2 -.->|Staff action| S2
+    S2 --> ST3
+    ST3 -.->|Dentist calls| D1
+    D1 --> ST4
+    ST4 -.->|Dentist action| D2
+    D2 -.->|Treatment complete| D3
+    D3 --> ST5
+    ST5 -.->|Staff processes| S3
+    S3 -.->|Payment complete| P4
+    P4 --> ST6
+    ST6 -.->|Patient leaves| P5
+    
+    %% Cancellation Flow
+    ST1 -.->|Patient cancels| P3
+    P3 --> S5
+    S5 --> ST7
+    ST2 -.->|Can cancel| P3
+    ST3 -.->|Can cancel| P3
+    
+    %% No-Show Flow
+    ST1 -.->|15min grace period| SY1
+    SY1 -.->|Auto trigger| S4
+    S4 --> ST8
+    
+    %% Admin Overrides
+    A1 -.->|Can override any state| ST1
+    A1 -.->|Can override any state| ST2
+    A1 -.->|Can override any state| ST3
+    A1 -.->|Can override any state| ST4
+    A1 -.->|Can override any state| ST5
+    A1 -.->|Can override any state| ST6
+    A1 -.->|Can override any state| ST7
+    A1 -.->|Can override any state| ST8
+    
+    %% Super Admin Emergency Access
+    SA1 -.->|Emergency override| ST1
+    SA1 -.->|Emergency override| ST2
+    SA1 -.->|Emergency override| ST3
+    SA1 -.->|Emergency override| ST4
+    SA1 -.->|Emergency override| ST5
+    SA1 -.->|Emergency override| ST6
+    SA1 -.->|Emergency override| ST7
+    SA1 -.->|Emergency override| ST8
+    
+    %% System Automation
+    SY2 -.->|Appointment reminders| ST1
+    SY3 -.->|Status updates| ST2
+    SY3 -.->|Status updates| ST3
+    SY3 -.->|Status updates| ST4
+    SY3 -.->|Status updates| ST5
+    SY4 -.->|Activity logging| ST1
+    SY4 -.->|Activity logging| ST2
+    SY4 -.->|Activity logging| ST3
+    SY4 -.->|Activity logging| ST4
+    SY4 -.->|Activity logging| ST5
+    SY4 -.->|Activity logging| ST6
+    SY4 -.->|Activity logging| ST7
+    SY4 -.->|Activity logging| ST8
+    
+    %% Reschedule Options
+    ST7 -.->|Can reschedule| S6
+    ST8 -.->|Can reschedule| S6
+    S6 --> ST1
+    
+    %% Billing Approval Flow
+    ST5 -.->|Requires approval| D5
+    D5 -.->|Approved| S3
+    
+    %% Special Transitions
+    ST4 -.->|Emergency stop| A1
+    ST5 -.->|Billing dispute| A3
+    
+    %% Styling
+    classDef patientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef staffStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef dentistStyle fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef adminStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef superAdminStyle fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+    classDef systemStyle fill:#f5f5f5,stroke:#424242,stroke-width:2px
+    classDef stateStyle fill:#fff9c4,stroke:#f57f17,stroke-width:3px
+    
+    class P1,P2,P3,P4,P5 patientStyle
+    class S1,S2,S3,S4,S5,S6 staffStyle
+    class D1,D2,D3,D4,D5 dentistStyle
+    class A1,A2,A3,A4,A5 adminStyle
+    class SA1,SA2,SA3,SA4 superAdminStyle
+    class SY1,SY2,SY3,SY4,SY5 systemStyle
+    class ST1,ST2,ST3,ST4,ST5,ST6,ST7,ST8 stateStyle
