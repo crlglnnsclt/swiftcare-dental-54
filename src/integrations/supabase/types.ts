@@ -92,6 +92,60 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_audit: {
+        Row: {
+          action_type: string
+          appointment_id: string | null
+          id: string
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          performed_by: string | null
+          performed_by_role: Database["public"]["Enums"]["user_role"] | null
+          reason: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          action_type: string
+          appointment_id?: string | null
+          id?: string
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          performed_by_role?: Database["public"]["Enums"]["user_role"] | null
+          reason?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          action_type?: string
+          appointment_id?: string | null
+          id?: string
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          performed_by_role?: Database["public"]["Enums"]["user_role"] | null
+          reason?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_audit_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_treatments: {
         Row: {
           appointment_id: string
@@ -136,7 +190,14 @@ export type Database = {
       }
       appointments: {
         Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
           booking_type: Database["public"]["Enums"]["booking_type"] | null
+          cancel_reason: string | null
+          cancel_timestamp: string | null
+          cancel_visibility: string | null
+          cancelled_by_role: Database["public"]["Enums"]["user_role"] | null
+          cancelled_by_user_id: string | null
           created_at: string
           dentist_id: string | null
           duration_minutes: number | null
@@ -144,15 +205,24 @@ export type Database = {
           group_id: string | null
           id: string
           is_group_booking: boolean | null
+          no_show_at: string | null
           notes: string | null
           patient_id: string
           qr_code: string | null
+          reopened_by: string | null
           scheduled_time: string
           status: Database["public"]["Enums"]["appointment_status"] | null
           updated_at: string
         }
         Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
           booking_type?: Database["public"]["Enums"]["booking_type"] | null
+          cancel_reason?: string | null
+          cancel_timestamp?: string | null
+          cancel_visibility?: string | null
+          cancelled_by_role?: Database["public"]["Enums"]["user_role"] | null
+          cancelled_by_user_id?: string | null
           created_at?: string
           dentist_id?: string | null
           duration_minutes?: number | null
@@ -160,15 +230,24 @@ export type Database = {
           group_id?: string | null
           id?: string
           is_group_booking?: boolean | null
+          no_show_at?: string | null
           notes?: string | null
           patient_id: string
           qr_code?: string | null
+          reopened_by?: string | null
           scheduled_time: string
           status?: Database["public"]["Enums"]["appointment_status"] | null
           updated_at?: string
         }
         Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
           booking_type?: Database["public"]["Enums"]["booking_type"] | null
+          cancel_reason?: string | null
+          cancel_timestamp?: string | null
+          cancel_visibility?: string | null
+          cancelled_by_role?: Database["public"]["Enums"]["user_role"] | null
+          cancelled_by_user_id?: string | null
           created_at?: string
           dentist_id?: string | null
           duration_minutes?: number | null
@@ -176,14 +255,23 @@ export type Database = {
           group_id?: string | null
           id?: string
           is_group_booking?: boolean | null
+          no_show_at?: string | null
           notes?: string | null
           patient_id?: string
           qr_code?: string | null
+          reopened_by?: string | null
           scheduled_time?: string
           status?: Database["public"]["Enums"]["appointment_status"] | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "appointments_cancelled_by_user_id_fkey"
+            columns: ["cancelled_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "appointments_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -196,6 +284,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1712,6 +1807,57 @@ export type Database = {
           },
         ]
       }
+      notification_history: {
+        Row: {
+          appointment_id: string | null
+          content: Json | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          notification_type: string
+          patient_id: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          patient_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          patient_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_history_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_history_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_documents: {
         Row: {
           appointment_id: string | null
@@ -2944,6 +3090,9 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
+        | "waiting"
+        | "in_procedure"
+        | "billing"
       booking_type: "online" | "walk_in" | "emergency" | "virtual"
       document_type:
         | "consent_form"
@@ -3098,6 +3247,9 @@ export const Constants = {
         "completed",
         "cancelled",
         "no_show",
+        "waiting",
+        "in_procedure",
+        "billing",
       ],
       booking_type: ["online", "walk_in", "emergency", "virtual"],
       document_type: [

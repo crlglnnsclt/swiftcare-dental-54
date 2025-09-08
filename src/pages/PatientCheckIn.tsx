@@ -12,7 +12,7 @@ interface Appointment {
   id: string;
   patient_id: string;
   scheduled_time: string;
-  status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'waiting' | 'in_procedure' | 'billing';
   booking_type?: string;
   notes?: string;
   profiles?: {

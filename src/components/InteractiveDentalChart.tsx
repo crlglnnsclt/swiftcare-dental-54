@@ -348,11 +348,12 @@ export default function InteractiveDentalChart() {
               setState((s) => ({
                 ...s,
                 dentition: e.target.value,
-                teeth: createInitialTeeth(
-                  e.target.value === "primary"
+                teeth: (() => {
+                  const numbering = e.target.value === "primary"
                     ? NUMBERING.universalPrimary
-                    : NUMBERING.universalPermanent
-                ),
+                    : NUMBERING.universalPermanent;
+                  return Object.fromEntries(numbering.map(t => [t, EMPTY_TOOTH(t)]));
+                })(),
               }))
             }
             className="rounded-xl border px-3 py-2 shadow-sm bg-white"
