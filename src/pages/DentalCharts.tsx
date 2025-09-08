@@ -76,7 +76,7 @@ export default function DentalCharts() {
     }
   };
 
-  const handleDesignChange = (newDesign: string) => {
+  const handleDesignChange = (newDesign: 'traditional' | 'anatomical' | 'interactive' | 'minimalist' | 'clinical') => {
     updateDesignPreference(newDesign);
     setShowDesignSelector(false);
     toast.success(`Switched to ${newDesign} design`);
@@ -161,7 +161,7 @@ export default function DentalCharts() {
                   <Button
                     key={design}
                     variant={selectedDesign === design ? "default" : "outline"}
-                    onClick={() => handleDesignChange(design)}
+                    onClick={() => handleDesignChange(design as 'traditional' | 'anatomical' | 'interactive' | 'minimalist' | 'clinical')}
                     className="h-20"
                   >
                     <div className="text-center">

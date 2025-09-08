@@ -348,7 +348,7 @@ export default function InteractiveDentalChart() {
               setState((s) => ({
                 ...s,
                 dentition: e.target.value,
-                teeth: makeInitialTeeth(
+                teeth: createInitialTeeth(
                   e.target.value === "primary"
                     ? NUMBERING.universalPrimary
                     : NUMBERING.universalPermanent

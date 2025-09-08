@@ -50,3 +50,7 @@ export const DEFAULT_CHART = {
   teeth: Object.fromEntries(NUMBERING.universalPermanent.map(t => [t, EMPTY_TOOTH(t)])),
   updatedAt: nowISO(),
 };
+
+export const createInitialTeeth = (numbering: any[]) => {
+  return Object.fromEntries(numbering.map(t => [t, EMPTY_TOOTH(t)]));
+};
