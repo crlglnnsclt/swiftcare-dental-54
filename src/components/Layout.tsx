@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar as StreamlinedAppSidebar } from "@/components/StreamlinedAppSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -49,7 +49,7 @@ export function Layout() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
-        <StreamlinedAppSidebar />
+        <AppSidebar />
         
         <div className="flex-1 flex flex-col">
           <header className="h-16 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
