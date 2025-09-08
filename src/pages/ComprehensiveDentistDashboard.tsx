@@ -24,7 +24,7 @@ import {
   Eye,
   Users,
   Activity,
-  DragHandleHorizontal,
+  GripHorizontal,
   AlertTriangle,
   Timer,
   Signature,
@@ -716,7 +716,7 @@ const ComprehensiveDentistDashboard = () => {
                             onDragStart={() => handleDragStart(appointment)}
                           >
                             <div className="flex items-center space-x-3">
-                              <DragHandleHorizontal className="w-4 h-4 text-gray-400" />
+                              <GripHorizontal className="w-4 h-4 text-gray-400" />
                               <div>
                                 <p className="font-medium">{appointment.patient?.full_name}</p>
                                 <p className="text-sm text-gray-600">{appointment.appointment_type}</p>
