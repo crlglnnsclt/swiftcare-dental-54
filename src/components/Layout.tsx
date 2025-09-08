@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppSidebar as StreamlinedAppSidebar } from "@/components/StreamlinedAppSidebar";
 import { useAuth } from "@/components/auth/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, Bell, Settings, User, Shield } from "lucide-react";
+import { LogOut, Bell, Settings, User, Shield, Activity } from "lucide-react";
 
 export function Layout() {
   const { signOut, profile, user } = useAuth();
@@ -25,23 +25,21 @@ export function Layout() {
   };
 
   const handleProfileClick = () => {
-    // Navigate to role-based dashboard
+    // Navigate to role-based enhanced dashboard
     const role = profile?.role;
     switch (role) {
       case 'super_admin':
-        navigate('/super-admin');
-        break;
-      case 'admin':
-        navigate('/dashboard');
+      case 'clinic_admin':
+        navigate('/admin-dashboard');
         break;
       case 'dentist':
-        navigate('/dashboard');
+        navigate('/dentist-dashboard');
         break;
       case 'staff':
-        navigate('/dashboard');
+        navigate('/staff-dashboard');
         break;
       case 'patient':
-        navigate('/my-appointments');
+        navigate('/patient-portal');
         break;
       default:
         navigate('/dashboard');
@@ -51,7 +49,7 @@ export function Layout() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
+        <StreamlinedAppSidebar />
         
         <div className="flex-1 flex flex-col">
           <header className="h-16 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
@@ -59,9 +57,17 @@ export function Layout() {
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="hover:bg-muted/50" />
                 <div className="h-6 w-px bg-border" />
-                <h1 className="text-lg font-semibold text-foreground">
-                  SmileFlow 3D Dental
-                </h1>
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-primary" />
+                  <h1 className="text-lg font-semibold text-foreground">
+                    SwiftCare Dental
+                  </h1>
+                  {profile?.role && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      • {profile.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
