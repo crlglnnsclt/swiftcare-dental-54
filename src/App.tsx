@@ -3,12 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 
 import { AuthProvider, useAuth } from "@/components/auth/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 
 import { PatientProvider } from "@/lib/PatientContext";
+import { coreModules } from "@/lib/coreModules";
 
 // Core Pages
 import Index from "./pages/Index";
@@ -19,11 +21,11 @@ import UserSettings from "./pages/UserSettings";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
-// Enhanced Role-Based Pages
-import EnhancedDentistDashboard from "./pages/EnhancedDentistDashboard";
-import EnhancedStaffDashboard from "./pages/EnhancedStaffDashboard";
-import EnhancedPatientPortal from "./pages/EnhancedPatientPortal";
-import EnhancedAdminDashboard from "./pages/EnhancedAdminDashboard";
+// Comprehensive Role-Based Pages (Full SwiftCare Implementation)
+import ComprehensiveDentistDashboard from "./pages/ComprehensiveDentistDashboard";
+import ComprehensiveStaffDashboard from "./pages/ComprehensiveStaffDashboard";
+import ComprehensivePatientPortal from "./pages/ComprehensivePatientPortal";
+import ComprehensiveAdminDashboard from "./pages/ComprehensiveAdminDashboard";
 import EnhancedAnalytics from "./pages/EnhancedAnalytics";
 
 // Legacy fallback (for backward compatibility)
@@ -34,18 +36,18 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, profile } = useAuth();
 
-  // Role-based dashboard routing
+  // Role-based dashboard routing - Comprehensive SwiftCare Implementation
   const getDashboardComponent = () => {
     switch (profile?.role) {
       case 'super_admin':
       case 'clinic_admin':
-        return <EnhancedAdminDashboard />;
+        return <ComprehensiveAdminDashboard />;
       case 'dentist':
-        return <EnhancedDentistDashboard />;
+        return <ComprehensiveDentistDashboard />;
       case 'staff':
-        return <EnhancedStaffDashboard />;
+        return <ComprehensiveStaffDashboard />;
       case 'patient':
-        return <EnhancedPatientPortal />;
+        return <ComprehensivePatientPortal />;
       default:
         return <Dashboard />; // Legacy fallback
     }
@@ -81,28 +83,28 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
 
-        {/* Role-specific enhanced dashboards (direct access) */}
+        {/* Role-specific comprehensive dashboards (direct access) */}
         <Route path="dentist-dashboard" element={
           <ProtectedRoute requiredRole={['dentist']}>
-            <EnhancedDentistDashboard />
+            <ComprehensiveDentistDashboard />
           </ProtectedRoute>
         } />
         
         <Route path="staff-dashboard" element={
           <ProtectedRoute requiredRole={['staff']}>
-            <EnhancedStaffDashboard />
+            <ComprehensiveStaffDashboard />
           </ProtectedRoute>
         } />
         
         <Route path="patient-portal" element={
           <ProtectedRoute requiredRole={['patient']}>
-            <EnhancedPatientPortal />
+            <ComprehensivePatientPortal />
           </ProtectedRoute>
         } />
         
         <Route path="admin-dashboard" element={
           <ProtectedRoute requiredRole={['clinic_admin', 'super_admin']}>
-            <EnhancedAdminDashboard />
+            <ComprehensiveAdminDashboard />
           </ProtectedRoute>
         } />
 
@@ -119,20 +121,40 @@ function AppRoutes() {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <PatientProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </PatientProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Initialize SwiftCare Core Modules on app start
+  useEffect(() => {
+    const initializeSystem = async () => {
+      try {
+        await coreModules.initialize();
+        console.log('🚀 SwiftCare Dental System - All core modules initialized');
+        console.log('✅ Appointment Management - Always running');
+        console.log('✅ Queueing System - Always running');
+        console.log('✅ Paperless Workflow - Always running'); 
+        console.log('✅ Analytics - Always running');
+      } catch (error) {
+        console.error('❌ Failed to initialize core modules:', error);
+      }
+    };
+
+    initializeSystem();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <PatientProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </PatientProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

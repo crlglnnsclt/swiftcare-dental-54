@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Calendar, 
   Clock,
@@ -20,14 +21,22 @@ import {
   Plus,
   Edit,
   Save,
-  DragHandleDots2Icon,
   Eye,
   Users,
-  Activity
+  Activity,
+  DragHandleHorizontal,
+  AlertTriangle,
+  Timer,
+  Signature,
+  Package,
+  DollarSign
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { coreModules } from '@/lib/coreModules';
+import PostProcedureForm from '@/components/PostProcedureForm';
+import { Appointment, Patient, TreatmentPlan, AppointmentStatus } from '@/types/swiftcare';
 
 interface Appointment {
   id: string;
