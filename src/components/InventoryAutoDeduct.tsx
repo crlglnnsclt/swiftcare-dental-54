@@ -172,7 +172,7 @@ export function InventoryAutoDeduct({ appointmentId, isOpen, onClose, onComplete
   };
 
   const getTotalCost = () => {
-    return usedItems.reduce((total, item) => total + item.total_cost, 0);
+    return usedItems.reduce((total, item) => total + (Number(item.total_cost) || 0), 0);
   };
 
   const isLowStock = (item: InventoryItem) => {
@@ -268,7 +268,7 @@ export function InventoryAutoDeduct({ appointmentId, isOpen, onClose, onComplete
                         <div className="flex-1">
                           <p className="font-medium">{item.item_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            ${item.unit_cost.toFixed(2)} × {item.quantity} = ${item.total_cost.toFixed(2)}
+                            ${(Number(item.unit_cost) || 0).toFixed(2)} × {item.quantity} = ${(Number(item.total_cost) || 0).toFixed(2)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">

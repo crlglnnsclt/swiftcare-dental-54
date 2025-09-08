@@ -181,7 +181,7 @@ export default function PaymentVerificationManager() {
                   </Badge>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-semibold">${proof.amount.toFixed(2)}</p>
+                  <p className="text-lg font-semibold">${(Number(proof.amount) || 0).toFixed(2)}</p>
                   <p className="text-sm text-muted-foreground">{proof.payment_method}</p>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function PaymentVerificationManager() {
                             </div>
                             <div>
                               <Label>Amount</Label>
-                              <p className="font-medium">${selectedProof.amount.toFixed(2)}</p>
+                              <p className="font-medium">${(Number(selectedProof.amount) || 0).toFixed(2)}</p>
                             </div>
                             <div>
                               <Label>Payment Method</Label>

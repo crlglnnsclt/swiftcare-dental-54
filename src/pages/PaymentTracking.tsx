@@ -172,9 +172,9 @@ export default function PaymentTracking() {
   });
 
   const stats = {
-    totalRevenue: payments.filter(p => p.payment_status === 'completed').reduce((sum, p) => sum + Number(p.amount), 0),
-    pendingAmount: invoices.filter(inv => inv.payment_status === 'pending').reduce((sum, inv) => sum + Number(inv.balance_due), 0),
-    overdueAmount: invoices.filter(inv => inv.payment_status === 'overdue').reduce((sum, inv) => sum + Number(inv.balance_due), 0),
+    totalRevenue: payments.filter(p => p.payment_status === 'completed').reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
+    pendingAmount: invoices.filter(inv => inv.payment_status === 'pending').reduce((sum, inv) => sum + (Number(inv.balance_due) || 0), 0),
+    overdueAmount: invoices.filter(inv => inv.payment_status === 'overdue').reduce((sum, inv) => sum + (Number(inv.balance_due) || 0), 0),
     totalInvoices: invoices.length
   };
 

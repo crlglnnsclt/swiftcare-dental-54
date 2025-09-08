@@ -64,7 +64,7 @@ export default function Billing() {
         .select('amount')
         .eq('payment_status', 'completed');
 
-      const totalRevenue = completedPayments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
+      const totalRevenue = completedPayments?.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0) || 0;
 
       // Calculate pending payments
       const { data: pendingPayments } = await supabase
@@ -72,7 +72,7 @@ export default function Billing() {
         .select('amount')
         .eq('payment_status', 'pending');
 
-      const pendingAmount = pendingPayments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
+      const pendingAmount = pendingPayments?.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0) || 0;
 
       setStats({
         totalRevenue,
@@ -315,7 +315,7 @@ export default function Billing() {
                         <Badge className={getStatusColor(invoice.payment_status)}>
                           {invoice.payment_status}
                         </Badge>
-                        <p className="font-bold text-lg">${Number(invoice.amount).toFixed(2)}</p>
+                        <p className="font-bold text-lg">${(Number(invoice.amount) || 0).toFixed(2)}</p>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Eye className="w-3 h-3 mr-1" />
