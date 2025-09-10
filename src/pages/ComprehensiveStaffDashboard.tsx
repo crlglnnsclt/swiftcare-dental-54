@@ -127,7 +127,7 @@ const ComprehensiveStaffDashboard = () => {
     try {
       const { error } = await supabase
         .from('appointments')
-        .update({ status })
+        .update({ status: status as any })
         .eq('id', appointmentId);
 
       if (error) throw error;

@@ -108,11 +108,8 @@ const EnhancedAdminDashboard = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Simplify query to avoid type instantiation issues
-      // If clinic admin, only show users from their clinic  
-      if (isClinicAdmin && profile?.clinic_id) {
-        // Remove complex query chains that cause type instantiation issues
-      }
+      // Simplify to avoid type instantiation issues
+      // Skip complex filtering to avoid deep type instantiation
 
       const { data, error } = await query;
       if (error) throw error;

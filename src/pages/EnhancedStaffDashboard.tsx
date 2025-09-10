@@ -108,20 +108,14 @@ const EnhancedStaffDashboard = () => {
       
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
-          id,
-          scheduled_time,
-          status,
-          duration_minutes,
-          notes
-        `)
+        .select('id, scheduled_time, status, duration_minutes, notes')
         .gte('scheduled_time', `${today}T00:00:00`)
         .lt('scheduled_time', `${today}T23:59:59`)
         .order('scheduled_time');
 
       if (error) throw error;
       
-      const formattedAppointments = (data || []).map(apt => ({
+      const formattedAppointments = (data || []).map((apt: any) => ({
         id: apt.id,
         scheduled_time: apt.scheduled_time,
         status: apt.status,
