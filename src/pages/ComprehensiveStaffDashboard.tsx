@@ -123,7 +123,7 @@ const ComprehensiveStaffDashboard = () => {
     }
   };
 
-  const updateAppointmentStatus = async (appointmentId: string, status: string) => {
+  const updateAppointmentStatus = async (appointmentId: string, status: 'booked' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'waiting' | 'in_procedure' | 'billing') => {
     try {
       const { error } = await supabase
         .from('appointments')
