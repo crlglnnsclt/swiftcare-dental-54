@@ -344,10 +344,9 @@ const ComprehensivePatientPortal = () => {
       const { data, error } = await supabase
         .from('queue')
         .select('*, appointments(*)')
-        .eq('patient_id', user?.id)
-        .gte('checked_in_at', `${today}T00:00:00`)
         .eq('status', 'waiting')
-        .single();
+        .gte('created_at', `${today}T00:00:00`)
+        .maybeSingle();
 
       if (error || !data) {
         setIsCheckedIn(false);
@@ -356,7 +355,7 @@ const ComprehensivePatientPortal = () => {
       }
 
       setIsCheckedIn(true);
-      setQueuePosition(data.queue_position || 1);
+      setQueuePosition(data.position || 1);
     } catch (error) {
       console.error('Error fetching queue status:', error);
     }
@@ -912,7 +911,7 @@ const ComprehensivePatientPortal = () => {
                           {new Date(appointment.scheduled_time).toLocaleDateString()}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {appointment.appointment_type} with Dr. {appointment.users?.full_name}
+                          {appointment.appointment_type} with Dr. {appointment.dentist?.full_name || 'TBA'}
                         </p>
                       </div>
                       <Badge className={getStatusColor(appointment.status)}>

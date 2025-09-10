@@ -116,7 +116,18 @@ const EnhancedAdminDashboard = () => {
       const { data, error } = await query;
       if (error) throw error;
       
-      setUsers(data || []);
+      // Transform users to match expected interface
+      const transformedUsers = (data || []).map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        clinic_id: user.clinic_id,
+        is_active: true, // Default to active since this field is required
+        last_login: user.last_login,
+        created_at: user.created_at
+      }));
+      setUsers(transformedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
