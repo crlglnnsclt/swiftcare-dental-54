@@ -104,7 +104,7 @@ const ComprehensiveDentistDashboard = () => {
           patients!inner(
             id,
             full_name,
-            phone,
+            contact_number,
             email,
             medical_history
           )
@@ -116,7 +116,16 @@ const ComprehensiveDentistDashboard = () => {
 
       if (error) throw error;
       
-      setAppointments(data || []);
+      // Transform data to match expected Appointment interface
+      const transformedAppointments = (data || []).map(apt => ({
+        ...apt,
+        appointment_type: apt.notes || 'general_consultation',
+        reason_for_visit: apt.notes || 'General consultation',
+        patient: apt.patients,
+        status: apt.status === 'in_progress' ? 'in_procedure' : apt.status
+      }));
+      
+      setAppointments(transformedAppointments as any);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       toast({
@@ -133,26 +142,28 @@ const ComprehensiveDentistDashboard = () => {
         .from('queue')
         .select(`
           *,
-          patients(
-            id,
-            full_name,
-            phone,
-            email
-          ),
-          appointments(
+          appointments!inner(
             id,
             scheduled_time,
-            appointment_type,
-            reason_for_visit
+            patient_id,
+            notes
           )
         `)
-        .or(`assigned_dentist_id.eq.${profile?.id},assigned_dentist_id.is.null`)
         .eq('status', 'waiting')
-        .order('checked_in_at');
+        .order('created_at');
 
       if (error) throw error;
       
-      setQueueEntries(data || []);
+      // Transform data to match expected QueueEntry interface
+      const transformedQueue = (data || []).map(entry => ({
+        ...entry,
+        patient_id: entry.appointments?.patient_id || '',
+        queue_type: 'appointment' as const,
+        checked_in_at: entry.created_at,
+        patient: null // Will be populated separately if needed
+      }));
+      
+      setQueueEntries(transformedQueue as any);
     } catch (error) {
       console.error('Error fetching queue:', error);
     }
@@ -267,11 +278,11 @@ const ComprehensiveDentistDashboard = () => {
       await supabase
         .from('appointments')
         .insert({
+          patient_id: '00000000-0000-0000-0000-000000000000', // Dummy patient for blocked time
           dentist_id: profile?.id,
           scheduled_time: blockDateTime,
-          status: 'blocked',
-          appointment_type: 'blocked_time',
-          reason_for_visit: 'Time blocked by dentist'
+          status: 'cancelled',
+          notes: 'Time blocked by dentist'
         });
 
       toast({
@@ -307,13 +318,13 @@ const ComprehensiveDentistDashboard = () => {
 
       if (error) throw error;
 
-      setSelectedPatient(patientData);
+      setSelectedPatient(patientData as any);
       
       // Update queue status
       await supabase
         .from('queue')
         .update({
-          status: 'in_progress',
+          status: 'called',
           assigned_dentist_id: profile?.id
         })
         .eq('id', queueEntry.id);
