@@ -131,7 +131,7 @@ class AppointmentManagementModule extends CoreModule {
       const { data: appointments, error } = await supabase
         .from('appointments')
         .select('*')
-        .eq('status', 'scheduled')
+        .eq('status', 'booked')
         .lt('scheduled_time', fifteenMinutesAgo);
 
       if (error) throw error;
@@ -143,8 +143,8 @@ class AppointmentManagementModule extends CoreModule {
         await supabase
           .from('appointments')
           .update({
-            cancellation_reason: 'No-show (15-minute grace period expired)',
-            no_show_grace_period: true
+            cancel_reason: 'No-show (15-minute grace period expired)',
+            no_show_at: new Date().toISOString()
           })
           .eq('id', appointment.id);
       }
@@ -165,12 +165,10 @@ class AppointmentManagementModule extends CoreModule {
         await supabase
           .from('queue')
           .insert({
-            patient_id: appointment.patient_id,
             appointment_id: appointmentId,
-            queue_type: 'appointment',
-            priority: 'medium',
+            priority: 'scheduled',
             status: 'waiting',
-            checked_in_at: new Date().toISOString()
+            position: 1
           });
       }
     } catch (error) {
@@ -210,11 +208,10 @@ class QueueingSystemModule extends CoreModule {
       const { data, error } = await supabase
         .from('queue')
         .insert({
-          patient_id: walkInData.patient_id || null,
-          queue_type: 'walk_in',
-          priority: walkInData.priority || 'medium',
+          appointment_id: walkInData.appointment_id,
+          priority: 'walk_in',
           status: 'waiting',
-          checked_in_at: new Date().toISOString(),
+          position: 1,
           notes: walkInData.reason
         })
         .select()
@@ -290,7 +287,7 @@ class PaperlessWorkflowModule extends CoreModule {
   async signDocument(documentId: string, signatureData: any): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('signed_documents')
+        .from('documents')
         .update({
           ...signatureData,
           signed_at: new Date().toISOString()
@@ -312,13 +309,14 @@ class PaperlessWorkflowModule extends CoreModule {
   private async logDocumentAction(documentId: string, action: string, userId: string) {
     try {
       await supabase
-        .from('document_audit_log')
+        .from('document_audit_trail')
         .insert({
           document_id: documentId,
-          action,
-          user_id: userId,
-          timestamp: new Date().toISOString(),
-          device_info: navigator.userAgent,
+          document_type: 'digital_form',
+          action_type: action,
+          performed_by: userId,
+          performed_at: new Date().toISOString(),
+          metadata: { device_info: navigator.userAgent }
         });
     } catch (error) {
       console.error('Error logging document action:', error);
