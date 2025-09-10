@@ -130,12 +130,19 @@ const ComprehensiveStaffDashboard = () => {
             reason_for_visit
           )
         `)
-        .in('status', ['waiting', 'in_progress'])
+        .in('status', ['waiting', 'called'])
         .order('checked_in_at');
 
       if (error) throw error;
       
-      setQueueEntries(data || []);
+      // Transform data to match expected interface
+      const transformedQueue = (data || []).map(entry => ({
+        ...entry,
+        patient_id: entry.appointments?.patient_id || '',
+        queue_type: 'appointment' as const,
+        checked_in_at: entry.created_at
+      }));
+      setQueueEntries(transformedQueue as any);
     } catch (error) {
       console.error('Error fetching queue:', error);
     }
@@ -165,7 +172,13 @@ const ComprehensiveStaffDashboard = () => {
 
       if (error) throw error;
       
-      setAppointments(data || []);
+      // Transform data to match expected interface
+      const transformedAppointments = (data || []).map(apt => ({
+        ...apt,
+        appointment_type: apt.notes || 'general_consultation',
+        reason_for_visit: apt.notes || 'General consultation'
+      }));
+      setAppointments(transformedAppointments as any);
     } catch (error) {
       console.error('Error fetching appointments:', error);
     }
@@ -190,14 +203,17 @@ const ComprehensiveStaffDashboard = () => {
   const fetchInventoryAlerts = async () => {
     try {
       const { data, error } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .select('*')
-        .lt('current_stock', supabase.raw('minimum_stock'))
         .order('current_stock');
 
       if (error) throw error;
       
-      setInventoryAlerts(data || []);
+      // Filter items where stock is below minimum
+      const lowStockItems = (data || []).filter(item => 
+        item.current_stock < item.minimum_stock
+      );
+      setInventoryAlerts(lowStockItems);
     } catch (error) {
       console.error('Error fetching inventory alerts:', error);
     }
