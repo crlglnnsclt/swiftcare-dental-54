@@ -75,7 +75,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('AI Assistant Error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
       suggestion: 'AI assistant temporarily unavailable. Please proceed manually.' 
     }), {
       status: 500,

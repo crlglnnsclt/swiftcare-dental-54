@@ -2377,50 +2377,79 @@ export type Database = {
       queue: {
         Row: {
           appointment_id: string
+          assigned_dentist_id: string | null
+          checked_in_at: string | null
           created_at: string
           estimated_wait_minutes: number | null
           estimated_wait_time: number | null
           id: string
           manual_order: number | null
+          notes: string | null
           override_reason: string | null
+          patient_id: string | null
           position: number
           predicted_completion_time: string | null
           priority: Database["public"]["Enums"]["queue_priority"] | null
+          queue_type: string | null
           status: Database["public"]["Enums"]["queue_status"] | null
           treatment_duration_override: number | null
           updated_at: string
         }
         Insert: {
           appointment_id: string
+          assigned_dentist_id?: string | null
+          checked_in_at?: string | null
           created_at?: string
           estimated_wait_minutes?: number | null
           estimated_wait_time?: number | null
           id?: string
           manual_order?: number | null
+          notes?: string | null
           override_reason?: string | null
+          patient_id?: string | null
           position: number
           predicted_completion_time?: string | null
           priority?: Database["public"]["Enums"]["queue_priority"] | null
+          queue_type?: string | null
           status?: Database["public"]["Enums"]["queue_status"] | null
           treatment_duration_override?: number | null
           updated_at?: string
         }
         Update: {
           appointment_id?: string
+          assigned_dentist_id?: string | null
+          checked_in_at?: string | null
           created_at?: string
           estimated_wait_minutes?: number | null
           estimated_wait_time?: number | null
           id?: string
           manual_order?: number | null
+          notes?: string | null
           override_reason?: string | null
+          patient_id?: string | null
           position?: number
           predicted_completion_time?: string | null
           priority?: Database["public"]["Enums"]["queue_priority"] | null
+          queue_type?: string | null
           status?: Database["public"]["Enums"]["queue_status"] | null
           treatment_duration_override?: number | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_queue_assigned_dentist"
+            columns: ["assigned_dentist_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_queue_patient_id"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "queue_appointment_id_fkey"
             columns: ["appointment_id"]
