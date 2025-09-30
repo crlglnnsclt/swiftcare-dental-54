@@ -54,7 +54,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
     super_admin: [
       {
         title: "System Admin",
-        url: "/admin-dashboard",
+        url: "/admin/dashboard",
         icon: Shield,
         roles: ["super_admin"],
         description: "Global system oversight"
@@ -78,7 +78,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
     clinic_admin: [
       {
         title: "Admin Panel",
-        url: "/admin-dashboard",
+        url: "/admin/dashboard",
         icon: Shield,
         roles: ["clinic_admin"],
         description: "Clinic management"
@@ -102,7 +102,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
     dentist: [
       {
         title: "My Practice",
-        url: "/dentist-dashboard",
+        url: "/dentist/dashboard",
         icon: Stethoscope,
         roles: ["dentist"],
         description: "Patient care and treatment"
@@ -119,7 +119,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
     staff: [
       {
         title: "Operations",
-        url: "/staff-dashboard",
+        url: "/staff/dashboard",
         icon: Users,
         roles: ["staff"],
         description: "Queue and patient management"
@@ -136,7 +136,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
     patient: [
       {
         title: "My Portal",
-        url: "/patient-portal",
+        url: "/patient/dashboard",
         icon: User,
         roles: ["patient"],
         description: "Appointments and health records"
