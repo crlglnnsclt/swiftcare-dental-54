@@ -40,15 +40,8 @@ interface NavItem {
 
 // Streamlined navigation based on enhanced workflows
 const getNavigationByRole = (role: string | undefined): NavItem[] => {
-  const baseNav: NavItem[] = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: Home,
-      roles: ["super_admin", "clinic_admin", "dentist", "staff", "patient"],
-      description: "Main dashboard"
-    }
-  ];
+  // No base nav - go directly to role-specific dashboards
+  const baseNav: NavItem[] = [];
 
   const roleSpecificNav: Record<string, NavItem[]> = {
     super_admin: [
@@ -61,7 +54,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
       },
       {
         title: "Analytics",
-        url: "/analytics",
+        url: "/admin/analytics",
         icon: BarChart3,
         roles: ["super_admin"],
         description: "System-wide analytics"
@@ -85,7 +78,7 @@ const getNavigationByRole = (role: string | undefined): NavItem[] => {
       },
       {
         title: "Analytics",
-        url: "/analytics",
+        url: "/admin/analytics",
         icon: BarChart3,
         roles: ["clinic_admin"],
         description: "Clinic analytics"
